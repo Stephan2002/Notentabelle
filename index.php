@@ -1,3 +1,6 @@
+<!-- Startseite mit Kurzbeschreibung der Applikation, Login-Formular und Links auf Registrierungseite, Demo & Ueber Notentabelle.
+Loggt ausserdem den User ein und leitet auf app.php um-->
+
 <html>
     <head>
         <title>Notentabelle</title>

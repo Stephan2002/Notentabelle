@@ -1,0 +1,1 @@
+// Javascript fuer Menusteuerung (z.B. in app.php, about.php, account.php)

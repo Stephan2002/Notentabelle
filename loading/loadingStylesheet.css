@@ -1,0 +1,101 @@
+body.stop-scrolling-loading {
+
+    overflow: hidden;
+
+}
+
+
+.loading h1, .loadingElement h1 {
+
+    color: white;
+    margin: 15px;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 25px;
+
+}
+
+.loading, .loadingElement {
+
+    background-color: rgba(0,0,0,0.5);
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    height: 100%;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    z-index: 10;
+    transition: opacity 0.2s;
+    animation-name: loadingBackgroundAnimation;
+    animation-duration: 0.2s;
+
+}
+
+.loadingElement {
+
+    position: absolute;
+
+}
+
+.loading.solid, .loadingElement.solid {
+
+    background-color: rgb(100,100,100);
+
+}
+
+
+.loading svg, .loadingElement svg {
+
+    background-color: transparent;
+    animation-name: loadingAnimation;
+    animation-duration: 1s;
+    animation-iteration-count: infinite;
+    animation-timing-function: linear;
+    max-width: 100px;
+    max-height: 100px;
+    width: 20%;
+
+}
+
+.loading svg line, .loadingElement svg line {
+
+    stroke: white;
+    stroke-width: 18px;
+    stroke-linecap: round;
+
+}
+
+@keyframes loadingAnimation {
+
+    0%      {transform: rotate(0deg);}
+    9.999%  {transform: rotate(0deg);}
+    10%     {transform: rotate(36deg);}
+    19.999% {transform: rotate(36deg);}
+    20%     {transform: rotate(72deg);}
+    29.999% {transform: rotate(72deg);}
+    30%     {transform: rotate(108deg);}
+    39.999% {transform: rotate(108deg);}
+    40%     {transform: rotate(144deg);}
+    49.999% {transform: rotate(144deg);}
+    50%     {transform: rotate(180deg);}
+    59.999% {transform: rotate(180deg);}
+    60%     {transform: rotate(216deg);}
+    69.999% {transform: rotate(216deg);}
+    70%     {transform: rotate(252deg);}
+    79.999% {transform: rotate(252deg);}
+    80%     {transform: rotate(288deg);}
+    89.999% {transform: rotate(288deg);}
+    90%     {transform: rotate(324deg);}
+    99.999% {transform: rotate(324deg);}
+    100%    {transform: rotate(360deg);}
+
+}
+
+@keyframes loadingBackgroundAnimation {
+
+    from {opacity: 0;}
+    to {opacity: 1;}
+
+}

@@ -1,0 +1,1 @@
+// Javascript für register.php

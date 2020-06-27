@@ -1,0 +1,1 @@
+<!-- Seite, die durch Validierungs-E-Mail aufgerufen wird. Validiert den Account und informiert User darueber. -->

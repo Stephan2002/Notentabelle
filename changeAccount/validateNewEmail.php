@@ -1,0 +1,1 @@
+<!-- Seite, die durch Validierungs-E-Mail aufgerufen wird. Validiert ersetzt die E-Mail-Adresse durch die neue und informiert User darueber. -->

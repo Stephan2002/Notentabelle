@@ -1,0 +1,1 @@
+<!-- Kernseite der Applikation, hier werden alle Semester/Noten angezeigt. -->

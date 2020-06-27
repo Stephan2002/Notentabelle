@@ -1,0 +1,1 @@
+// Javascript fuer account.php

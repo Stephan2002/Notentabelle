@@ -1,0 +1,1 @@
+<!-- Registrierungsseite mit Formular für Registrierung. Leitet auf registerInfo weiter -->

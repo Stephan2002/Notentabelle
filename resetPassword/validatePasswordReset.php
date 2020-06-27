@@ -1,0 +1,1 @@
+<!-- Seite, die durch Passwort-Vergessen-E-Mail aufgerufen wird. Validiert die Zurücksetzung des Passworts und verlangt das neue (Link auf resetPassword.php). -->

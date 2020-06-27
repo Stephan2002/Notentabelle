@@ -1,0 +1,1 @@
+<!-- Sendet E-Mail an neue E-Mail-Adresse zur Validierung. Informierung des neuen Kunden über Validierungsprozess. -->

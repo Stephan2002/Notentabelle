@@ -1,0 +1,1 @@
+<!-- Versendet E-Mail an User, der das Passwort vergessen hat. -->
