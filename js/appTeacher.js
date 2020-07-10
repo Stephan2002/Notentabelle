@@ -1,1 +1,0 @@
-// Javascript fuer app.php bei Lehrpersonen
