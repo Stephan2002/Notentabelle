@@ -1,62 +1,23 @@
 
 class Loading {
 
-	constructor(solid, parentElement) {
-
-		if(parentElement === undefined) {
-
-			if(Loading.exists) {
-
-				return;
-
-			}
-
-			Loading.exists = true;
-
-		} else {
-
-			if(parentElement instanceof HTMLElement) {
-				
-				if(parentElement.getElementsByClassName("loadingElement").length == 0) {
-
-					this.parentElement = parentElement;
-
-				} else {
-
-					return;
-
-				}
-
-			} else {
-
-				return;
-
-			}
-
-		}
-
-		this.element = document.createElement("DIV");
-
-		if(parentElement === undefined) {
-
-			this.element.id = "loading";
-			this.element.classList.add("loading");
-
-		} else {
-
-			this.element.classList.add("loadingElement");
-
-		}
-
-		this.element.tabIndex = "-1";
-
-		if(solid) {
-
-			this.element.classList.add("solid");
-
-		}
+	static create(parentElement = null, type = undefined) {
 		
-		this.element.innerHTML = 
+		if(!parentElement) {
+
+			parentElement = document.body;
+			var isBody = true;
+
+		}
+
+		var element = document.createElement("DIV");
+
+		element.classList.add("loadingElement");
+		element.tabIndex = "-1";
+		element.style.display = "flex";
+		element.addEventListener("keydown", Loading.cancelEvent);
+		
+		element.innerHTML = 
 			'<h1>Laden...</h1>' +
             '<svg height="200" width="200" viewbox="-100 -100 200 200">' +
             '    <line x1="0" y1="-90" x2="0" y2="-50" transform="rotate(0, 0, 0)"   stroke-opacity="0.4"/>' +
@@ -69,73 +30,92 @@ class Loading {
             '    <line x1="0" y1="-90" x2="0" y2="-50" transform="rotate(252, 0, 0)" stroke-opacity="0.8"/>' +
             '    <line x1="0" y1="-90" x2="0" y2="-50" transform="rotate(288, 0, 0)" stroke-opacity="0.9"/>' +
             '    <line x1="0" y1="-90" x2="0" y2="-50" transform="rotate(324, 0, 0)" stroke-opacity="1"/>' +
-            '</svg>';
+			'</svg>';
+			
+		if(type === "solid" || type === "transparent") {
 
-		if(parentElement === undefined) {
-
-			this.element.addEventListener("touchmove", function (event) {
-
-				event.stopPropagation();
-
-			});
-
-			document.body.addEventListener("keydown", cancelEvent);
-
-			document.body.appendChild(this.element);
-
-			document.body.classList.add("stop-scrolling-loading");
-			document.addEventListener("touchmove", Loading.cancelEvent, { passive: false });
-
-			this.element.focus();
-
-		} else {
-
-			if(parentElement instanceof HTMLElement) {
-
-				parentElement.appendChild(this.element);
-
-			}
+			element.classList.add(type);
 
 		}
 
+		if(isBody) {
+
+			element.classList.add("isBody");
+
+		}
+		
+		parentElement.appendChild(element);
+
+		element.focus();
+
+
 	}
 
-	close() {
+	static remove(parentElement = null) {
 
-		Loading.close(this.parentElement);
+		if(!parentElement) {
+
+			parentElement = document.body;
+			var isBody = true;
+
+		}
+
+		var element = parentElement.querySelector(":scope > .loadingElement");
+
+		if(!element) {
+
+			return;
+
+		}
+
+		parentElement.removeChild(element);
 
 	}
 
+	static show(parentElement = null, type = undefined, createOnMissing = true) {
 
-	static close(parentElement) {
+		if(!parentElement) {
 
-		var element;
+			parentElement = document.body;
+			var isBody = true;
 
-		if(parentElement === undefined) {
+		}
 
-			if(!Loading.exists) {
+		var element = parentElement.querySelector(":scope > .loadingElement");
+
+		if(!element) {
+
+			if(createOnMissing) {
+
+				this.create(isBody ? null : parentElement, type);
+
+			} else {
 
 				return;
 
 			}
 
-			Loading.exists = false;
-
-			element = document.getElementById("loading");
-
 		} else {
 
-			if(parentElement instanceof HTMLElement) {
-				
-				if(parentElement.getElementsByClassName("loadingElement").length >= 1) {
+			if(element.style.display === "none") {
 
-					element = parentElement.getElementsByClassName("loadingElement")[0];
+				element.style.display = "flex";
+				element.style.opacity = 1;
 
-				} else {
+				if(type !== undefined) {
 
-					return;
+					element.classList.remove("solid");
+					element.classList.remove("transparent");
+
+					if(type === "solid" || type === "transparent") {
+
+						element.classList.add(type);
+
+					}
 
 				}
+
+				element.focus();
 
 			} else {
 
@@ -145,21 +125,54 @@ class Loading {
 
 		}
 
+		if(isBody) {
+
+			document.body.classList.add("stop-scrolling-loading");
+			document.body.addEventListener("touchmove", Loading.cancelEvent, { passive: false });
+
+		}
+
+	}
+
+	static hide(parentElement = null, removeOnHide = false) {
+
+		if(!parentElement) {
+
+			parentElement = document.body;
+			var isBody = true;
+
+		}
+
+		var element = parentElement.querySelector(":scope > .loadingElement");
+
+		if(!element || element.style.display === "none") {
+
+			return;
+
+		}
+
 		element.style.opacity = 0;
 
 		setTimeout(function () {
 
-			element.parentNode.removeChild(element);
+			element.style.display = "none";
+			element.blur();
+
+			if(removeOnHide) {
+
+				parentElement.removeChild(element);
+
+			}
+
+			if(isBody) {
+
+				document.body.classList.remove("stop-scrolling-loading");
+				document.removeEventListener("touchmove", Loading.cancelEvent);
+
+			}
 
 		}, 200);
 
-		if(parentElement === undefined) {
-
-			document.body.classList.remove("stop-scrolling-loading");
-			document.removeEventListener("touchmove", Loading.cancelEvent);
-			document.body.removeEventListener("keydown", cancelEvent);
-
-		}
 
 	}
 
@@ -170,8 +183,6 @@ class Loading {
 	}
 
 }
-
-Loading.exists = false;
 
 
 

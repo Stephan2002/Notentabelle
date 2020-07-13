@@ -110,6 +110,8 @@ if(isset($_GET["error"]) && is_numeric($_GET["error"])) {
 				header("Location: app");
 	
 			}
+
+			$mysqli->close();
 	
 		}
 	
@@ -148,7 +150,7 @@ if(isset($_GET["error"]) && is_numeric($_GET["error"])) {
 		
 		if(!$isAlreadyLoggedIn && false) { 
 	
-			include("phpScripts/login.php");
+			include("phpScripts/autoLogin.php");
 	
 			session_start();
 			$error = login(); // Wird spaeter eingefuegt: Automatischer Login-Prozess
@@ -157,7 +159,7 @@ if(isset($_GET["error"]) && is_numeric($_GET["error"])) {
 	
 				$isAlreadyLoggedIn = true;
 	
-			}
+            }
 	
 		}
 		
@@ -176,6 +178,7 @@ if(isset($_GET["error"]) && is_numeric($_GET["error"])) {
 		<link rel="stylesheet" href="/css/stylesheet.css">
 		<link rel="stylesheet" href="/css/indexStylesheet.css">
 		
+		<!-- Icons -->
 		<link rel="icon" type="image/png" href="img/logo/logo_low.png">
 		<link rel="icon" type="image/vnd.microsoft.icon" href="img/logo/logo.ico">
 		<link rel="apple-touch-icon" href="img/logo/logo_white.png">
@@ -184,6 +187,7 @@ if(isset($_GET["error"]) && is_numeric($_GET["error"])) {
 	</head>
 	
 	<body>
+		<?php include("phpScripts/preload.php"); ?>
 		<nav>
 			<div id="header">
 				<h1>Notentabelle</h1>
@@ -280,7 +284,7 @@ if(isset($_GET["error"]) && is_numeric($_GET["error"])) {
 
 			} elseif($isAlreadyLoggedIn) {
 
-				echo 	"<div class='info yellow'>". 
+				echo 	"<div class='info gray'>". 
 							"<p class='blankLine_small'>Sie sind bereits eingeloggt</p>" .
 							"<p><a href='app'>Hier</a> klicken, um zur App zu gelangen.</p>" .
 						"</div>";

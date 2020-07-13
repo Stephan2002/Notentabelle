@@ -17,10 +17,10 @@ body.stop-scrolling {
     justify-content: center;
     align-items: center;
     background-color: rgba(0,0,0,0.3);
-    opacity: 0;
     animation-name: dialogAnimation;
 	animation-duration: 0.2s;
-	transition: opacity 0.2s;
+    transition: opacity 0.2s;
+    opacity: 0;
     
 }
 

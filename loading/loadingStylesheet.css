@@ -4,20 +4,10 @@ body.stop-scrolling-loading {
 
 }
 
-
-.loading h1, .loadingElement h1 {
-
-    color: white;
-    margin: 15px;
-    font-family: Arial, Helvetica, sans-serif;
-    font-size: 25px;
-
-}
-
-.loading, .loadingElement {
+.loadingElement {
 
     background-color: rgba(0,0,0,0.5);
-    position: fixed;
+    position: absolute;
     top: 0px;
     left: 0px;
     height: 100%;
@@ -30,23 +20,48 @@ body.stop-scrolling-loading {
     transition: opacity 0.2s;
     animation-name: loadingBackgroundAnimation;
     animation-duration: 0.2s;
+    stroke: white;
+    outline: none;
 
 }
 
-.loadingElement {
+.loadingElement.isBody {
 
-    position: absolute;
+    position: fixed;
 
 }
 
-.loading.solid, .loadingElement.solid {
+.loadingElement h1 {
+
+    margin: 15px;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 25px;
+    color: white;
+
+}
+
+
+.loadingElement.solid {
 
     background-color: rgb(100,100,100);
 
 }
 
+.loadingElement.transparent {
 
-.loading svg, .loadingElement svg {
+    background-color: transparent;
+    stroke: rgb(50,50,50);
+
+}
+
+.loadingElement.transparent h1 {
+
+    color: rgb(50,50,50);
+
+}
+
+
+.loadingElement svg {
 
     background-color: transparent;
     animation-name: loadingAnimation;
@@ -59,9 +74,8 @@ body.stop-scrolling-loading {
 
 }
 
-.loading svg line, .loadingElement svg line {
+.loadingElement svg line {
 
-    stroke: white;
     stroke-width: 18px;
     stroke-linecap: round;
 
