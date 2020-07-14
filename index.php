@@ -52,7 +52,7 @@ if(isset($_GET["error"]) && is_numeric($_GET["error"])) {
 	
 		if($error === 0) {
 	
-			$mysqli = new mysqli("localhost", "application", "IDlI4sZBMSjyF3wk", "notentabelle");
+			$mysqli = new mysqli("localhost", "application", "VPpCaabN5bl76rnW", "notentabelle");
 	
 			if($mysqli->connect_errno) {
 	
