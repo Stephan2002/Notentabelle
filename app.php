@@ -128,6 +128,23 @@ include("phpScripts/login.php");
 				</tbody>
 			</table>
 
+			<?php if($_SESSION["type"] === "teacher" || $_SESSION["type"] === "admin") { ?>
+
+			<table id="tests_studentTable_whole" style="margin-top: 50px;">
+                <thead>
+					<tr>
+						<th>Vorname</th>
+						<th>Nachname</th>
+                        <th colspan="2">Note</th>
+						<th></th>
+					</tr>
+				</thead>
+				<tbody id="tests_studentTable">
+				</tbody>
+			</table>
+
+			<?php } ?>
+
             <div class="container">
                 <?php if($_SESSION["type"] === "teacher" || $_SESSION["type"] === "admin") { ?>
                     

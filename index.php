@@ -25,6 +25,11 @@ Loggt ausserdem den User ein oder aus
 
 */
 
+define("DB_HOST", "localhost");
+define("DB_USERNAME", "application");
+define("DB_PASSWORD", "VPpCaabN5bl76rnW");
+define("DB_DBNAME", "notentabelle");
+
 $isAlreadyLoggedIn = false;
 $logout = false;
 
@@ -52,15 +57,16 @@ if(isset($_GET["error"]) && is_numeric($_GET["error"])) {
 	
 		if($error === 0) {
 	
-			$mysqli = new mysqli("localhost", "application", "VPpCaabN5bl76rnW", "notentabelle");
+			$mysqli = new mysqli(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_DBNAME);
 	
 			if($mysqli->connect_errno) {
 	
-				$error = 12;
+				header("Location: /error.php?error=0");
+				exit;
 	
 			}
 	
-			$stmt = $mysqli->prepare("SELECT * FROM `users` WHERE `username` = ? OR `eMail` = ?;");
+			$stmt = $mysqli->prepare("SELECT userID, userName, type, password, isVerified, deleteTimestamp FROM users WHERE username = ? OR eMail = ?");
 			$stmt->bind_param("ss", $_POST["username"], $_POST["username"]);
 			$stmt->execute();
 	
@@ -94,12 +100,9 @@ if(isset($_GET["error"]) && is_numeric($_GET["error"])) {
 				$_SESSION["username"] = $results["userName"];
 				$_SESSION["type"] = $results["type"];
 	
-				$stmt->close();
-	
-				$stmt->prepare("UPDATE `users` SET `lastUsed` = NOW() WHERE `userID` = ?");
+				$stmt->prepare("UPDATE users SET lastUsed = NOW() WHERE userID = ?");
 				$stmt->bind_param("i", $_SESSION["userid"]);
 				$stmt->execute();
-				$stmt->close();
 	
 				if($_POST["auto_login"]) {
 	
@@ -111,6 +114,7 @@ if(isset($_GET["error"]) && is_numeric($_GET["error"])) {
 	
 			}
 
+			$stmt->close();
 			$mysqli->close();
 	
 		}
