@@ -6,7 +6,6 @@ Semester oder Semesterordner verschieben
 
 Input:
     semesterID
-    isForeign
 
 */
 

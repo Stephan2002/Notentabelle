@@ -27,7 +27,7 @@ include("phpScripts/login.php");
         <script language="javascript" type="text/javascript" src="dialog/alertScript.js"></script>
         <script language="javascript" type="text/javascript" src="loading/loadingScript.js"></script>
         <script language="javascript" type="text/javascript" src="js/menu.js"></script>
-		<script language="javascript" type="text/javascript" src="js/app.js"></script>
+		<script language="javascript" type="text/javascript" src="js/app/app.js"></script>
 		
 		<noscript><meta http-equiv="refresh" content="0; error?error=1&origin=app"></noscript>
 		
