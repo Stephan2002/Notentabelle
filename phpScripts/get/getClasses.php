@@ -9,41 +9,52 @@ Input:
 
 */
 
-include($_SERVER["DOCUMENT_ROOT"] . "/phpScripts/getElement.php");
+function getClasses(Element $element) {
 
-session_start();
+    global $mysqli;
 
-if(!isset($_SESSION["userid"])) {
+    $stmt = $mysqli->prepare("SELECT * FROM classes WHERE userID = ? AND deleteTimestamp IS NULL");
+    $stmt->bind_param("i", $_SESSION["userid"]);
+    $stmt->execute();
 
-    throwError(ERROR_NOTLOGGEDIN);
-
-}
-
-session_write_close();
-
-if($_SESSION["type"] !== "teacher" && $_SESSION["type"] !== "admin") {
-
-    throwError(ERROR_ONLYTEACHER);
+    $results = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    $element->childrenData = $results;
 
 }
 
-if(!connectToDatabase()) {
+if(!isset($isNotMain)) {
 
-    throwError(ERROR_UNKNOWN);
+    include($_SERVER["DOCUMENT_ROOT"] . "/phpScripts/getElement.php");
+
+    session_start();
+
+    if(!isset($_SESSION["userid"])) {
+
+        throwError(ERROR_NOTLOGGEDIN);
+
+    }
+
+    session_write_close();
+
+    if($_SESSION["type"] !== "teacher" && $_SESSION["type"] !== "admin") {
+
+        throwError(ERROR_ONLYTEACHER);
+
+    }
+
+    if(!connectToDatabase()) {
+
+        throwError(ERROR_UNKNOWN);
+
+    }
+
+    $class = new StudentClass(ERROR_NONE, Element::ACCESS_OWNER, true);
+    $class->isRoot = true;
+
+    getClasses($class);
+    $class->sendResponse();
 
 }
-
-$stmt = $mysqli->prepare("SELECT * FROM classes WHERE userID = ? AND deleteTimestamp IS NULL");
-$stmt->bind_param("i", $_SESSION["userid"]);
-$stmt->execute();
-
-$results = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-
-$class = new StudentClass(ERROR_NONE, Element::ACCESS_OWNER, true);
-$class->isRoot = true;
-$class->childrenData = $results;
-
-$class->sendResponse();
 
 
 ?>

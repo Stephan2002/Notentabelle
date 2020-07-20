@@ -269,13 +269,13 @@ if(isset($_GET["error"]) && is_numeric($_GET["error"])) {
 					
 				} elseif ($error === 10) {
 
-					$text .=	"<p class='blankLine_small'>Dieses Konto ist gelöscht worden.</p>" .
-								"<p>Bitte zur Wiederherstellung den Support kontaktieren.</p>";
-					
-				} elseif ($error === 11) {
-					
 					$text .=	"<p class='blankLine_small'>Ihr Konto ist noch nicht freigeschaltet.</p>" .
 								"<p>Für die Freischaltung klicken Sie bitte auf den Link, den Sie per E-Mail erhalten haben.</p>";
+		
+				} elseif ($error === 11) {
+					
+					$text .=	"<p class='blankLine_small'>Dieses Konto ist gelöscht worden.</p>" .
+								"<p>Bitte zur Wiederherstellung den Support kontaktieren.</p>";
 					
 				} elseif ($error === 12) {
 					

@@ -1,4 +1,4 @@
-<!-- Dient dazu, ein Ladezeichen einzublenden, bis die Seite vollstaendig geladeb wurde. Wird auf allen Seiten inkludiert. -->
+<!-- Dient dazu, ein Ladezeichen einzublenden, bis die Seite vollstaendig geladen wurde. Wird auf allen Seiten inkludiert. -->
 <div id="preload">
     <style>
         body.stop-scrolling-preload {

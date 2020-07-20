@@ -44,7 +44,6 @@ class Element {
     public $type;
     public $accessType; // int
     public $writingPermission; // bool
-    public $isRoot = false; // bool
     public $data; // array
 
     public $childrenData; // array
@@ -244,7 +243,7 @@ function getSemester(int $semesterID, bool $checkOnlyForTemplate = false) : Seme
                 $stmt->close();
 
                 $semester = new Semester(0, Element::ACCESS_STUDENT, false, $data);
-                $semester->studentID = $studentData["studentID"];
+                $semester->data["studentID"] = $studentData["studentID"];
 
                 return $semester;
 
