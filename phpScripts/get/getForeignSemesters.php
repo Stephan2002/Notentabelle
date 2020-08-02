@@ -4,7 +4,7 @@
 
 Laedt alle fremden Semester, auf die der Nutzer Zugriff hat
 
-Input:
+Input als JSON per POST:
     Kein Input
 
 
@@ -67,7 +67,7 @@ function getForeignSemesters(Semester &$element) {
 
 if(!isset($isNotMain)) {
 
-    include($_SERVER["DOCUMENT_ROOT"] . "/phpScripts/getElement.php");
+    include($_SERVER["DOCUMENT_ROOT"] . "/phpScripts/element.php");
 
     session_start();
 
@@ -85,7 +85,8 @@ if(!isset($isNotMain)) {
     
     }
 
-    $semester = new Semester(ERROR_NONE, Element::ACCESS_OWNER, true);
+    $semester = new Element(ERROR_NONE, Element::ACCESS_OWNER, true);
+    $semester->type = Element::TYPE_FOREIGNT_SEMESTERS;
     $semester->isRoot = true;
 
     getForeignSemesters($semester);

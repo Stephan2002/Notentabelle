@@ -4,7 +4,7 @@
 
 Laedt Semester/Ordner, falls Zugriff erlaubt
 
-Input:
+Input als JSON per POST:
     semesterID (Ordner ID) (Falls nicht vorhanden: Hauptordner des Benutzers)
     isTemplate (Falls Vorlagen im Hauptordner angefordert wurden)
 
@@ -48,7 +48,7 @@ function getSemesters(Semester &$element) {
 
 }
 
-include($_SERVER["DOCUMENT_ROOT"] . "/phpScripts/getElement.php");
+include($_SERVER["DOCUMENT_ROOT"] . "/phpScripts/element.php");
 
 session_start();
 
@@ -60,13 +60,15 @@ if(!isset($_SESSION["userid"])) {
 
 session_write_close();
 
-if(isset($_POST["semesterid"]) && is_numeric($_POST["semesterid"])) {
+$data = getData();
 
-    $semesterID = (int)$_POST["semesterid"];
+if(isset($data["semesterID"]) && is_numeric($data["semesterID"])) {
+
+    $semesterID = (int)$data["semesterID"];
 
 }
 
-$isTemplate = isset($_POST["is_template"]);
+$isTemplate = isset($data["isTemplate"]);
 
 if(!connectToDatabase()) {
 

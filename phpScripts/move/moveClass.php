@@ -4,7 +4,7 @@
 
 Klasse an anderen Lehrer uebertragen
 
-Input: 
+Input als JSON per POST bestehend aus Array, jeweils mit: 
     classID
     userName
 

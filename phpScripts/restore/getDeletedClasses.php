@@ -4,7 +4,7 @@
 
 Laedt geloeschte Klassen
 
-Input:
+Input als JSON per POST:
     Kein Input
 
 

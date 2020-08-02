@@ -26,12 +26,29 @@ function throwError(int $errorCode) {
 
 }
 
+function getData() {
+
+    $data = json_decode(file_get_contents("php://input"), true);
+
+    if(json_last_error()) {
+
+        throwError(ERROR_BADINPUT);
+
+    }
+
+    return $data;
+
+}
+
 class Element {
 
     const TYPE_SEMESTER = 0;
     const TYPE_TEST = 1;
     const TYPE_CLASS = 2;
     const TYPE_STUDENT = 3;
+    const TYPE_FOREIGN_SEMESTERS = 4;
+    const TYPE_FOREIGN_CLASSES = 5;
+    const TYPE_PUBLIC_TEMPLATES = 6;
 
     const ACCESS_UNDEFINED = -1;
     const ACCESS_OWNER = 0;

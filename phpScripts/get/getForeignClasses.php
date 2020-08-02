@@ -4,7 +4,7 @@
 
 Laedt alle fremden Klassen, auf die der Nutzer Zugriff hat.
 
-Input:
+Input als JSON per POST:
     Kein Input
 
 
@@ -25,7 +25,7 @@ function getForeignClasses(StudentClass &$element) {
 
 if(!isset($isNotMain)) {
 
-    include($_SERVER["DOCUMENT_ROOT"] . "/phpScripts/getElement.php");
+    include($_SERVER["DOCUMENT_ROOT"] . "/phpScripts/element.php");
 
     session_start();
 
@@ -49,7 +49,8 @@ if(!isset($isNotMain)) {
     
     }
 
-    $class = new StudentClass(ERROR_NONE, Element::ACCESS_OWNER, true);
+    $class = new Element(ERROR_NONE, Element::ACCESS_OWNER, true);
+    $class->type = Element::TYPE_FOREIGN_CLASSES;
     $class->isRoot = true;
 
     getForeignClasses($class);

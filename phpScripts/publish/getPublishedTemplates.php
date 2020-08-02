@@ -4,7 +4,7 @@
 
 Laedt alle eigenen veroeffentlichten Semester
 
-Input:
+Input als JSON per POST:
     Kein Input
 
 

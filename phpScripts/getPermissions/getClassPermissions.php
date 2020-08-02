@@ -4,7 +4,7 @@
 
 Laedt Personen mit Zugriffs-/Schreibrecht auf diese Klasse
 
-Input:
+Input als JSON per POST:
     classID
 
 

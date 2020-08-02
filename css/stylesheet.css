@@ -156,7 +156,7 @@ nav h1 {
 
 
 
-#folderAverage {
+#averageFooter {
 	
 	width: 100%;
 	padding: 8px 0px;
@@ -166,15 +166,20 @@ nav h1 {
 	position: fixed;
 	bottom: 0px;
 	left: 0px;
-	font-size: 20px;
 	
 	
 }
 
-#folderAverage #mark {
+#averageFooter p {
 	
 	font-size: 16px;
 	
+}
+
+#averageFooter p.averageFooter_big {
+
+	font-size: 20px;
+
 }
 
 

@@ -4,7 +4,7 @@
 
 Laedt geloeschte Schueler
 
-Input:
+Input als JSON per POST:
     classID
 
 

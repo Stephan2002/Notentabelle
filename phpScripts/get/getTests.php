@@ -4,7 +4,7 @@
 
 Laedt alle Pruefugen und Ordner eines Ordners/Fach, sofern der Nutzer Zugriff hat.
 
-Input:
+Input als JSON per POST:
     testID (OrdnerID)
     semesterID (falls testID nicht angeben, weil kein Ordner, sondern Fach)
     withMarks
@@ -365,7 +365,7 @@ function getTests(Element &$test, bool $isTest = true, bool $withMarks = false) 
 
 if(!isset($isNotMain)) {
 
-    include($_SERVER["DOCUMENT_ROOT"] . "/phpScripts/getElement.php");
+    include($_SERVER["DOCUMENT_ROOT"] . "/phpScripts/element.php");
 
     session_start();
 
@@ -377,17 +377,19 @@ if(!isset($isNotMain)) {
 
     session_write_close();
 
-    if(isset($_POST["testid"]) && is_numeric($_POST["testid"])) {
+    $data = getData();
 
-        $testID = (int)$_POST["testid"];
+    if(isset($data["testID"]) && is_numeric($data["testID"])) {
+
+        $testID = (int)$data["testID"];
 
     }
 
     if(!isset($testID)) {
 
-        if(isset($_POST["semesterid"]) && is_numeric($_POST["semesterid"])) {
+        if(isset($data["semesterID"]) && is_numeric($data["semesterID"])) {
 
-            $semesterID = (int)$_POST["semesterid"];
+            $semesterID = (int)$data["semesterID"];
 
         }
 
@@ -405,7 +407,7 @@ if(!isset($isNotMain)) {
     
     }
 
-    if(isset($_POST["isPublicTemplate"])) {
+    if(isset($data["isPublicTemplate"])) {
 
         if(isset($testID)) {
 
@@ -435,7 +437,7 @@ if(!isset($isNotMain)) {
 
     }
 
-    getTests($test, $isTest, isset($_POST["withMarks"]));
+    getTests($test, $isTest, isset($data["withMarks"]));
 
     $test->sendResponse();
 

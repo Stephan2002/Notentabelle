@@ -4,7 +4,7 @@
 
 Laedt Klassen.
 
-Input:
+Input als JSON per POST:
     kein Input
 
 */
@@ -24,7 +24,7 @@ function getClasses(Element $element) {
 
 if(!isset($isNotMain)) {
 
-    include($_SERVER["DOCUMENT_ROOT"] . "/phpScripts/getElement.php");
+    include($_SERVER["DOCUMENT_ROOT"] . "/phpScripts/element.php");
 
     session_start();
 

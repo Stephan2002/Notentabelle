@@ -26,9 +26,19 @@ include("phpScripts/login.php");
 		<script language="javascript" type="text/javascript" src="dialog/dialogScript.js"></script>
         <script language="javascript" type="text/javascript" src="dialog/alertScript.js"></script>
         <script language="javascript" type="text/javascript" src="loading/loadingScript.js"></script>
-        <script language="javascript" type="text/javascript" src="js/menu.js"></script>
-		<script language="javascript" type="text/javascript" src="js/app/app.js"></script>
-		
+        <script language="javascript" type="text/javascript" src="js/app/app.js"></script>
+
+        <?php if($_SESSION["type"] === "teacher" || $_SESSION["type"] === "admin") { ?>
+            <script language="javascript" type="text/javascript" src="js/app/appTeacher.js"></script>
+        <?php } ?>
+
+        <script>
+            var user = {
+                <?php echo "userName: \"" . addslashes($_SESSION["username"]) . "\","; ?>
+                <?php echo "isTeacher: " . ($_SESSION["type"] === "teacher" || $_SESSION["type"] === "admin" ? "true" : "false") ?>
+            };
+        </script>
+
 		<noscript><meta http-equiv="refresh" content="0; error?error=1&origin=app"></noscript>
 		
 	</head>
@@ -39,7 +49,7 @@ include("phpScripts/login.php");
 			<div id="header">
 				<h1>Semesterauswahl</h1>
             </div>
-            <?php include("phpScripts/menu.php"); ?>
+            <script language="javascript" type="text/javascript" src="js/menu.js"></script>
 		</nav>
 
 		<div id="semesters_div" style="display: none">
@@ -53,7 +63,7 @@ include("phpScripts/login.php");
 			<div id="semesters_folders" style="display: none">
 				<h2>Ordner</h2>
 				<table>
-					<tbody id="semesters_folders_table">
+					<tbody id="semesters_folders_tableBody">
 					</tbody>
 				</table>
 			</div>
@@ -61,7 +71,7 @@ include("phpScripts/login.php");
 			<div id="semesters_semesters" style="display: none">
 				<h2>Semester</h2>
 				<table>
-					<tbody id="semesters_folders_table">
+					<tbody id="semesters_folders_tableBody">
 					</tbody>
 				</table>
 			</div>
@@ -84,7 +94,8 @@ include("phpScripts/login.php");
 				</div>
 
 				<button class="button_big positive withMargin">Geteilte Semester</button>
-				<button class="button_big positive" style="margin-top: 50px;">Versteckte Semester anzeigen</button>
+                <button class="button_big positive" style="margin-top: 50px;">Versteckte Semester anzeigen</button>
+                <button class="button_big positive">Gelöschte Semester</button>
 
 				<div class="buttonGroup" id="semesters_editButtons">
 					<button class="button_medium positive">Ordner bearbeiten</button>
@@ -114,7 +125,7 @@ include("phpScripts/login.php");
                 </div>
 			</div>
 
-            <table>
+            <table id="tests_table">
                 <thead>
 					<tr>
 						<th>Name</th>
@@ -124,13 +135,21 @@ include("phpScripts/login.php");
 						<th></th>
 					</tr>
 				</thead>
-				<tbody id="tests_table">
+				<tbody id="tests_tableBody">
 				</tbody>
 			</table>
 
+			<div id="tests_testInfo_div" style="display:none;">
+                <h2>Prüfungsinformationen</h2>
+                <table>
+                    <tbody id="tests_testInfo_tableBody">
+                    </tbody>
+                </table>
+			</div>
+
 			<?php if($_SESSION["type"] === "teacher" || $_SESSION["type"] === "admin") { ?>
 
-			<table id="tests_studentTable_whole" style="margin-top: 50px;">
+			<table id="tests_studentTable" style="margin-top: 50px;">
                 <thead>
 					<tr>
 						<th>Vorname</th>
@@ -139,17 +158,18 @@ include("phpScripts/login.php");
 						<th></th>
 					</tr>
 				</thead>
-				<tbody id="tests_studentTable">
+				<tbody id="tests_studentTableBody">
 				</tbody>
 			</table>
 
 			<?php } ?>
 
-            <div class="container">
+            <div class="container" style="margin-bottom: 100px;">
                 <?php if($_SESSION["type"] === "teacher" || $_SESSION["type"] === "admin") { ?>
                     
                 <button class="button_big positive withMargin">Noten / Punkte bearbeiten</button>
                 <button class="button_big positive withMargin">Versteckte Schüler/innen anzeigen</button>
+                <button class="button_big positive">Gelöschte Elemente</button>
 
                 <?php } ?>
 
@@ -163,20 +183,65 @@ include("phpScripts/login.php");
                 <button class="button_big positive" style="margin-top: 50px;">Notenrechner</button>
                 <button class="button_big positive withMargin">Notenblatt</button>
             </div>
+
+            <div id="averageFooter">
+                <p id="averageFooter_points">Punkte:</p>
+                <p id="averageFooter_average">Schnitt:</p>
+                <p id="averageFooter_points_big" class="averageFooter_big">Punkte:</p>
+                <p id="averageFooter_mark_big" class="averageFooter_big">Note:</p>
+                <p id="averageFooter_plusPoints_big" class="averageFooter_big">Hochpunkte:</p>
+            </div>
 		</div>
 
 		<div id="foreignSemesters_div" style="display: none">
-			<table style="margin-top: 50px;">
-                <thead>
-					<tr>
-						<th>Name</th>
-						<th>Ersteller</th>
-						<th></th>
-					</tr>
-				</thead>
-				<tbody id="foreignSemesters_table">
-				</tbody>
-			</table>
+			<div id="foreignSemesters_shared">
+				<h2>Geteilte Semester</h2>
+				<table style="margin-top: 50px;">
+					<thead>
+						<tr>
+							<th>Name</th>
+							<th>Ersteller</th>
+							<th></th>
+						</tr>
+					</thead>
+					<tbody id="foreignSemesters_shared_tableBody">
+					</tbody>
+				</table>
+			</div>
+
+			<?php if($_SESSION["type"] === "teacher" || $_SESSION["type"] === "admin") { ?>
+
+			<div id="foreignSemesters_teacher">
+				<h2>Mit Zugriff als Lehrperson</h2>
+				<table style="margin-top: 50px;">
+					<thead>
+						<tr>
+							<th>Name</th>
+							<th>Ersteller</th>
+							<th></th>
+						</tr>
+					</thead>
+					<tbody id="foreignSemesters_teacher_tableBody">
+					</tbody>
+				</table>
+			</div>
+
+			<?php } ?>
+
+			<div id="foreignSemesters_student">
+				<h2>Mit Zugriff als Schüler/in</h2>
+				<table style="margin-top: 50px;">
+					<thead>
+						<tr>
+							<th>Name</th>
+							<th>Ersteller</th>
+							<th></th>
+						</tr>
+					</thead>
+					<tbody id="foreignSemesters_student_tableBody">
+					</tbody>
+				</table>
+			</div>
 		</div>
 
 		<?php if($_SESSION["type"] === "teacher" || $_SESSION["type"] === "admin") { ?>
@@ -187,7 +252,7 @@ include("phpScripts/login.php");
 			</div>
 
 			<table>
-				<tbody id="classes_table">
+				<tbody id="classes_tableBody">
 				</tbody>
 			</table>
 
@@ -199,7 +264,8 @@ include("phpScripts/login.php");
 
 				<button class='button_big positive withMargin'>Geteilte Klassen</button>
 
-				<button class="button_big positive" style="margin-top: 50px;">Versteckte / alte Klassen anzeigen</button>
+                <button class="button_big positive" style="margin-top: 50px;">Versteckte / alte Klassen anzeigen</button>
+                <button class="button_big positive">Gelöschte Klassen</button>
 			</div>
 		</div>
 
@@ -217,12 +283,13 @@ include("phpScripts/login.php");
 						<th></th>
 					</tr>
 				</thead>
-				<tbody id="students_table">
+				<tbody id="students_tableBody">
 				</tbody>
 			</table>
 
 			<div class="container">
-				<button class="button_big positive">Versteckte Schüler/innen anzeigen</button>
+                <button class="button_big positive">Versteckte Schüler/innen anzeigen</button>
+                <button class="button_big positive">Gelöschte Schüler/innen</button>
 
 				<button class="button_big neutral withMargin">Klasseninfo</button>
 
@@ -242,7 +309,7 @@ include("phpScripts/login.php");
 						<th></th>
 					</tr>
 				</thead>
-				<tbody id="foreignClasses_table">
+				<tbody id="foreignClasses_tableBody">
 				</tbody>
 			</table>
 		</div>
@@ -265,7 +332,7 @@ include("phpScripts/login.php");
 						<th></th>
 					</tr>
 				</thead>
-				<tbody id="publicTemplates_table">
+				<tbody id="publicTemplates_tableBody">
 				</tbody>
 			</table>
 		</div>
@@ -276,7 +343,7 @@ include("phpScripts/login.php");
 			</div>
 
 			<table>
-				<tbody id="publishedTemplates_table">
+				<tbody id="publishedTemplates_tableBody">
 				</tbody>
 			</table>
 		</div>

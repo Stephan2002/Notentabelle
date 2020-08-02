@@ -4,7 +4,7 @@
 
 Sucht passende Vorlagen
 
-Input:
+Input als JSON per POST:
     Verschiedene Suchkriterien
 
 

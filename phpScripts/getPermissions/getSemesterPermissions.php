@@ -4,7 +4,7 @@
 
 Laedt Personen mit Zugriffs-/Schreibrecht auf dieses Semester
 
-Input:
+Input als JSON per POST:
     semesterID
 
 

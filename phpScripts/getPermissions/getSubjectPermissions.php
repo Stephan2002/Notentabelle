@@ -4,7 +4,7 @@
 
 Laedt Personen mit Zugriffs-/Schreibrecht auf dieses Fach
 
-Input:
+Input als JSON per POST:
     testID (eigentlich subjectID)
 
 

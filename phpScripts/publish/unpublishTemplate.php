@@ -4,7 +4,7 @@
 
 Entfernt Vorlage von publizierten Vorlagen
 
-Input:
+Input als JSON per POST bestehend aus Array, jeweils mit:
     semesterID
 
 

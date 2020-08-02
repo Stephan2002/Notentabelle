@@ -4,7 +4,7 @@
 
 Laedt geloeschte Semester/Semesterordner
 
-Input:
+Input als JSON per POST:
     semesterID (OrdnerID) (ID des Ordners, dessen geloeschte Elemente geladen werden sollten)
 
 

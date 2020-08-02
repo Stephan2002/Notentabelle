@@ -4,7 +4,7 @@
 
 Laedt alle Schueler einer Klasse, sofern der Nutzer Zugriff hat.
 
-Input:
+Input als JSON per POST:
     classID
 
 */
@@ -30,7 +30,7 @@ function getStudents(StudentClass &$element) {
 
 if(!isset($isNotMain)) {
 
-    include($_SERVER["DOCUMENT_ROOT"] . "/phpScripts/getElement.php");
+    include($_SERVER["DOCUMENT_ROOT"] . "/phpScripts/element.php");
 
     session_start();
 
@@ -42,13 +42,15 @@ if(!isset($isNotMain)) {
 
     session_write_close();
 
-    if(!isset($_POST["classid"]) || !is_numeric($_POST["classid"])) {
+    $data = getData();
+
+    if(!isset($data["classID"]) || !is_numeric($data["classID"])) {
 
         throwError(ERROR_BADINPUT);
 
     }
 
-    $classID = (int)$_POST["classid"];
+    $classID = (int)$data["classID"];
 
     if(!connectToDatabase()) {
 
