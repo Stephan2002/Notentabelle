@@ -1,6 +1,14 @@
 
 class Loading {
 
+	/*
+		types:
+			semi-transparent (default)
+			transparent
+			solid
+
+	*/
+
 	static create(parentElement = null, type = undefined) {
 		
 		if(!parentElement) {
@@ -60,7 +68,18 @@ class Loading {
 
 		}
 
-		var element = parentElement.querySelector(":scope > .loadingElement");
+		var element = null;
+
+		for(var i = 0; i < parentElement.children.length; i++) {
+
+			if(parentElement.children[i].classList.contains("loadingElement")) {
+
+				element = parentElement.children[i];
+				break;
+
+			}
+
+		}
 
 		if(!element) {
 
@@ -81,7 +100,18 @@ class Loading {
 
 		}
 
-		var element = parentElement.querySelector(":scope > .loadingElement");
+		var element = null;
+
+		for(var i = 0; i < parentElement.children.length; i++) {
+
+			if(parentElement.children[i].classList.contains("loadingElement")) {
+
+				element = parentElement.children[i];
+				break;
+
+			}
+
+		}
 
 		if(!element) {
 
@@ -97,28 +127,29 @@ class Loading {
 
 		} else {
 
-			if(element.style.display === "none") {
+			element.style.opacity = 1;
 
-				element.style.display = "flex";
-				element.style.opacity = 1;
+			if(type !== undefined) {
 
-				if(type !== undefined) {
+				element.classList.remove("solid");
+				element.classList.remove("transparent");
 
-					element.classList.remove("solid");
-					element.classList.remove("transparent");
+				if(type === "solid" || type === "transparent") {
 
-					if(type === "solid" || type === "transparent") {
-
-						element.classList.add(type);
-
-					}
+					element.classList.add(type);
 
 				}
 
+			}
+
+			if(element.style.display === "none") {
+
+				element.style.display = "flex";
 				element.focus();
 
 			} else {
 
+				element.focus();
 				return;
 
 			}
@@ -143,7 +174,18 @@ class Loading {
 
 		}
 
-		var element = parentElement.querySelector(":scope > .loadingElement");
+		var element = null;
+
+		for(var i = 0; i < parentElement.children.length; i++) {
+
+			if(parentElement.children[i].classList.contains("loadingElement")) {
+
+				element = parentElement.children[i];
+				break;
+
+			}
+
+		}
 
 		if(!element || element.style.display === "none") {
 
@@ -173,6 +215,50 @@ class Loading {
 
 		}, 200);
 
+
+	}
+
+	static isVisible(parentElement = null, type = undefined) {
+
+		if(!parentElement) {
+
+			parentElement = document.body;
+
+		}
+
+		for(var i = 0; i < parentElement.children.length; i++) {
+
+			var element = parentElement.children[i];
+
+			if(element.classList.contains("loadingElement") && element.style.display !== "none") {
+
+				if(type === undefined) {
+
+					return true;
+
+				}
+
+				if(element.classList.contains("solid")) {
+
+					return type === "solid";
+
+				} else if(element.classList.contains("transparent")) {
+
+					return type === "transparent";
+
+				} else {
+
+					return type === "semi-transparent";
+
+				}
+
+
+
+			}
+
+		}
+
+		return false;
 
 	}
 

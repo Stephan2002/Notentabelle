@@ -24,7 +24,7 @@ function getTests(Element &$test, bool $isTest = true, bool $withMarks = false) 
 
     if(!$test->data["isFolder"] && $isTest) {
 
-        $test->error = ERROR_BADINPUT;
+        $test->error = ERROR_BAD_INPUT;
         return;
 
     }
@@ -371,7 +371,7 @@ if(!isset($isNotMain)) {
 
     if(!isset($_SESSION["userid"])) {
 
-        throwError(ERROR_NOTLOGGEDIN);
+        throwError(ERROR_NOT_LOGGED_IN);
 
     }
 
@@ -397,7 +397,7 @@ if(!isset($isNotMain)) {
 
     if(!isset($testID) && !isset($semesterID)) {
 
-        throwError(ERROR_BADINPUT);
+        throwError(ERROR_BAD_INPUT);
 
     }
 

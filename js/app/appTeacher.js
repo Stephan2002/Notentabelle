@@ -1,6 +1,7 @@
 // Javascript fuer app.php bei Lehrpersonen (mit Klassen und Schuelern)
 
-var cachedClasses = [];
+cache.classes = [];
+cache.rootClasses = undefined;
 
 document.addEventListener("DOMContentLoaded", function() {
 

@@ -66,7 +66,7 @@ if(isset($_GET["error"]) && is_numeric($_GET["error"])) {
 	
 			}
 	
-			$stmt = $mysqli->prepare("SELECT userID, userName, type, password, isVerified, deleteTimestamp FROM users WHERE username = ? OR eMail = ?");
+			$stmt = $mysqli->prepare("SELECT userID, userName, type, password, isVerified, lowerDisplayBound, upperDisplayBound, deleteTimestamp FROM users WHERE username = ? OR eMail = ?");
 			$stmt->bind_param("ss", $_POST["username"], $_POST["username"]);
 			$stmt->execute();
 	
@@ -99,6 +99,8 @@ if(isset($_GET["error"]) && is_numeric($_GET["error"])) {
 				$_SESSION["userid"] = $results["userID"];
 				$_SESSION["username"] = $results["userName"];
 				$_SESSION["type"] = $results["type"];
+				$_SESSION["lowerDisplayBound"] = $results["lowerDisplayBound"];
+				$_SESSION["upperDisplayBound"] = $results["upperDisplayBound"];
 	
 				$stmt->prepare("UPDATE users SET lastUsed = NOW() WHERE userID = ?");
 				$stmt->bind_param("i", $_SESSION["userid"]);

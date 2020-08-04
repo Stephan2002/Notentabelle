@@ -31,7 +31,7 @@ if(!isset($isNotMain)) {
 
     if(!isset($_SESSION["userid"])) {
 
-        throwError(ERROR_NOTLOGGEDIN);
+        throwError(ERROR_NOT_LOGGED_IN);
 
     }
 
@@ -39,7 +39,7 @@ if(!isset($isNotMain)) {
 
     if($_SESSION["type"] !== "teacher" && $_SESSION["type"] !== "admin") {
 
-        throwError(ERROR_ONLYTEACHER);
+        throwError(ERROR_ONLY_TEACHER);
 
     }
 
@@ -49,9 +49,9 @@ if(!isset($isNotMain)) {
     
     }
 
-    $class = new Element(ERROR_NONE, Element::ACCESS_OWNER, true);
-    $class->type = Element::TYPE_FOREIGN_CLASSES;
+    $class = new StudendClass(ERROR_NONE, Element::ACCESS_OWNER, true);
     $class->isRoot = true;
+    $class->isForeign = true;
 
     getForeignClasses($class);
 

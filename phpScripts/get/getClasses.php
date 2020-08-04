@@ -30,7 +30,7 @@ if(!isset($isNotMain)) {
 
     if(!isset($_SESSION["userid"])) {
 
-        throwError(ERROR_NOTLOGGEDIN);
+        throwError(ERROR_NOT_LOGGED_IN);
 
     }
 
@@ -38,7 +38,7 @@ if(!isset($isNotMain)) {
 
     if($_SESSION["type"] !== "teacher" && $_SESSION["type"] !== "admin") {
 
-        throwError(ERROR_ONLYTEACHER);
+        throwError(ERROR_ONLY_TEACHER);
 
     }
 

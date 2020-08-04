@@ -16,7 +16,7 @@
 		<style>
 			#img_error {
 
-				margin: 50px 0px 0px;
+				margin: 40px 0px 0px;
 				width: 50%;
 				max-width: 200px;
 
@@ -56,7 +56,15 @@
 
             */
 
-			$error = (int)$_GET["error"];
+			if(isset($_GET["error"])) {
+
+				$error = (int)$_GET["error"];
+
+			} else {
+
+				$error = 0;
+
+			}
 			
 			if($error === 1) {
 				

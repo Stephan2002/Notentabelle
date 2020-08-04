@@ -23,7 +23,7 @@
             align-items: center;
             justify-content: center;
             flex-direction: column;
-            z-index: 10;
+            z-index: 100;
             transition: opacity 0.2s;
         }
 

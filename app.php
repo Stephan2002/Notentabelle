@@ -34,8 +34,10 @@ include("phpScripts/login.php");
 
         <script>
             var user = {
-                <?php echo "userName: \"" . addslashes($_SESSION["username"]) . "\","; ?>
-                <?php echo "isTeacher: " . ($_SESSION["type"] === "teacher" || $_SESSION["type"] === "admin" ? "true" : "false") ?>
+                userName: "<?php echo addslashes($_SESSION["username"]); ?>",
+                isTeacher: <?php echo ($_SESSION["type"] === "teacher" || $_SESSION["type"] === "admin" ? "true" : "false") ?>,
+				lowerDisplayBound: <?php echo $_SESSION["lowerDisplayBound"]; ?>,
+				upperDisplayBound: <?php echo $_SESSION["upperDisplayBound"]; ?>
             };
         </script>
 
@@ -46,18 +48,29 @@ include("phpScripts/login.php");
 	<body>
         <?php include("phpScripts/preload.php"); ?>
 		<nav>
+			<img id="returnButton" src="/img/arrow_back.svg" alt="<">
 			<div id="header">
-				<h1>Semesterauswahl</h1>
+				<h1 id="title">Semesterauswahl</h1>
             </div>
             <script language="javascript" type="text/javascript" src="js/menu.js"></script>
 		</nav>
 
-		<div id="semesters_div" style="display: none">
+		<div class="panel" id="semesters_div" style="display: none">
 			<div class="container">
 				<div class="buttonGroup">
-					<button class="button_medium positive">Neues Semester</button>
+					<button id="semesters_button_newSemester" class="button_medium positive">Neues Semester</button>
 					<button class="button_medium positive">Neuer Ordner</button>
-				</div>
+                </div>
+                
+                <div id="semesters_empty_semesters" class="info gray bigMargin">
+                    <p class="blankLine_small">Kein Semester vorhanden.</p>
+                    <p>Fügen Sie ein Semester oder einen Ordner mit den obigen Knöpfen ein.</p>
+                </div>
+
+                <div id="semesters_empty_templates" class="info gray bigMargin">
+                    <p class="blankLine_small">Keine Vorlage vorhanden.</p>
+                    <p>Fügen Sie eine Vorlage oder einen Ordner mit den obigen Knöpfen ein.</p>
+                </div>
 			</div>
 
 			<div id="semesters_folders" style="display: none">
@@ -71,13 +84,13 @@ include("phpScripts/login.php");
 			<div id="semesters_semesters" style="display: none">
 				<h2>Semester</h2>
 				<table>
-					<tbody id="semesters_folders_tableBody">
+					<tbody id="semesters_semesters_tableBody">
 					</tbody>
 				</table>
 			</div>
 
 			<div class="container">
-				<div class="buttonGroup">
+				<div class="buttonGroup" id="semesters_linkButtons">
 					<?php 
 						if($_SESSION["type"] === "teacher" || $_SESSION["type"] === "admin") {
 							echo "<button class='button_medium positive'>Vorlagen</button>";
@@ -93,18 +106,19 @@ include("phpScripts/login.php");
 					<button class="button_big positive">Eigene veröffentlichte Vorlagen</button>
 				</div>
 
-				<button class="button_big positive withMargin">Geteilte Semester</button>
-                <button class="button_big positive" style="margin-top: 50px;">Versteckte Semester anzeigen</button>
-                <button class="button_big positive">Gelöschte Semester</button>
+                <button class="button_big positive withMargin">Geteilte Semester / Vorlagen</button>
+                
+                <button class="button_big positive bigMargin">Versteckte Elemente anzeigen</button>
+                <button class="button_big positive">Gelöschte Elemente</button>
 
 				<div class="buttonGroup" id="semesters_editButtons">
-					<button class="button_medium positive">Ordner bearbeiten</button>
-					<button class="button_medium negative">Ordner löschen</button>
+					<button class="button_medium positive doubleLine"><img src="/img/edit.svg" alt="">Ordner bearbeiten</button>
+					<button class="button_medium negative doubleLine"><img src="/img/delete.svg" alt="">Ordner löschen</button>
 				</div>
 			</div>
 		</div>
 
-		<div id="tests_div" style="display: block">
+		<div class="panel" id="tests_div" style="display: none">
             <div class="container">
                 <div id="tests_addSubjectButtons">
                     <button class="button_big positive withMargin">Neues Fach / Neuer Ordner</button>
@@ -130,8 +144,10 @@ include("phpScripts/login.php");
 					<tr>
 						<th>Name</th>
 						<th>Datum</th>
-                        <th>Gewichtung</th>
-                        <th colspan="2">Note</th>
+                        <th><span class="table_big">Gewichtung</span><span class="table_small">Gew.</span></th>
+						<th id="tests_table_points" style="display: none;"><span class="table_big">Punkte</span><span class="table_small">Pkte.</span></th>
+						<th id="tests_table_mark" colspan="2">Note</th>
+						<th></th>
 						<th></th>
 					</tr>
 				</thead>
@@ -149,12 +165,13 @@ include("phpScripts/login.php");
 
 			<?php if($_SESSION["type"] === "teacher" || $_SESSION["type"] === "admin") { ?>
 
-			<table id="tests_studentTable" style="margin-top: 50px;">
+			<table id="tests_studentTable" class="bigMargin">
                 <thead>
 					<tr>
 						<th>Vorname</th>
 						<th>Nachname</th>
-                        <th colspan="2">Note</th>
+                        <th id="tests_studentTable_points" style="display: none;"><span class="table_big">Punkte</span><span class="table_small">Pkte.</span></th>
+						<th id="tests_studentTable_mark" colspan="2">Note</th>
 						<th></th>
 					</tr>
 				</thead>
@@ -173,14 +190,14 @@ include("phpScripts/login.php");
 
                 <?php } ?>
 
-                <button class="button_big neutral withMargin">Semesterinfo</button>
+                <button class="button_big neutral withMargin"><img src="/img/info.svg" alt="">Semesterinfo</button>
 
                 <div class="buttonGroup noMargin" id="tests_editButtons">
-                    <button class="button_medium positive">Semester bearbeiten</button>
-                    <button class="button_medium negative">Semester löschen</button>
+                    <button class="button_medium positive doubleLine"><img src="/img/edit.svg" alt="">Semester bearbeiten</button>
+                    <button class="button_medium negative doubleLine"><img src="/img/delete.svg" alt="">Semester löschen</button>
                 </div>
 
-                <button class="button_big positive" style="margin-top: 50px;">Notenrechner</button>
+                <button class="button_big positive bigMargin">Notenrechner</button>
                 <button class="button_big positive withMargin">Notenblatt</button>
             </div>
 
@@ -193,10 +210,10 @@ include("phpScripts/login.php");
             </div>
 		</div>
 
-		<div id="foreignSemesters_div" style="display: none">
+		<div class="panel" id="foreignSemesters_div" style="display: none">
 			<div id="foreignSemesters_shared">
 				<h2>Geteilte Semester</h2>
-				<table style="margin-top: 50px;">
+				<table class="bigMargin">
 					<thead>
 						<tr>
 							<th>Name</th>
@@ -213,7 +230,7 @@ include("phpScripts/login.php");
 
 			<div id="foreignSemesters_teacher">
 				<h2>Mit Zugriff als Lehrperson</h2>
-				<table style="margin-top: 50px;">
+				<table class="bigMargin">
 					<thead>
 						<tr>
 							<th>Name</th>
@@ -230,7 +247,7 @@ include("phpScripts/login.php");
 
 			<div id="foreignSemesters_student">
 				<h2>Mit Zugriff als Schüler/in</h2>
-				<table style="margin-top: 50px;">
+				<table class="bigMargin">
 					<thead>
 						<tr>
 							<th>Name</th>
@@ -246,7 +263,7 @@ include("phpScripts/login.php");
 
 		<?php if($_SESSION["type"] === "teacher" || $_SESSION["type"] === "admin") { ?>
 
-		<div id="classes_div" style="display: none">
+		<div class="panel" id="classes_div" style="display: none">
 			<div class="container">
 				<button class="button_big positive withMargin">Neue Klasse</button>
 			</div>
@@ -264,12 +281,12 @@ include("phpScripts/login.php");
 
 				<button class='button_big positive withMargin'>Geteilte Klassen</button>
 
-                <button class="button_big positive" style="margin-top: 50px;">Versteckte / alte Klassen anzeigen</button>
+                <button class="button_big positive bigMargin">Versteckte / alte Klassen anzeigen</button>
                 <button class="button_big positive">Gelöschte Klassen</button>
 			</div>
 		</div>
 
-		<div id="students_div" style="display: none">
+		<div class="panel" id="students_div" style="display: none">
 			<div class="container">
 				<button class="button_big positive withMargin">Neue/r Schüler/in</button>
 			</div>
@@ -291,17 +308,17 @@ include("phpScripts/login.php");
                 <button class="button_big positive">Versteckte Schüler/innen anzeigen</button>
                 <button class="button_big positive">Gelöschte Schüler/innen</button>
 
-				<button class="button_big neutral withMargin">Klasseninfo</button>
+				<button class="button_big neutral withMargin"><img src="/img/info.svg" alt="">Klasseninfo</button>
 
 				<div class="buttonGroup noMargin" id="students_editButtons">
-					<button class="button_medium positive">Klasse bearbeiten</button>
-					<button class="button_medium negative">Klasse löschen</button>
+					<button class="button_medium positive doubleLine"><img src="/img/edit.svg" alt="">Klasse bearbeiten</button>
+					<button class="button_medium negative doubleLine"><img src="/img/delete.svg" alt="">Klasse löschen</button>
 				</div>
 			</div>
 		</div>
 
-		<div id="foreignClasses_div" style="display: none">
-            <table style="margin-top: 50px;">
+		<div class="panel" id="foreignClasses_div" style="display: none">
+            <table class="bigMargin">
                 <thead>
 					<tr>
 						<th>Name</th>
@@ -316,7 +333,7 @@ include("phpScripts/login.php");
 
 		<?php } ?>
 
-		<div id="publicTemplates_div" style="display: none">
+		<div class="panel" id="publicTemplates_div" style="display: none">
 			<div class="container">
 				<input type="text">
 				<!-- Suchfelder -->
@@ -337,7 +354,7 @@ include("phpScripts/login.php");
 			</table>
 		</div>
 
-		<div id="publishedTemplates_div" style="display: none">
+		<div class="panel" id="publishedTemplates_div" style="display: none">
 			<div class="container">
 				<button class="button_big positive withMargin">Vorlage veröffentlichen</button>
 			</div>
@@ -346,6 +363,29 @@ include("phpScripts/login.php");
 				<tbody id="publishedTemplates_tableBody">
 				</tbody>
 			</table>
-		</div>
+        </div>
+        
+        <div class="panel" id="error_div" style="display: none;">
+            <img class="bigMargin" src="/img/error.svg" alt="">
+
+            <div id="error_other">
+                <h2>Fehler</h2>
+                <div class="text">
+                    <p>Ein Fehler ist aufgetreten.</p>
+                    <p>Möglicherweise besteht ein Problem mit der Internetverbindung</p>
+                    <p>Bei wiederholten Auftreten kontaktieren Sie...</p>
+                    <p class="blankLine">Fehlercode: <span id="error_code"></span></p>
+                </div>
+            </div>
+
+            <div id="error_forbidden">
+                <h2>Kein Zugriff</h2>
+                <div class="text">
+                    <p>Das Element existiert nicht (mehr) oder Sie haben keinen Zugriff (mehr) darauf.</p>
+                </div>
+            </div>
+
+            <button class="button_small positive bigMargin" id="error_returnButton">Zurück</button>
+        </div>
 	</body>
 </html>

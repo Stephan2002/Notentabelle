@@ -73,7 +73,7 @@ if(!isset($isNotMain)) {
 
     if(!isset($_SESSION["userid"])) {
 
-        throwError(ERROR_NOTLOGGEDIN);
+        throwError(ERROR_NOT_LOGGED_IN);
 
     }
 
@@ -85,9 +85,9 @@ if(!isset($isNotMain)) {
     
     }
 
-    $semester = new Element(ERROR_NONE, Element::ACCESS_OWNER, true);
-    $semester->type = Element::TYPE_FOREIGNT_SEMESTERS;
+    $semester = new Semester(ERROR_NONE, Element::ACCESS_OWNER, true);
     $semester->isRoot = true;
+    $semester->isForeign = true;
 
     getForeignSemesters($semester);
 

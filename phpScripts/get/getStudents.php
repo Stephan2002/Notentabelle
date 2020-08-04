@@ -36,7 +36,7 @@ if(!isset($isNotMain)) {
 
     if(!isset($_SESSION["userid"])) {
 
-        throwError(ERROR_NOTLOGGEDIN);
+        throwError(ERROR_NOT_LOGGED_IN);
 
     }
 
@@ -46,7 +46,7 @@ if(!isset($isNotMain)) {
 
     if(!isset($data["classID"]) || !is_numeric($data["classID"])) {
 
-        throwError(ERROR_BADINPUT);
+        throwError(ERROR_BAD_INPUT);
 
     }
 

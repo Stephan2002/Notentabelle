@@ -20,15 +20,15 @@ function getSemesters(Semester &$element) {
 
     }
 
-    if(isset($element->isRoot)) {
+    if($element->isRoot) {
 
-        if($element->isTemplate) {
+        if(isset($element->isTemplate)) {
 
-            $stmt = $mysqli->prepare("SELECT * FROM semesters WHERE userID = ? AND isTemplate = 1 AND deleteTimestamp IS NULL");
+            $stmt = $mysqli->prepare("SELECT * FROM semesters WHERE userID = ? AND templateType IS NOT NULL AND deleteTimestamp IS NULL");
     
         } else {
     
-            $stmt = $mysqli->prepare("SELECT * FROM semesters WHERE userID = ? AND deleteTimestamp IS NULL");
+            $stmt = $mysqli->prepare("SELECT * FROM semesters WHERE userID = ? AND templateType IS NULL AND deleteTimestamp IS NULL");
     
         }
     
@@ -54,7 +54,7 @@ session_start();
 
 if(!isset($_SESSION["userid"])) {
 
-    throwError(ERROR_NOTLOGGEDIN);
+    throwError(ERROR_NOT_LOGGED_IN);
 
 }
 
@@ -88,10 +88,6 @@ if(isset($semesterID)) {
     if($isTemplate) {
 
         $semesterFolder->isTemplate = true;
-
-    } else {
-
-        $semesterFolder->isTemplate = false;
 
     }
 

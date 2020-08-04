@@ -13,10 +13,10 @@ define("DB_PASSWORD", "VPpCaabN5bl76rnW");
 define("DB_DBNAME", "notentabelle");
 
 define("ERROR_NONE",        0);     // kein Fehler
-define("ERROR_NOTLOGGEDIN", 1);     // Nutzer ist nicht eingeloggt
-define("ERROR_BADINPUT",    2);     // Schlechter oder fehlender User-Input
+define("ERROR_NOT_LOGGED_IN", 1);     // Nutzer ist nicht eingeloggt
+define("ERROR_BAD_INPUT",    2);     // Schlechter oder fehlender User-Input
 define("ERROR_FORBIDDEN",   3);     // Element existiert nicht oder Nutzer hat kein Zugriffsrecht
-define("ERROR_ONLYTEACHER", 4);     // Aktion nur fuer Lehrpersonen verfuegbar
+define("ERROR_ONLY_TEACHER", 4);     // Aktion nur fuer Lehrpersonen verfuegbar
 define("ERROR_UNKNOWN",     10);    // Unbekannter / anderer Fehler
 
 function throwError(int $errorCode) {
@@ -32,7 +32,7 @@ function getData() {
 
     if(json_last_error()) {
 
-        throwError(ERROR_BADINPUT);
+        throwError(ERROR_BAD_INPUT);
 
     }
 
@@ -42,13 +42,11 @@ function getData() {
 
 class Element {
 
-    const TYPE_SEMESTER = 0;
-    const TYPE_TEST = 1;
-    const TYPE_CLASS = 2;
-    const TYPE_STUDENT = 3;
-    const TYPE_FOREIGN_SEMESTERS = 4;
-    const TYPE_FOREIGN_CLASSES = 5;
-    const TYPE_PUBLIC_TEMPLATES = 6;
+    const TYPE_SEMESTER = 0;    // Semester und eigene Vorlagen
+    const TYPE_TEST = 1;        // Feacher, Ordner, Pruefungen
+    const TYPE_CLASS = 2;       // Klassen
+    const TYPE_STUDENT = 3;     // Schueler
+    const TYPE_PUBLIC_TEMPLATES = 4;   // Eigene, veroeffentlichte Vorlagen (isForeign = false) oder Oeffentliche Vorlagen (isForeign = true)
 
     const ACCESS_UNDEFINED = -1;
     const ACCESS_OWNER = 0;
@@ -63,6 +61,9 @@ class Element {
     public $writingPermission; // bool
     public $data; // array
 
+    public $isRoot = false;
+    public $isForeign = false;
+
     public $childrenData; // array
 
     function __construct(int $error = 0, int $accessType = -1, bool $writingPermission = false, array &$data = null) {
@@ -71,6 +72,12 @@ class Element {
         $this->accessType = $accessType;
         $this->writingPermission = $writingPermission;
         $this->data = $data;
+
+        if(isset($data["templateType"])) {
+
+            $this->isTemplate = true;
+
+        }
 
     }
 
@@ -295,7 +302,7 @@ function getTest(int $testID, bool $checkOnlyForTemplate = false, bool $irreleva
 
     global $mysqli;
 
-    $stmt = $mysqli->prepare("SELECT tests.*, semesters.userID, semesters.classID, semesters.isTemplate, semesters.templateType FROM tests INNER JOIN semesters ON tests.semesterID = semesters.semesterID WHERE tests.testID = ? AND tests.deleteTimestamp IS NULL");
+    $stmt = $mysqli->prepare("SELECT tests.*, semesters.userID, semesters.classID, semesters.templateType FROM tests INNER JOIN semesters ON tests.semesterID = semesters.semesterID WHERE tests.testID = ? AND tests.deleteTimestamp IS NULL");
     $stmt->bind_param("i", $testID);
     $stmt->execute();
 
@@ -411,7 +418,7 @@ function getClass(int $classID) : StudentClass {
 
     if($_SESSION["type"] !== "teacher" && $_SESSION["type"] !== "admin") {
 
-        return new StudentClass(ERROR_ONLYTEACHER);
+        return new StudentClass(ERROR_ONLY_TEACHER);
 
     }
 
@@ -466,7 +473,7 @@ function getStudent(int $studentID) : Student {
 
     if($_SESSION["type"] !== "teacher" && $_SESSION["type"] !== "admin") {
 
-        return new Student(ERROR_ONLYTEACHER);
+        return new Student(ERROR_ONLY_TEACHER);
 
     }
 
