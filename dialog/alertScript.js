@@ -55,6 +55,7 @@ class Alert extends Dialog {
 
 			var icon = document.createElement("IMG");
 			icon.src = Alert.URL + "/img/" + data.icon + ".svg";
+			icon.draggable = false;
 			this.contentElement.appendChild(icon);
 
 			var title = document.createElement("H2");
@@ -104,6 +105,7 @@ class Alert extends Dialog {
 
 			var icon = document.createElement("IMG");
 			icon.src = Alert.URL + "/img/" + data.icon + ".svg";
+			icon.draggable = false;
 			this.contentElement.appendChild(icon);
 
 			var title = document.createElement("H2");
@@ -170,6 +172,7 @@ class Alert extends Dialog {
 
 			var icon = document.createElement("IMG");
 			icon.src = Alert.URL + "/img/" + data.icon + ".svg";
+			icon.draggable = false;
 			this.contentElement.appendChild(icon);
 
 			var title = document.createElement("H2");
@@ -317,6 +320,7 @@ class Alert extends Dialog {
 
 			var icon = document.createElement("IMG");
 			icon.src = Alert.URL + "/img/" + data.icon + ".svg";
+			icon.draggable = false;
 			this.contentElement.appendChild(icon);
 
 			var title = document.createElement("H2");

@@ -9,7 +9,7 @@ class Loading {
 
 	*/
 
-	static create(parentElement = null, type = undefined) {
+	static create(parentElement = null, type = undefined, zIndex = 10) {
 		
 		if(!parentElement) {
 
@@ -21,10 +21,10 @@ class Loading {
 		var element = document.createElement("DIV");
 
 		element.classList.add("loadingElement");
-		element.tabIndex = "-1";
+		element.tabIndex = "0";
 		element.style.display = "flex";
-		element.addEventListener("keydown", Loading.cancelEvent);
-		
+		element.style.zIndex = zIndex;
+
 		element.innerHTML = 
 			'<h1>Laden...</h1>' +
             '<svg height="200" width="200" viewbox="-100 -100 200 200">' +
@@ -46,13 +46,21 @@ class Loading {
 
 		}
 
+		var followingElement = document.createElement("DIV");
+		followingElement.tabIndex = "0";
+		followingElement.style.outline = "none";
+
+		element.addEventListener("keydown", function(event) { Loading.focusLoading(event, followingElement, false); });
+		followingElement.addEventListener("keydown", function(event) { Loading.focusLoading(event, element, true); });
+
 		if(isBody) {
 
 			element.classList.add("isBody");
 
 		}
 		
-		parentElement.appendChild(element);
+		parentElement.insertBefore(element, parentElement.childNodes[0]);
+		parentElement.append(followingElement);
 
 		element.focus();
 
@@ -68,7 +76,10 @@ class Loading {
 
 		}
 
-		var element = null;
+		var element = parentElement.children[0];
+		var followingElement = parentElement.children[parentElement.childElementCount - 1];
+
+		/*var element = null;
 
 		for(var i = 0; i < parentElement.children.length; i++) {
 
@@ -79,19 +90,20 @@ class Loading {
 
 			}
 
-		}
+		}*/
 
-		if(!element) {
+		if(element == null || !element.classList.contains("loadingElement")) {
 
 			return;
 
 		}
 
 		parentElement.removeChild(element);
+		parentElement.removeChild(followingElement);
 
 	}
 
-	static show(parentElement = null, type = undefined, createOnMissing = true) {
+	static show(parentElement = null, type = undefined, createOnMissing = true, zIndex = 10) {
 
 		if(!parentElement) {
 
@@ -100,7 +112,10 @@ class Loading {
 
 		}
 
-		var element = null;
+		var element = parentElement.children[0];
+		var followingElement = parentElement.children[parentElement.childElementCount - 1];
+
+		/*var element = null;
 
 		for(var i = 0; i < parentElement.children.length; i++) {
 
@@ -111,13 +126,13 @@ class Loading {
 
 			}
 
-		}
+		}*/
 
-		if(!element) {
+		if(element == null || !element.classList.contains("loadingElement")) {
 
 			if(createOnMissing) {
 
-				this.create(isBody ? null : parentElement, type);
+				this.create(isBody ? null : parentElement, type, zIndex);
 
 			} else {
 
@@ -145,6 +160,7 @@ class Loading {
 			if(element.style.display === "none") {
 
 				element.style.display = "flex";
+				followingElement.style.display = "block";
 				element.focus();
 
 			} else {
@@ -174,7 +190,10 @@ class Loading {
 
 		}
 
-		var element = null;
+		var element = parentElement.children[0];
+		var followingElement = parentElement.children[parentElement.childElementCount - 1];
+
+		/*var element = null;
 
 		for(var i = 0; i < parentElement.children.length; i++) {
 
@@ -185,9 +204,9 @@ class Loading {
 
 			}
 
-		}
+		}*/
 
-		if(!element || element.style.display === "none") {
+		if(element == null || !element.classList.contains("loadingElement") || element.style.display === "none") {
 
 			return;
 
@@ -198,11 +217,13 @@ class Loading {
 		setTimeout(function () {
 
 			element.style.display = "none";
+			followingElement.style.display = "none";
 			element.blur();
 
 			if(removeOnHide) {
 
 				parentElement.removeChild(element);
+				parentElement.removeChild(followingElement);
 
 			}
 
@@ -265,6 +286,20 @@ class Loading {
 	static cancelEvent(event) {
 
 		event.preventDefault();
+
+	}
+
+	static focusLoading(event, otherElement, isAfter) {
+
+		if(event.key == "Tab") {
+
+			if((event.shiftKey && isAfter) || (!event.shiftKey && !isAfter)) {
+
+				otherElement.focus();
+
+			}
+
+		}
 
 	}
 

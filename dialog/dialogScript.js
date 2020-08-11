@@ -20,6 +20,7 @@ class Dialog {
         this.dialogElement = dialogElement;
         this.contentElement = dialogElement.getElementsByClassName("dialogContent")[0];
         this.blockerElement = dialogElement.getElementsByClassName("dialogBlocker")[0];
+        this.anchorElement = document.createElement("DIV");
 
         this.contentElement.addEventListener("touchmove", function (event) {
 
@@ -36,11 +37,25 @@ class Dialog {
         this.enterAsOK = enterAsOK;
         this.escAsCancel = escAsCancel;
 
+        if(this.id === undefined) {
+
+            do {
+
+                this.id = Math.floor(Math.random() * 1000000000000);
+
+            } while(document.getElementById("dialogAnchor_" + this.id) != null);
+
+        }
+
+        this.anchorElement.id = "dialogAnchor_" + this.id;
+        this.anchorElement.tabIndex = "0";
+        this.dialogElement.setAttribute("data-id", this.id);
+
         var copy = this;
         
         this.contentElement.addEventListener("keydown", function (event) {
 			
-			if (event.key == "Enter") {
+			if (event.key === "Enter") {
 
                 var activeElement = document.activeElement;
 
@@ -83,7 +98,7 @@ class Dialog {
 
                 }
 
-			} else if(event.key == "Escape") {
+			} else if(event.key === "Escape") {
 
                 if(copy.escAsCancel) {
 
@@ -103,17 +118,18 @@ class Dialog {
 
                 }
 
-			} else if(event.key == "Tab") {
+			} else if(event.key === "Tab") {
 
                 if(event.shiftKey) {
 
                     if(copy.contentElement == document.activeElement) {
-
+                        
+                        copy.anchorElement.focus();
                         event.preventDefault();
 
                     }
 
-                } else {
+                } /*else {
 
                     if(
                         document.activeElement.classList.contains("lastDialogElement") || 
@@ -127,16 +143,35 @@ class Dialog {
 
                     }
 
-                }
+                }*/
 
-			}
+            }
 
         });
-        
 
+        this.anchorElement.style.outline = "none";
+        this.anchorElement.style.display = "none";
+
+        this.anchorElement.addEventListener("keydown", function(event) {
+            
+            if(event.key === "Tab") {
+            
+                if(!event.shiftKey) {
+
+                    copy.contentElement.focus();
+                    event.preventDefault();
+
+                }
+
+            }
+
+        });
+
+        document.body.insertBefore(this.anchorElement, document.body.childNodes[0]);
 
         if(this.dialogElement.style.display !== "none") {
 
+            this.anchorElement.style.display = "block";
             Dialog.visibleCounter++;
 
         }
@@ -170,20 +205,28 @@ class Dialog {
         var dialogElement;
         var blockerElement;
         var contentElement;
+        var anchorElement;
 
         if(parameter instanceof Dialog) {
 
             dialogElement = parameter.dialogElement;
             blockerElement = parameter.blockerElement;
             contentElement = parameter.contentElement;
+            anchorElement = parameter.anchorElement;
 
         } else {
             
             dialogElement = Dialog.getDialogElement(parameter);
             blockerElement = dialogElement.getElementsByClassName("dialogBlocker")[0];
             contentElement = dialogElement.getElementsByClassName("dialogContent")[0];
+            anchorElement = document.getElementById("dialogAnchor_" + dialogElement.getAttribute("data-id"));
 
         }
+
+        document.body.removeChild(dialogElement);
+        document.body.appendChild(dialogElement);
+        document.body.removeChild(anchorElement);
+        document.body.insertBefore(anchorElement, document.body.childNodes[0]);
 
         if(dialogElement.style.display !== "none") {
 
@@ -194,6 +237,7 @@ class Dialog {
         contentElement.removeEventListener("keydown", Dialog.disableKeyBoard);
         blockerElement.style.display = "none";
         dialogElement.style.display = "flex";
+        anchorElement.style.display = "block";
         dialogElement.style.opacity = 1;
         dialogElement.style.animationName = "";
         contentElement.style.animationName = "";
@@ -224,18 +268,21 @@ class Dialog {
         var dialogElement;
         var blockerElement;
         var contentElement;
+        var anchorElement;
 
         if(parameter instanceof Dialog) {
 
             dialogElement = parameter.dialogElement;
             blockerElement = parameter.blockerElement;
             contentElement = parameter.contentElement;
+            anchorElement = parameter.anchorElement;
 
         } else {
 
             dialogElement = Dialog.getDialogElement(parameter);
             blockerElement = dialogElement.getElementsByClassName("dialogBlocker")[0];
             contentElement = dialogElement.getElementsByClassName("dialogContent")[0];
+            anchorElement = document.getElementById("dialogAnchor_" + dialogElement.getAttribute("data-id"));
 
         }
 
@@ -254,6 +301,7 @@ class Dialog {
 		setTimeout(function () {
             
             dialogElement.style.display = "none";
+            anchorElement.style.display = "none";
             
             if(callback) {
 
@@ -274,6 +322,12 @@ class Dialog {
                 document.body.classList.remove("stop-scrolling");
                 document.removeEventListener("touchmove", Dialog.disableScroll);
     
+            }
+
+            if(window.Loading && Loading.isVisible()) {
+
+                document.getElementById("loadingElement").focus();
+
             }
 
 		}, 200);

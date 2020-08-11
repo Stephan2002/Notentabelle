@@ -22,6 +22,7 @@ body.stop-scrolling-loading {
     animation-duration: 0.2s;
     stroke: white;
     outline: none;
+    user-select: none;
 
 }
 

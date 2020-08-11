@@ -23,6 +23,7 @@ const ACCESS_PUBLIC = 4;
 
 var publishInstalled = false;
 var isLoading = false;
+var isBlocked = false;
 
 var path = [];
 
@@ -86,7 +87,7 @@ function hideLoading() {
 
 }
 
-function hidePanels() {
+function hidePanelsAndPrint() {
 
     var elements = document.body.children;
 
@@ -172,6 +173,7 @@ function loadingError(errorCode) {
 function printElement() {
     
     isLoading = false;
+    isBlocked = false;
 
     var elements = document.body.children;
 
@@ -184,6 +186,8 @@ function printElement() {
         }
 
     }
+
+    document.getElementById("returnButton").style.display = "block";
 
     Loading.hide();
 
@@ -203,7 +207,6 @@ function printElement() {
     
         }
 
-        document.getElementById("returnButton").style.display = "block";
         document.getElementById("title").innerHTML = "Fehler";
         document.getElementsByTagName("TITLE")[0].innerHTML = "Notentabelle - Fehler";
 
@@ -298,8 +301,6 @@ function printElement() {
 
         }
 
-        document.getElementById("returnButton").style.display = "block";
-
         if (currentElement.isRoot) {
 
             document.getElementById("semesters_editButtons").style.display = "none";
@@ -341,24 +342,10 @@ function printElement() {
     } else if (currentElement.type === TYPE_PUBLIC_TEMPLATES && currentElement.isForeign) {
         // Oeffenliche Vorlagen
 
-        if (!publishInstalled) {
-
-            loadPublish();
-            return;
-
-        }
-
         panelName = "publicTemplates_div";
 
     } else if (currentElement.type === TYPE_PUBLIC_TEMPLATES) {
         // Eigene veroeffentlichte Vorlagen
-
-        if (!publishInstalled) {
-
-            loadPublish();
-            return;
-
-        }
 
         panelName = "publishedTemplates_div";
 
@@ -391,8 +378,10 @@ function printElement() {
 
 }
 
-// Ueberprueft, ob das aktuelle Element schon im "Cache" ist und laedt es ansonsten
-function getElement() {
+// Ueberprueft, ob das aktuelle Element schon im "Cache" ist und laedt es ansonsten, laesst schlussendlich Element anzeigen
+function loadElementAndPrint() {
+
+    isBlocked = true;
 
     if (path.length === 0) {
         // Semesterauswahl
@@ -418,7 +407,7 @@ function getElement() {
 
         }
 
-        hidePanels();
+        hidePanelsAndPrint();
 
         return;
 
@@ -453,8 +442,6 @@ function getElement() {
 
         }
 
-        hidePanels();
-
     } else if (type === TYPE_SEMESTER && !isForeign) {
         // Semester
         
@@ -479,9 +466,6 @@ function getElement() {
 
         }
 
-        hidePanels();
-
-
     } else if (type === TYPE_TEST) {
         // Im Semester
 
@@ -495,12 +479,24 @@ function getElement() {
     } else if (type === TYPE_PUBLIC_TEMPLATES && isForeign) {
         // Oeffenliche Vorlagen
 
+        if (!publishInstalled) {
 
+            loadPublish();
+            Loading.show(null, "semi-transparent");
+            return;
+
+        }
 
     } else if (type === TYPE_PUBLIC_TEMPLATES) {
         // Eigene veroeffentlichte Vorlagen
 
+        if (!publishInstalled) {
 
+            loadPublish();
+            Loading.show(null, "semi-transparent");
+            return;
+
+        }
 
     } else if (user.isTeacher && type === TYPE_CLASS && isRoot && !isForeign) {
         // Klassenauswahl
@@ -518,17 +514,39 @@ function getElement() {
 
     }
 
+    hidePanelsAndPrint();
+
 
 }
 
 // Wird aufgerufen, wenn ein Element ausgewaehlt wurde
 function select(elementType, elementID) {
 
+    if(isBlocked) {
+
+        return;
+
+    }
+
     path.push({ type: elementType, ID: elementID, isRoot: false, isForeign: false });
 
     localStorage.setItem("path", JSON.stringify(path));
 
-    getElement();
+    loadElementAndPrint();
+
+}
+
+function returnFolder() {
+
+    if(isBlocked) {
+
+        return;
+
+    }
+
+    path.pop();
+    localStorage.setItem("path", JSON.stringify(path));
+    loadElementAndPrint();
 
 }
 
@@ -537,7 +555,7 @@ function loadPublish() {
     var scriptElement = document.createElement("script");
     scriptElement.language = "javascript";
     scriptElement.type = "text/javascript";
-    scriptElement.onload = printElement;
+    scriptElement.onload = function() { Loading.hide(); loadElementAndPrint(); };
     scriptElement.src = "/js/app/appPublish.js";
 
     document.getElementsByTagName("head")[0].appendChild(scriptElement);
@@ -553,12 +571,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
     }
 
-    document.getElementById("returnButton").onclick = function () { path.pop(); localStorage.setItem("path", JSON.stringify(path)); getElement(); }
-    document.getElementById("error_returnButton").onclick = function () { path.pop(); localStorage.setItem("path", JSON.stringify(path)); getElement(); }
+    document.getElementById("returnButton").onclick = returnFolder;
+    document.getElementById("error_returnButton").onclick = returnFolder;
 
     //loadData("/phpScripts/get/getSemesters.php", {}, function(data) {currentElement = data; printElement();});
 
-    getElement();
+    loadElementAndPrint();
 
 });
 
