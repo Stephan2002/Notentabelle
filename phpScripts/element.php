@@ -63,6 +63,7 @@ class Element {
 
     public $isRoot = false;
     public $isForeign = false;
+    public $isTemplate = false;
 
     public $childrenData; // array
 
@@ -111,6 +112,24 @@ class Element {
                 unset($childData["userID"]);
 
             }
+
+        }
+
+        if(!$this->isTemplate) {
+
+            unset($this->isTemplate);
+
+        }
+
+        if(!$this->isRoot) {
+
+            unset($this->isRoot);
+
+        }
+
+        if(!$this->isForeign) {
+
+            unset($this->isForeign);
 
         }
 

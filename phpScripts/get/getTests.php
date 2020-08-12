@@ -12,7 +12,7 @@ Input als JSON per POST:
 
 */
 
-function getTests(Element &$test, bool $isTest = true, bool $withMarks = false) {
+function getTests(Element &$test, bool $withMarks = false) {
 
     global $mysqli;
 
@@ -22,14 +22,14 @@ function getTests(Element &$test, bool $isTest = true, bool $withMarks = false) 
 
     }
 
-    if(!$test->data["isFolder"] && $isTest) {
+    if(!$test->data["isFolder"] && !$test->isRoot) {
 
         $test->error = ERROR_BAD_INPUT;
         return;
 
     }
 
-    if(!$isTest && $test->accessType === Element::ACCESS_TEACHER) {
+    if(!!$test->isRoot && $test->accessType === Element::ACCESS_TEACHER) {
 
         return;
 
@@ -39,7 +39,7 @@ function getTests(Element &$test, bool $isTest = true, bool $withMarks = false) 
 
         if($withMarks) {
 
-            if($isTest) {
+            if(!$test->isRoot) {
 
                 if(!is_null($test->data["formula"])) {
 
@@ -74,7 +74,7 @@ function getTests(Element &$test, bool $isTest = true, bool $withMarks = false) 
 
         }
 
-        if($isTest && $withMarks) {
+        if(!$test->isRoot && $withMarks) {
 
             if(!is_null($test->data["round"]) && is_null($test->data["formula"])) {
         
@@ -112,7 +112,7 @@ function getTests(Element &$test, bool $isTest = true, bool $withMarks = false) 
 
         include_once($_SERVER["DOCUMENT_ROOT"] . "/phpScripts/calculateMarks.php");
 
-        if(!$isTest) {
+        if(!!$test->isRoot) {
 
             $stmt->prepare("SELECT studentID, mark, points FROM marks WHERE testID = ? AND EXISTS (SELECT studentID FROM students WHERE students.studentID = marks.studentID AND students.deleteTimestamp IS NULL)");
 
@@ -136,12 +136,12 @@ function getTests(Element &$test, bool $isTest = true, bool $withMarks = false) 
 
         }
 
-        if(!$isTest || !is_null($test->data["round"])) {
+        if(!!$test->isRoot || !is_null($test->data["round"])) {
 
             $sum = 0;
             $count = 0;
 
-            if($isTest && $test->data["round"] != 0) {
+            if(!$test->isRoot && $test->data["round"] != 0) {
 
                 foreach($test->data["students"] as &$student) {
 
@@ -163,7 +163,7 @@ function getTests(Element &$test, bool $isTest = true, bool $withMarks = false) 
 
             } else {
 
-                if($isTest) {
+                if(!$test->isRoot) {
 
                     foreach($test->data["students"] as &$student) {
 
@@ -222,7 +222,7 @@ function getTests(Element &$test, bool $isTest = true, bool $withMarks = false) 
 
         }
 
-        if($isTest && (is_null($test->data["round"]) || !is_null($test->data["formula"]))) {
+        if(!$test->isRoot && (is_null($test->data["round"]) || !is_null($test->data["formula"]))) {
 
             $sum = 0;
             $count = 0;
@@ -252,7 +252,7 @@ function getTests(Element &$test, bool $isTest = true, bool $withMarks = false) 
 
     } else {
         
-        if($isTest) {
+        if(!$test->isRoot) {
 
             if(!$withMarks) {
 
@@ -345,7 +345,7 @@ function getTests(Element &$test, bool $isTest = true, bool $withMarks = false) 
 
             $test->data["mark_unrounded"] = $test->data["mark"];
 
-            if($isTest && $test->data["round"] != 0) {
+            if(!$test->isRoot && $test->data["round"] != 0) {
 
                 $test->data["mark"] = roundMark_float($test->data["mark"], $test->data["round"]);
 
@@ -353,7 +353,7 @@ function getTests(Element &$test, bool $isTest = true, bool $withMarks = false) 
 
         }
 
-        if(!$isTest && isset($test->data["mark"])) {
+        if(!!$test->isRoot && isset($test->data["mark"])) {
 
             $test->data["plusPoints"] = $plusPoints;   
 
@@ -407,37 +407,19 @@ if(!isset($isNotMain)) {
     
     }
 
-    if(isset($data["isPublicTemplate"])) {
+    if(isset($testID)) {
 
-        if(isset($testID)) {
-
-            $test = getTest($testID, true);
-            $isTest = true;
-
-        } else {
-
-            $test = getSemester($semesterID, true);
-            $isTest = false;
-
-        }
+        $test = getTest($testID, isset($data["isPublicTemplate"]));
 
     } else {
 
-        if(isset($testID)) {
-
-            $test = getTest($testID);
-            $isTest = true;
-
-        } else {
-
-            $test = getSemester($semesterID);
-            $isTest = false;
-
-        }
+        $test = getSemester($semesterID, isset($data["isPublicTemplate"]));
+        $test->type = Element::TYPE_TEST;
+        $test->isRoot = true;
 
     }
 
-    getTests($test, $isTest, isset($data["withMarks"]));
+    getTests($test, isset($data["withMarks"]));
 
     $test->sendResponse();
 

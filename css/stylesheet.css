@@ -255,19 +255,26 @@ nav h1 {
 	height: 40px;
 	padding: 5px;
 	-webkit-transition-duration: 0.4s;
-    transition-duration: 0.4s;
+	transition-duration: 0.4s;
+	outline: none;
 	
 }
 
 
-#returnButton:hover, #logo:hover {
+#returnButton:hover, #logo:hover, #logo:focus {
 	
 	background-color: #248728;
 	
 }
 
 
+#error {
 
+	margin: 40px 0px 0px;
+	width: 50%;
+	max-width: 200px;
+
+}
 
 
 
@@ -338,6 +345,7 @@ nav h1 {
 	line-height: normal;
 	text-align: left;
 	padding: 15px;
+	outline: none;
 	
 }
 

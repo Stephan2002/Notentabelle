@@ -1,14 +1,9 @@
-<?xml version="1.0" encoding="iso-8859-1"?>
-<!-- Generator: Adobe Illustrator 16.0.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
-<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-	 width="900.5px" height="900.5px" viewBox="0 0 900.5 900.5" style="enable-background:new 0 0 900.5 900.5;" xml:space="preserve"
-	>
-<g fill="white">
-	<path d="M176.415,880.5c0,11.046,8.954,20,20,20h507.67c11.046,0,20-8.954,20-20V232.487h-547.67V880.5L176.415,880.5z
-		 M562.75,342.766h75v436.029h-75V342.766z M412.75,342.766h75v436.029h-75V342.766z M262.75,342.766h75v436.029h-75V342.766z"/>
-	<path d="M618.825,91.911V20c0-11.046-8.954-20-20-20h-297.15c-11.046,0-20,8.954-20,20v71.911v12.5v12.5H141.874
-		c-11.046,0-20,8.954-20,20v50.576c0,11.045,8.954,20,20,20h34.541h547.67h34.541c11.046,0,20-8.955,20-20v-50.576
-		c0-11.046-8.954-20-20-20H618.825v-12.5V91.911z M543.825,112.799h-187.15v-8.389v-12.5V75h187.15v16.911v12.5V112.799z"/>
-</g>
+<svg width="100mm" height="100mm" fill="white" version="1.1" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+ <g transform="matrix(1.1274 0 0 1.1274 -6.3713 -6.3718)">
+  <g transform="translate(0 -.19467)">
+   <path d="m25.119 25.444v66.187h49.761v-66.187zm4.9763 5.5158h9.9521v55.155h-9.9521zm14.928 0h9.9526v55.155h-9.9526zm14.928 0h9.9521v55.155h-9.9521z" style="color-rendering:auto;dominant-baseline:auto;fill-rule:evenodd;font-feature-settings:normal;font-variant-alternates:normal;font-variant-caps:normal;font-variant-east-asian:normal;font-variant-ligatures:normal;font-variant-numeric:normal;font-variant-position:normal;font-variation-settings:normal;image-rendering:auto;inline-size:0;isolation:auto;mix-blend-mode:normal;shape-margin:0;shape-padding:0;shape-rendering:auto;text-decoration-line:none;text-decoration-style:solid;text-indent:0;text-orientation:mixed;text-transform:none;white-space:normal"/>
+   <path d="m25.119 22.824a2.6197 2.6197 0 0 0-2.6191 2.6191v66.188a2.6197 2.6197 0 0 0 2.6191 2.6191h49.762a2.6197 2.6197 0 0 0 2.6191-2.6191v-66.188a2.6197 2.6197 0 0 0-2.6191-2.6191zm2.6191 5.2383h44.521v1.7559a2.6197 2.6197 0 0 0-2.3555-1.4785h-9.9531a2.6197 2.6197 0 0 0-2.4863 1.8027 2.6197 2.6197 0 0 0-2.4883-1.8027h-9.9531a2.6197 2.6197 0 0 0-2.4883 1.7988 2.6197 2.6197 0 0 0-2.4883-1.7988h-9.9512a2.6197 2.6197 0 0 0-2.3574 1.4785zm4.9766 5.5176h4.7129v49.916h-4.7129zm14.928 0h4.7148v49.916h-4.7148zm14.928 0h4.7129v49.916h-4.7129zm-5.1074 53.352a2.6197 2.6197 0 0 0 2.4883 1.8027h9.9531a2.6197 2.6197 0 0 0 2.3555-1.4785v1.7559h-44.521v-1.7578a2.6197 2.6197 0 0 0 2.3574 1.4805h9.9512a2.6197 2.6197 0 0 0 2.4883-1.8008 2.6197 2.6197 0 0 0 2.4883 1.8008h9.9531a2.6197 2.6197 0 0 0 2.4863-1.8027z" style="color-rendering:auto;dominant-baseline:auto;fill-rule:evenodd;font-feature-settings:normal;font-variant-alternates:normal;font-variant-caps:normal;font-variant-east-asian:normal;font-variant-ligatures:normal;font-variant-numeric:normal;font-variant-position:normal;font-variation-settings:normal;image-rendering:auto;inline-size:0;isolation:auto;mix-blend-mode:normal;shape-margin:0;shape-padding:0;shape-rendering:auto;text-decoration-line:none;text-decoration-style:solid;text-indent:0;text-orientation:mixed;text-transform:none;white-space:normal"/>
+   <path d="m39.736 6.1394c-1.0871 4.977e-4 -1.9683 0.88165-1.9688 1.9688v5.5957h-16.16c-1.0879 4.98e-4 -1.9693 0.88284-1.9688 1.9707v4.0566c4.98e-4 1.0871 0.88165 1.9683 1.9688 1.9688h56.785c1.0871-4.98e-4 1.9683-0.88165 1.9688-1.9688v-4.0566c5.81e-4 -1.0879-0.88088-1.9702-1.9688-1.9707h-16.16v-5.5957c-4.98e-4 -1.0871-0.88165-1.9683-1.9688-1.9688zm1.9688 3.9375h16.59v1.8477h-16.59z" style="color-rendering:auto;dominant-baseline:auto;fill-rule:evenodd;font-feature-settings:normal;font-variant-alternates:normal;font-variant-caps:normal;font-variant-east-asian:normal;font-variant-ligatures:normal;font-variant-numeric:normal;font-variant-position:normal;font-variation-settings:normal;image-rendering:auto;inline-size:0;isolation:auto;mix-blend-mode:normal;shape-margin:0;shape-padding:0;shape-rendering:auto;stroke-width:0;text-decoration-line:none;text-decoration-style:solid;text-indent:0;text-orientation:mixed;text-transform:none;white-space:normal"/>
+  </g>
+ </g>
 </svg>

@@ -217,6 +217,12 @@ if(isset($_GET["error"]) && is_numeric($_GET["error"])) {
 			
 			<?php 
 			
+			if($logout) {
+
+				echo "<script>localStorage.removeItem('path');</script>";
+
+			}
+
 			if($error !== 0) {
 
 				$text = "<div class='info red'>";

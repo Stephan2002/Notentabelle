@@ -1,26 +1,28 @@
-function openMenu() {
+var menuTimer;
 
+function openMenu(event) {
+	
 	document.getElementById("menu").classList.add("openMenu");
+	clearTimeout(menuTimer);
+	document.getElementById("menuContent").style.display = "block";
+
+	event.stopImmediatePropagation();
 
 }
 
-function closeMenu() {
+function closeMenu(event) {
 
 	document.getElementById("menu").classList.remove("openMenu");
+	menuTimer = setTimeout(function() { document.getElementById("menuContent").style.display = "none"; }, 450);
 
 }
 
-function toggleMenu() {
-
-	document.getElementById("menu").classList.toggle("openMenu");
-
-}
 
 var menuString =
-	"<div id='menuContainer' onmouseenter='openMenu()' onmouseleave='closeMenu()'>" + 
-		"<img src='img/logo/logo.svg' alt='' id='logo' onclick='toggleMenu()'>" + 
+	"<div id='menuContainer' onmouseenter='openMenu(event)' onmouseleave='closeMenu(event)' onfocusin='openMenu(event)' onfocusout='closeMenu(event)'>" + 
+		"<img src='img/logo/logo.svg' alt='' id='logo' tabindex='0'>" + 
 		"<div id='menu'>" + 
-			"<div id='menuContent'>";
+			"<div id='menuContent' tabindex='-1'>";
 
 if(user.userName === undefined) {
 	

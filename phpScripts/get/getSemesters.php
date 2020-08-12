@@ -22,7 +22,7 @@ function getSemesters(Semester &$element) {
 
     if($element->isRoot) {
 
-        if(isset($element->isTemplate)) {
+        if($element->isTemplate) {
 
             $stmt = $mysqli->prepare("SELECT * FROM semesters WHERE userID = ? AND templateType IS NOT NULL AND deleteTimestamp IS NULL");
     

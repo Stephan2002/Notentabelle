@@ -184,21 +184,44 @@ include("phpScripts/login.php");
             <div class="container" style="margin-bottom: 100px;">
                 <?php if($_SESSION["type"] === "teacher" || $_SESSION["type"] === "admin") { ?>
                     
-                <button class="button_big positive withMargin">Noten / Punkte bearbeiten</button>
-                <button class="button_big positive withMargin">Versteckte Schüler/innen anzeigen</button>
-                <button class="button_big positive">Gelöschte Elemente</button>
+				<div id="tests_studentButtons">
+					<button class="button_big positive withMargin">Noten / Punkte bearbeiten</button>
+					<button class="button_big positive withMargin">Versteckte Schüler/innen anzeigen</button>
+				</div>
 
                 <?php } ?>
 
-                <button class="button_big neutral withMargin"><img src="/img/info.svg" alt="">Semesterinfo</button>
+				<button id="tests_deletedButton" class="button_big positive">Gelöschte Elemente</button>
 
-                <div class="buttonGroup noMargin" id="tests_editButtons">
-                    <button class="button_medium positive doubleLine"><img src="/img/edit.svg" alt="">Semester bearbeiten</button>
-                    <button class="button_medium negative doubleLine"><img src="/img/delete.svg" alt="">Semester löschen</button>
-                </div>
+				<div id="tests_semesterButtons" style="display: block;">
+					<button class="button_big neutral withMargin"><img src="/img/info.svg" alt="">Semesterinfo</button>
 
-                <button class="button_big positive bigMargin">Notenrechner</button>
-                <button class="button_big positive withMargin">Notenblatt</button>
+					<div class="buttonGroup noMargin" id="tests_editSemesterButtons">
+						<button class="button_medium positive doubleLine"><img src="/img/edit.svg" alt="">Semester bearbeiten</button>
+						<button class="button_medium negative doubleLine"><img src="/img/delete.svg" alt="">Semester löschen</button>
+					</div>
+				</div>
+
+				<div id="tests_folderButtons" style="display: none;">
+					<button class="button_big neutral withMargin"><img src="/img/info.svg" alt="">Fach- / Ordnerinfo</button>
+
+					<div class="buttonGroup noMargin" id="tests_editFolderButtons">
+						<button class="button_medium positive doubleLine"><img src="/img/edit.svg" alt="">Fach/Ordner bearbeiten</button>
+						<button class="button_medium negative doubleLine"><img src="/img/delete.svg" alt="">Fach/Ordner löschen</button>
+					</div>
+				</div>
+
+				<div id="tests_testButtons" style="display: none;">
+					<button id="tests_testInfoButton" class="button_big neutral withMargin"><img src="/img/info.svg" alt="">Prüfungsinfo</button>
+
+					<div class="buttonGroup noMargin" id="tests_editTestButtons">
+						<button class="button_medium positive doubleLine"><img src="/img/edit.svg" alt="">Prüfung bearbeiten</button>
+						<button class="button_medium negative doubleLine"><img src="/img/delete.svg" alt="">Prüfung löschen</button>
+					</div>
+				</div>
+
+                <button id="tests_calculatorButton" class="button_big positive bigMargin">Notenrechner</button>
+                <button id="tests_markPaperButton" class="button_big positive withMargin">Notenblatt</button>
             </div>
 
             <div id="averageFooter">
@@ -366,7 +389,7 @@ include("phpScripts/login.php");
         </div>
         
         <div class="panel" id="error_div" style="display: none;">
-            <img class="bigMargin" src="/img/error.svg" alt="">
+            <img id="error" src="/img/error.svg" alt="">
 
             <div id="error_other">
                 <h2>Fehler</h2>

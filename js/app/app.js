@@ -204,6 +204,8 @@ function printElement() {
     
             document.getElementById("error_other").style.display = "initial";
             document.getElementById("error_forbidden").style.display = "none";
+
+            document.getElementById("error_code").innerHTML = currentElement.error;
     
         }
 
@@ -212,7 +214,7 @@ function printElement() {
 
         panelName = "error_div";
         
-    } else if (currentElement.type === TYPE_SEMESTER && ((currentElement.isRoot && !currentElement.isForeign) || currentElement.data.isFolder)) {
+    } else if (currentElement.type === TYPE_SEMESTER && !currentElement.isForeign) {
         // Semesterauswahl / Vorlagenauswahl
 
         var semesterString = "";
@@ -223,7 +225,7 @@ function printElement() {
             var currentChildData = currentElement.childrenData[i];
 
             var currentString =
-                "<tr onclick='select(TYPE_SEMESTER, " + currentChildData.semesterID + ")'>" +
+                "<tr onclick='select(" + (currentChildData.isFolder ? TYPE_SEMESTER : TYPE_TEST) + ", " + currentChildData.semesterID + ", " + !currentChildData.isFolder + ")'>" +
                     "<td class='table_name'>" + escapeHTML(currentChildData.name) + "</td>" +
                     "<td class='table_buttons'>" +
                         "<button class='button_square negative table_big'><img src='/img/delete.svg' alt='X'></button>" +
@@ -329,10 +331,304 @@ function printElement() {
 
         panelName = "semesters_div";
 
-    } else if (currentElement.type === TYPE_TEST || (currentElement.type === TYPE_SEMESTER && !currentElement.data.isFolder)) {
+    } else if (currentElement.type === TYPE_TEST) {
         // Im Semester
 
         panelName = "tests_div";
+
+        if(currentElement.data.classID !== null && currentElement.accessType !== ACCESS_STUDENT) {
+
+            document.getElementById("tests_testInfo_div").style.display = "none";
+            document.getElementById("tests_calculatorButton").style.display = "none";
+
+            if(currentElement.isRoot) {
+
+                document.getElementById("tests_deletedButton").style.display = "inline-block";
+
+                document.getElementById("tests_addFolderButtons").style.display = "none";
+
+                if(currentElement.writingPermission) {
+
+                    document.getElementById("tests_addSubjectButtons").style.display = "block";
+
+                } else {
+
+                    document.getElementById("tests_addSubjectButtons").style.display = "none";
+
+                }
+
+                document.getElementById("averageFooter_points").style.display = "none";
+                document.getElementById("averageFooter_average").style.display = "none";
+                document.getElementById("averageFooter_points_big").style.display = "none";
+                document.getElementById("averageFooter_mark_big").style.display = "none";
+
+                if(currentElement.accessType === ACCESS_TEACHER) {
+
+                    document.getElementById("tests_studentTable").style.display = "none";
+                    document.getElementById("tests_markPaperButton").style.display = "none";
+                    document.getElementById("tests_studentButtons").style.display = "none";
+
+                    document.getElementById("averageFooter_plusPoints_big").style.display = "none";
+
+                } else {
+
+                    // Schuelertabelle fuellen
+                    document.getElementById("tests_studentTable").style.display = "table";
+                    document.getElementById("tests_markPaperButton").style.display = "inline-block";
+                    document.getElementById("tests_studentButtons").style.display = "block";
+
+                    document.getElementById("averageFooter_plusPoints_big").style.display = "block";
+                    document.getElementById("averageFooter_average").style.display = "block";
+
+                }
+
+                // Tabelle mit Tests fuellen
+                document.getElementById("tests_table").style.display = "table";
+
+                document.getElementById("tests_testButtons").style.display = "none";
+                document.getElementById("tests_folderButtons").style.display = "none";
+                document.getElementById("tests_semesterButtons").style.display = "block";
+
+                if(currentElement.accessType === ACCESS_OWNER) {
+
+                    document.getElementById("tests_editSemesterButtons").style.display = "block";
+
+                } else {
+
+                    document.getElementById("tests_editSemesterButtons").style.display = "none";
+
+                }
+
+            } else {
+
+                document.getElementById("tests_addSubjectButtons").style.display = "none";
+                document.getElementById("tests_markPaperButton").style.display = "inline-block";
+                document.getElementById("tests_studentButtons").style.display = "block";
+
+                if(currentElement.writingPermission && currentElement.data.isFolder) {
+
+                    document.getElementById("tests_addFolderButtons").style.display = "block";
+
+                } else {
+
+                    document.getElementById("tests_addFolderButtons").style.display = "none";
+
+                }
+
+                document.getElementById("tests_semesterButtons").style.display = "none";
+
+                if(currentElement.data.isFolder) {
+
+                    document.getElementById("tests_testButtons").style.display = "none";
+                    document.getElementById("tests_folderButtons").style.display = "block";
+                    document.getElementById("tests_deletedButton").style.display = "inline-block";
+
+                    if(currentElement.writingPermission && currentElement.accessType !== ACCESS_TEACHER) {
+
+                        document.getElementById("tests_editFolderButtons").style.display = "block";
+
+                    } else {
+
+                        document.getElementById("tests_editFolderButtons").style.display = "block";
+
+                    }
+
+                    // Tabelle mit Tests fuellen
+                    document.getElementById("tests_table").style.display = "table";
+
+                } else {
+
+                    document.getElementById("tests_testButtons").style.display = "block";
+                    document.getElementById("tests_folderButtons").style.display = "none";
+                    document.getElementById("tests_deletedButton").style.display = "none";
+
+                    document.getElementById("tests_testInfoButton").style.display = "inline-block";
+
+                    if(currentElement.writingPermission && currentElement.accessType !== ACCESS_TEACHER) {
+
+                        document.getElementById("tests_editTestButtons").style.display = "block";
+
+                    } else {
+
+                        document.getElementById("tests_editTestButtons").style.display = "block";
+
+                    }
+
+                    document.getElementById("tests_table").style.display = "none";
+
+                }
+
+                // Schuelertabelle fuellen
+                document.getElementById("tests_studentTable").style.display = "table";
+
+                document.getElementById("averageFooter_points").style.display = "none";
+                document.getElementById("averageFooter_average").style.display = "none";
+                document.getElementById("averageFooter_points_big").style.display = "none";
+                document.getElementById("averageFooter_mark_big").style.display = "none";
+                document.getElementById("averageFooter_plusPoints_big").style.display = "none";
+
+                // Noten einfuellen
+
+                if(currentElement.data.formula !== null) {
+
+                    document.getElementById("averageFooter_points").style.display = "block";
+                    document.getElementById("averageFooter_mark_big").style.display = "block";
+
+                } else if(currentElement.data.round === null) {
+
+                    document.getElementById("averageFooter_points_big").style.display = "block";
+
+                } else {
+
+                    document.getElementById("averageFooter_mark_big").style.display = "block";
+
+                }
+
+            }
+
+        } else {
+
+            document.getElementById("tests_markPaperButton").style.display = "inline-block";
+
+            if(user.isTeacher) {
+
+                document.getElementById("tests_studentTable").style.display = "none";
+                document.getElementById("tests_studentButtons").style.display = "none";
+                
+            }
+
+            if(currentElement.isRoot) {
+
+                document.getElementById("tests_addFolderButtons").style.display = "none";
+
+                if(currentElement.writingPermission) {
+
+                    document.getElementById("tests_addSubjectButtons").style.display = "block";
+
+                } else {
+
+                    document.getElementById("tests_addSubjectButtons").style.display = "none";
+
+                }
+
+                document.getElementById("tests_testInfo_div").style.display = "none";
+
+                document.getElementById("tests_testButtons").style.display = "none";
+                document.getElementById("tests_folderButtons").style.display = "none";
+                document.getElementById("tests_semesterButtons").style.display = "block";
+
+                if(currentElement.accessType === ACCESS_OWNER) {
+
+                    document.getElementById("tests_editSemesterButtons").style.display = "block";
+
+                } else {
+
+                    document.getElementById("tests_editSemesterButtons").style.display = "none";
+
+                }
+
+                document.getElementById("averageFooter_points").style.display = "none";
+                document.getElementById("averageFooter_average").style.display = "none";
+                document.getElementById("averageFooter_points_big").style.display = "none";
+                document.getElementById("averageFooter_mark_big").style.display = "none";
+
+                document.getElementById("averageFooter_plusPoints_big").style.display = "block";
+                document.getElementById("averageFooter_average").style.display = "block";
+                
+            } else {
+
+                document.getElementById("tests_addSubjectButtons").style.display = "none";
+
+                if(currentElement.writingPermission && currentElement.data.isFolder) {
+
+                    document.getElementById("tests_addFolderButtons").style.display = "block";
+
+                } else {
+
+                    document.getElementById("tests_addFolderButtons").style.display = "none";
+
+                }
+
+                if(currentElement.data.isFolder) {
+
+                    document.getElementById("tests_testInfo_div").style.display = "none";                    
+                    document.getElementById("tests_calculatorButton").style.display = "inline-block";
+                    document.getElementById("tests_folderButtons").style.display = "block";
+                    document.getElementById("tests_testButtons").style.display = "none";
+
+                    if(currentElement.writingPermission) {
+
+                        document.getElementById("tests_editFolderButtons").style.display = "block";
+    
+                    } else {
+    
+                        document.getElementById("tests_editFolderButtons").style.display = "none";
+    
+                    }
+
+                    // Tabelle mit Tests fuellen
+                    document.getElementById("tests_table").style.display = "table";
+
+                } else {
+
+                    document.getElementById("tests_table").style.display = "none";
+                    document.getElementById("tests_calculatorButton").style.display = "none";
+                    document.getElementById("tests_folderButtons").style.display = "none";
+                    document.getElementById("tests_testButtons").style.display = "block";
+                    document.getElementById("tests_testInfoButton").style.display = "none";
+
+                    if(currentElement.writingPermission) {
+
+                        document.getElementById("tests_editTestButtons").style.display = "block";
+    
+                    } else {
+    
+                        document.getElementById("tests_editTestButtons").style.display = "none";
+    
+                    }
+                    
+                    // Testinformationen einfuellen
+                    document.getElementById("tests_testInfo_div").style.display = "block";
+
+                }
+
+                document.getElementById("tests_semesterButtons").style.display = "none";
+
+                document.getElementById("averageFooter_points").style.display = "none";
+                document.getElementById("averageFooter_average").style.display = "none";
+                document.getElementById("averageFooter_points_big").style.display = "none";
+                document.getElementById("averageFooter_mark_big").style.display = "none";
+                document.getElementById("averageFooter_plusPoints_big").style.display = "none";
+
+                // Noten einfuellen
+
+                if(currentElement.data.formula !== null) {
+
+                    document.getElementById("averageFooter_points").style.display = "block";
+                    document.getElementById("averageFooter_mark_big").style.display = "block";
+
+                } else if(currentElement.data.round === null) {
+
+                    document.getElementById("averageFooter_points_big").style.display = "block";
+
+                } else if(currentElement.data.round == 0) {
+
+                    document.getElementById("averageFooter_mark_big").style.display = "block";
+
+                } else {
+
+                    document.getElementById("averageFooter_average").style.display = "block";
+                    document.getElementById("averageFooter_mark_big").style.display = "block";
+
+                }
+
+            }
+
+        }
+
+        document.getElementById("semesters_editButtons").style.display = "block";
+        document.getElementById("title").innerHTML = escapeHTML(currentElement.data.name);
+        document.getElementsByTagName("TITLE")[0].innerHTML = "Notentabelle - " + escapeHTML(currentElement.data.name);
 
     } else if (currentElement.type === TYPE_SEMESTER && currentElement.isForeign) {
         // Fremde Semester
@@ -469,6 +765,53 @@ function loadElementAndPrint() {
     } else if (type === TYPE_TEST) {
         // Im Semester
 
+        if(isRoot) {
+
+            if (!cache.semesters[ID]) {
+            
+                loadData("/phpScripts/get/getTests.php", { semesterID: ID, withMarks: true }, function (data) {
+                    
+                    currentElement = data;
+                    cache.semesters[ID] = data;
+    
+                    hideLoading();
+    
+                }, loadingError);
+    
+                isLoading = true;
+    
+            } else {
+    
+                currentElement = cache.semesters[ID];
+    
+                isLoading = false;
+    
+            }
+
+        } else {
+
+            if (!cache.tests[ID]) {
+            
+                loadData("/phpScripts/get/getTests.php", { testID: ID, withMarks: true }, function (data) {
+                    
+                    currentElement = data;
+                    cache.tests[ID] = data;
+    
+                    hideLoading();
+    
+                }, loadingError);
+    
+                isLoading = true;
+    
+            } else {
+    
+                currentElement = cache.tests[ID];
+    
+                isLoading = false;
+    
+            }
+
+        }
 
 
     } else if (type === TYPE_SEMESTER && isForeign) {
@@ -520,7 +863,7 @@ function loadElementAndPrint() {
 }
 
 // Wird aufgerufen, wenn ein Element ausgewaehlt wurde
-function select(elementType, elementID) {
+function select(elementType, elementID, isRoot = false, isForeign = false) {
 
     if(isBlocked) {
 
@@ -528,7 +871,7 @@ function select(elementType, elementID) {
 
     }
 
-    path.push({ type: elementType, ID: elementID, isRoot: false, isForeign: false });
+    path.push({ type: elementType, ID: elementID, isRoot: isRoot, isForeign: isForeign });
 
     localStorage.setItem("path", JSON.stringify(path));
 
