@@ -137,6 +137,22 @@ include("phpScripts/login.php");
                         <button class="button_medium positive">Neue Veknüpf.</button>
                     </div>
                 </div>
+
+                <div id="tests_empty_subjects">
+                    <div class="info gray bigMargin">
+                        <p class="blankLine_small">Kein Fach vorhanden.</p>
+                        <p>Fügen Sie ein Fach, eine Prüfung oder eine Verknüpfung mit den obigen Knöpfen ein oder benutzen Sie eine Vorlage.</p>
+                    </div>
+                    <button id="tests_empty_subjects_templateButton" class="button_big positive withMargin">Vorlage verwenden</button>
+                </div>
+
+                <div id="tests_empty_folders">
+                    <div class="info gray bigMargin">
+                        <p class="blankLine_small">Kein Element vorhanden.</p>
+                        <p>Fügen Sie einen Ordner, eine Prüfung oder eine Verknüpfung mit den obigen Knöpfen ein oder benutzen Sie eine Vorlage.</p>
+                    </div>
+                    <button id="tests_empty_subjects_templateButton" class="button_big positive withMargin">Vorlage verwenden</button>
+                </div>
 			</div>
 
             <table id="tests_table">
@@ -145,8 +161,9 @@ include("phpScripts/login.php");
 						<th>Name</th>
 						<th>Datum</th>
                         <th><span class="table_big">Gewichtung</span><span class="table_small">Gew.</span></th>
-						<th id="tests_table_points" style="display: none;"><span class="table_big">Punkte</span><span class="table_small">Pkte.</span></th>
-						<th id="tests_table_mark" colspan="2">Note</th>
+						<th id="tests_table_points"><span class="table_big" style="display: none;">Punkte</span><span class="table_small" style="display: none;">Pkte.</span></th>
+						<th id="tests_table_mark_unrounded"></th>
+						<th id="tests_table_mark">Note</th>
 						<th></th>
 						<th></th>
 					</tr>

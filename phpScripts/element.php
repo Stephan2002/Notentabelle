@@ -64,6 +64,7 @@ class Element {
     public $isRoot = false;
     public $isForeign = false;
     public $isTemplate = false;
+    public $isFolder = false;
 
     public $childrenData; // array
 
@@ -73,6 +74,7 @@ class Element {
         $this->accessType = $accessType;
         $this->writingPermission = $writingPermission;
         $this->data = $data;
+        $this->isFolder = is_null($data) ? true : $data["isFolder"];
 
         if(isset($data["templateType"])) {
 
@@ -130,6 +132,12 @@ class Element {
         if(!$this->isForeign) {
 
             unset($this->isForeign);
+
+        }
+
+        if(!$this->isFolder) {
+
+            unset($this->isFolder);
 
         }
 
@@ -412,7 +420,7 @@ function getTest(int $testID, bool $checkOnlyForTemplate = false, bool $irreleva
 
     }
 
-    if($data["isTemplate"]) {
+    if(!is_null($data["templateType"])) {
 
         $stmt->prepare("SELECT type FROM publictemplates WHERE semesterID = ?");
         $stmt->bind_param("i", $data["semesterID"]);

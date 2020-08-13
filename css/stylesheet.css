@@ -92,6 +92,12 @@ th {
 
 }
 
+.table_buttons.noWritingPermission {
+	
+	width: 36px;
+
+}
+
 .table_big {
 
 	display: initial;
@@ -139,7 +145,7 @@ th {
 
 	.table_buttons {
 
-		width: 72px;
+		width: 36px;
 	
 	}
 	
