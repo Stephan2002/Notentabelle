@@ -13,7 +13,7 @@ function getClasses(Element $element) {
 
     global $mysqli;
 
-    $stmt = $mysqli->prepare("SELECT * FROM classes WHERE userID = ? AND deleteTimestamp IS NULL");
+    $stmt = $mysqli->prepare("SELECT * FROM classes WHERE userID = ? AND deleteTimestamp IS NULL ORDER BY isHidden, name");
     $stmt->bind_param("i", $_SESSION["userid"]);
     $stmt->execute();
 

@@ -40,9 +40,9 @@ if(isset($_GET["error"]) && is_numeric($_GET["error"])) {
 } else {
 
 	$error = 0;
-
+	
 	if(isset($_POST["login"])) {
-
+		
 		if(!isset($_POST["password"]) || empty($_POST["password"])) {
 	
 			$error = 6;
@@ -54,13 +54,13 @@ if(isset($_GET["error"]) && is_numeric($_GET["error"])) {
 			$error = 5;
 	
 		}
-	
+		
 		if($error === 0) {
-	
+			
 			$mysqli = new mysqli(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_DBNAME);
 	
 			if($mysqli->connect_errno) {
-	
+				
 				header("Location: /error.php?error=0");
 				exit;
 	

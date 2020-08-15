@@ -63,12 +63,12 @@ include("phpScripts/login.php");
                 </div>
                 
                 <div id="semesters_empty_semesters" class="info gray bigMargin">
-                    <p class="blankLine_small">Kein Semester vorhanden.</p>
+                    <p class="blankLine_small">Kein sichtbares Semester vorhanden.</p>
                     <p>Fügen Sie ein Semester oder einen Ordner mit den obigen Knöpfen ein.</p>
                 </div>
 
                 <div id="semesters_empty_templates" class="info gray bigMargin">
-                    <p class="blankLine_small">Keine Vorlage vorhanden.</p>
+                    <p class="blankLine_small">Keine sichtbare Vorlage vorhanden.</p>
                     <p>Fügen Sie eine Vorlage oder einen Ordner mit den obigen Knöpfen ein.</p>
                 </div>
 			</div>
@@ -140,18 +140,18 @@ include("phpScripts/login.php");
 
                 <div id="tests_empty_subjects">
                     <div class="info gray bigMargin">
-                        <p class="blankLine_small">Kein Fach vorhanden.</p>
-                        <p>Fügen Sie ein Fach, eine Prüfung oder eine Verknüpfung mit den obigen Knöpfen ein oder benutzen Sie eine Vorlage.</p>
+                        <p class="blankLine_small">Kein sichtbares Fach vorhanden.</p>
+                        <p id="tests_empty_subjects_instruction">Fügen Sie ein Fach, eine Prüfung oder eine Verknüpfung mit den obigen Knöpfen ein oder benutzen Sie eine Vorlage.</p>
                     </div>
                     <button id="tests_empty_subjects_templateButton" class="button_big positive withMargin">Vorlage verwenden</button>
                 </div>
 
                 <div id="tests_empty_folders">
                     <div class="info gray bigMargin">
-                        <p class="blankLine_small">Kein Element vorhanden.</p>
-                        <p>Fügen Sie einen Ordner, eine Prüfung oder eine Verknüpfung mit den obigen Knöpfen ein oder benutzen Sie eine Vorlage.</p>
+                        <p class="blankLine_small">Kein sichtbares Element vorhanden.</p>
+                        <p id="tests_empty_folders_instruction">Fügen Sie einen Ordner, eine Prüfung oder eine Verknüpfung mit den obigen Knöpfen ein oder benutzen Sie eine Vorlage.</p>
                     </div>
-                    <button id="tests_empty_subjects_templateButton" class="button_big positive withMargin">Vorlage verwenden</button>
+                    <button id="tests_empty_folders_templateButton" class="button_big positive withMargin">Vorlage verwenden</button>
                 </div>
 			</div>
 
@@ -202,12 +202,13 @@ include("phpScripts/login.php");
                 <?php if($_SESSION["type"] === "teacher" || $_SESSION["type"] === "admin") { ?>
                     
 				<div id="tests_studentButtons">
-					<button class="button_big positive withMargin">Noten / Punkte bearbeiten</button>
+					<button id="tests_editStudentButton" class="button_big positive withMargin">Noten / Punkte bearbeiten</button>
 					<button class="button_big positive withMargin">Versteckte Schüler/innen anzeigen</button>
 				</div>
 
                 <?php } ?>
 
+				<button id="tests_showHiddenTests" class="button_big positive withMargin">Versteckte Elemente anzeigen</button>
 				<button id="tests_deletedButton" class="button_big positive">Gelöschte Elemente</button>
 
 				<div id="tests_semesterButtons" style="display: block;">

@@ -405,7 +405,7 @@ function getTest(int $testID, bool $checkOnlyForTemplate = false, bool $irreleva
 
             $studentData = $stmt->get_result()->fetch_assoc();
 
-            if(!is_null($studentData)) {
+            if(!is_null($studentData) && !$data["isHidden"]) {
 
                 $stmt->close();
 

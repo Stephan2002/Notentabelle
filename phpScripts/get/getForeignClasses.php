@@ -14,7 +14,7 @@ function getForeignClasses(StudentClass &$element) {
 
     global $mysqli;
 
-    $stmt = $mysqli->prepare("SELECT * FROM classes WHERE EXISTS (SELECT permissions.classID FROM permissions WHERE classes.classID = permissions.classID AND permissions.userID = ?) AND classes.deleteTimestamp IS NULL");
+    $stmt = $mysqli->prepare("SELECT * FROM classes WHERE EXISTS (SELECT permissions.classID FROM permissions WHERE classes.classID = permissions.classID AND permissions.userID = ?) AND classes.deleteTimestamp IS NULL ORDER BY classes.name");
     $stmt->bind_param("i", $_SESSION["userid"]);
     $stmt->execute();
 

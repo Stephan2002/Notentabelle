@@ -24,11 +24,11 @@ function getSemesters(Semester &$element) {
 
         if($element->isTemplate) {
 
-            $stmt = $mysqli->prepare("SELECT * FROM semesters WHERE userID = ? AND templateType IS NOT NULL AND deleteTimestamp IS NULL");
+            $stmt = $mysqli->prepare("SELECT * FROM semesters WHERE userID = ? AND templateType IS NOT NULL AND deleteTimestamp IS NULL ORDER BY isHidden, referenceID IS NOT NULL, classID, name");
     
         } else {
     
-            $stmt = $mysqli->prepare("SELECT * FROM semesters WHERE userID = ? AND templateType IS NULL AND deleteTimestamp IS NULL");
+            $stmt = $mysqli->prepare("SELECT * FROM semesters WHERE userID = ? AND templateType IS NULL AND deleteTimestamp IS NULL ORDER BY isHidden, referenceID IS NOT NULL, classID, name");
     
         }
     
@@ -36,7 +36,7 @@ function getSemesters(Semester &$element) {
 
     } else {
 
-        $stmt = $mysqli->prepare("SELECT * FROM semesters WHERE parentID = ? AND deleteTimestamp IS NULL");
+        $stmt = $mysqli->prepare("SELECT * FROM semesters WHERE parentID = ? AND deleteTimestamp IS NULL ORDER BY isHidden, referenceID IS NOT NULL, classID, name");
         $stmt->bind_param("i", $element->data["semesterID"]);
 
     }

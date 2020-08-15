@@ -321,6 +321,7 @@ function calculateMark_Class(array &$element, array &$subElements, bool $isTest 
                 } else {
 
                     $subTest["mark"] = $sumMarks / $count;
+                    $subTest["mark_unrounded"] = $subTest["mark"];
 
                 }
 

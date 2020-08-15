@@ -35,7 +35,16 @@ var cache = {
     rootTemplates: undefined,
     publishedTemplates: undefined
 
-}
+};
+
+var showHidden = {
+
+    semesters: false,
+    tests: false,
+    students: false,
+    classes: false
+
+};
 
 var currentElement;
 
@@ -252,6 +261,12 @@ function printElement() {
 
             var currentChildData = currentElement.childrenData[i];
 
+            if(!showHidden.semesters && currentChildData.isHidden) {
+
+                continue;
+
+            }
+
             var currentString =
                 "<tr onclick='select(" + (currentChildData.isFolder ? TYPE_SEMESTER : TYPE_TEST) + ", " + currentChildData.semesterID + ", " + !currentChildData.isFolder + ", " + currentChildData.isFolder + ")'>" +
                     "<td class='table_name'>" + escapeHTML(currentChildData.name) + "</td>" +
@@ -372,20 +387,29 @@ function printElement() {
         if(currentElement.isRoot) {
 
             document.getElementById("tests_addFolderButtons").style.display = "none";
+            document.getElementById("tests_empty_folders_templateButton").style.display = "none";
+            document.getElementById("tests_empty_folders_instruction").style.display = "none";
 
             document.getElementById("tests_testButtons").style.display = "none";
             document.getElementById("tests_folderButtons").style.display = "none";
             document.getElementById("tests_semesterButtons").style.display = "block";
+            document.getElementById("tests_showHiddenTests").style.display = "inline-block";
 
             if(currentElement.writingPermission) {
 
                 document.getElementById("tests_addSubjectButtons").style.display = "block";
                 document.getElementById("tests_deletedButton").style.display = "inline-block";
 
+                document.getElementById("tests_empty_subjects_templateButton").style.display = "inline-block";
+                document.getElementById("tests_empty_subjects_instruction").style.display = "block";
+
             } else {
 
                 document.getElementById("tests_addSubjectButtons").style.display = "none";
                 document.getElementById("tests_deletedButton").style.display = "none";
+
+                document.getElementById("tests_empty_subjects_templateButton").style.display = "none";
+                document.getElementById("tests_empty_subjects_instruction").style.display = "none";
 
             }
 
@@ -420,14 +444,20 @@ function printElement() {
         } else {
 
             document.getElementById("tests_addSubjectButtons").style.display = "none";
+            document.getElementById("tests_empty_subjects_templateButton").style.display = "none";
+            document.getElementById("tests_empty_subjects_instruction").style.display = "none";
 
             if(currentElement.writingPermission && currentElement.isFolder) {
 
                 document.getElementById("tests_addFolderButtons").style.display = "block";
+                document.getElementById("tests_empty_folders_templateButton").style.display = "inline-block";
+                document.getElementById("tests_empty_folders_instruction").style.display = "block";
 
             } else {
 
                 document.getElementById("tests_addFolderButtons").style.display = "none";
+                document.getElementById("tests_empty_folders_templateButton").style.display = "none";
+                document.getElementById("tests_empty_folders_instruction").style.display = "none";
 
             }
 
@@ -438,6 +468,7 @@ function printElement() {
 
                 document.getElementById("tests_testButtons").style.display = "none";
                 document.getElementById("tests_folderButtons").style.display = "block";
+                document.getElementById("tests_showHiddenTests").style.display = "inline-block";
 
                 if(currentElement.writingPermission && currentElement.accessType !== ACCESS_TEACHER) {
 
@@ -457,6 +488,7 @@ function printElement() {
                 document.getElementById("tests_folderButtons").style.display = "none";
                 document.getElementById("tests_deletedButton").style.display = "none";
                 document.getElementById("tests_table").style.display = "none";
+                document.getElementById("tests_showHiddenTests").style.display = "none";
 
                 if(currentElement.writingPermission && currentElement.accessType !== ACCESS_TEACHER) {
 
@@ -549,6 +581,12 @@ function printElement() {
 
                 var currentChildData = currentElement.childrenData[i];
 
+                if(!showHidden.tests && currentChildData.isHidden) {
+
+                    continue;
+    
+                }
+
                 tableString +=
                     "<tr onclick='select(TYPE_TEST, " + currentChildData.testID + ", false, " + currentChildData.isFolder + ")'>" +
                         "<td class='table_name'>" + escapeHTML(currentChildData.name) + "</td>" +
@@ -605,6 +643,11 @@ function printElement() {
 
             }
 
+        } else {
+
+            document.getElementById("tests_empty_subjects").style.display = "none";
+            document.getElementById("tests_empty_folders").style.display = "none";
+
         }
 
         if(currentElement.data.classID !== null && currentElement.accessType !== ACCESS_STUDENT) {
@@ -613,6 +656,8 @@ function printElement() {
             document.getElementById("tests_calculatorButton").style.display = "none";
 
             if(currentElement.isRoot) {
+
+                document.getElementById("tests_editStudentButton").style.display = "none";
 
                 if(currentElement.accessType === ACCESS_TEACHER) {
 
@@ -642,9 +687,14 @@ function printElement() {
 
                 document.getElementById("tests_studentButtons").style.display = "block";
 
-                if(!currentElement.isFolder) {
+                if(currentElement.isFolder) {
+
+                    document.getElementById("tests_editStudentButton").style.display = "none";
+
+                } else {
 
                     document.getElementById("tests_testInfoButton").style.display = "inline-block";
+                    document.getElementById("tests_editStudentButton").style.display = "inline-block";
 
                 }
 
