@@ -9,9 +9,7 @@ Content-Length: 29
 Origin: https://notentabelle.localhost
 Connection: keep-alive
 Referer: https://notentabelle.localhost/app
-Cookie: PHPSESSID=l8supd0fdrdj64te2iq7683nk1
-Pragma: no-cache
-Cache-Control: no-cache
+Cookie: PHPSESSID=iij2qilsg9cignjhprf3ai532a
 
 
 {"testID":2,"withMarks":true}

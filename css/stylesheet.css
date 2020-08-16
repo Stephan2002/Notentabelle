@@ -92,6 +92,12 @@ th {
 
 }
 
+.studentTable_buttons {
+
+	width: 72px;
+
+}
+
 .table_buttons.noWritingPermission {
 	
 	width: 36px;
@@ -107,6 +113,45 @@ th {
 .table_small {
 
 	display: none;
+
+}
+
+.studentTable_input {
+
+	padding: 0px;
+	vertical-align: center;
+
+}
+
+.studentTable_input input {
+
+	font-size: inherit;
+	background-color: white;
+	border-left: 1px solid black;
+	border-right: 1px solid black;
+	margin: 0px;
+	color: black;
+	height: 52px;
+	border-radius: 0px;
+	width: 65px;
+	padding: 0px 10px;
+	text-align: center;
+
+}
+
+.studentTable_input input:disabled {
+
+	background-color: transparent;
+	color: black;
+	border: none;
+
+}
+
+.studentTable_input.table_mark input {
+
+	width: 72px;
+	padding: 0px 10px;
+	font-weight: bold;
 
 }
 
@@ -143,7 +188,7 @@ th {
 	
 	}
 
-	.table_buttons {
+	.table_buttons, .studentTable_buttons {
 
 		width: 36px;
 	
@@ -153,6 +198,20 @@ th {
 	
 		display: initial;
 	
+	}
+
+	.studentTable_input input {
+
+		width: 50px;
+		padding: 0px 5px;
+
+	}
+
+	.studentTable_input.table_mark input {
+
+		width: 60px;
+		padding: 0px 5px;
+
 	}
 	
 }

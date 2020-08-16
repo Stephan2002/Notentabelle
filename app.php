@@ -160,7 +160,7 @@ include("phpScripts/login.php");
 					<tr>
 						<th>Name</th>
 						<th>Datum</th>
-                        <th><span class="table_big">Gewichtung</span><span class="table_small">Gew.</span></th>
+                        <th id="tests_table_weight"><span class="table_big">Gewichtung</span><span class="table_small">Gew.</span></th>
 						<th id="tests_table_points"><span class="table_big" style="display: none;">Punkte</span><span class="table_small" style="display: none;">Pkte.</span></th>
 						<th id="tests_table_mark_unrounded"></th>
 						<th id="tests_table_mark">Note</th>
@@ -187,8 +187,9 @@ include("phpScripts/login.php");
 					<tr>
 						<th>Vorname</th>
 						<th>Nachname</th>
-                        <th id="tests_studentTable_points" style="display: none;"><span class="table_big">Punkte</span><span class="table_small">Pkte.</span></th>
-						<th id="tests_studentTable_mark" colspan="2">Note</th>
+                        <th id="tests_studentTable_points"><span class="table_big">Punkte</span><span class="table_small">Pkte.</span></th>
+						<th id="tests_studentTable_mark_unrounded">Schnitt</th>
+						<th id="tests_studentTable_mark">Note</th>
 						<th></th>
 					</tr>
 				</thead>

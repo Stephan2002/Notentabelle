@@ -46,6 +46,8 @@ var showHidden = {
 
 };
 
+var editStudents = false;
+
 var currentElement;
 
 // Maskiert die speziellen HTML-Zeichen
@@ -565,15 +567,16 @@ function printElement() {
             }
 
             var pointsUsed = false;
-            var unroundedMarkUsed = false;
             
-            if(currentElement.data.round != null || currentElement.isRoot) {
+            if(currentElement.isRoot || (currentElement.data.round != null && currentElement.data.formula == null)) {
 
                 document.getElementById("tests_table_mark").innerHTML = "Note";
+                document.getElementById("tests_table_weight").innerHTML = "<span class='table_big'>Gewichtung</span><span class='table_small'>Gew.</span>";
 
             } else {
 
                 document.getElementById("tests_table_mark").innerHTML = "<span class='table_big'>Punkte</span><span class='table_small'>Pkte.</span>";
+                document.getElementById("tests_table_weight").innerHTML = "";
 
             }
 
@@ -592,7 +595,7 @@ function printElement() {
                         "<td class='table_name'>" + escapeHTML(currentChildData.name) + "</td>" +
                         "<td>" + formatDate(currentChildData.date) + "</td>" +
                         "<td>" + formatNumber(currentChildData.weight) + "</td>" +
-                        "<td>" + (currentChildData.points != null ? formatNumber(currentChildData.points) : "") + "</td>" +
+                        "<td>" + (currentChildData.formula != null ? (currentChildData.points != null ? formatNumber(currentChildData.points) : "") : "") + "</td>" +
                         "<td>" + ((currentChildData.round != null && currentChildData.round != 0 && currentChildData.formula == null) ? (currentChildData.mark_unrounded != null ? formatNumber(currentChildData.mark_unrounded) : "") : "") + "</td>" +
                         "<td class='table_mark'>" + (currentChildData.round != null ? (currentChildData.mark != null ? formatNumber(currentChildData.mark) : "") : (currentChildData.points != null ? formatNumber(currentChildData.points) : "")) + "</td>" +
                         "<td></td>" +
@@ -667,8 +670,6 @@ function printElement() {
 
                 } else {
 
-                    // Schuelertabelle fuellen
-                    document.getElementById("tests_studentTable").style.display = "table";
                     document.getElementById("tests_studentButtons").style.display = "block";
 
                     if(tableString !== "") {
@@ -708,8 +709,203 @@ function printElement() {
 
                 }
 
-                // Schuelertabelle fuellen
-                document.getElementById("tests_studentTable").style.display = "table";
+            }
+
+            if(!currentElement.isRoot || currentElement.accessType !== ACCESS_TEACHER) {
+
+                var studentTableString = "";
+
+                if(currentElement.writingPermission && editStudents) {
+
+                    var buttonString = 
+                        "<td class='studentTable_buttons'>" +
+                            "<button class='button_square positive table_big'><img src='/img/edit.svg' alt='.'></button>" +
+                            "<button class='button_square neutral'><img src='/img/info.svg' alt='i'></button>" +
+                        "</td>";
+
+                } else {
+
+                    var buttonString = 
+                        "<td class='studentTable_buttons'>" +
+                            "<button class='button_square neutral'><img src='/img/info.svg' alt='i'></button>" +
+                        "</td>";
+
+                }
+                
+                if(currentElement.isRoot) {
+                    
+                    document.getElementById("tests_studentTable_mark").innerHTML = "<span class='table_big'>Hochpunkte</span><span class='table_small'>Hochpkte.</span>";
+                    document.getElementById("tests_studentTable_mark_unrounded").innerHTML = "Schnitt";
+
+                } else if(currentElement.data.round != null) {
+
+                    document.getElementById("tests_studentTable_mark").innerHTML = "Note";
+                    document.getElementById("tests_studentTable_mark_unrounded").innerHTML = "";
+
+                } else {
+
+                    document.getElementById("tests_studentTable_mark").innerHTML = "<span class='table_big'>Punkte</span><span class='table_small'>Pkte.</span>";
+                    document.getElementById("tests_studentTable_mark_unrounded").innerHTML = "";
+
+                }
+
+                if(!currentElement.isRoot && (currentElement.data.formula != null)) {
+
+                    document.getElementById("tests_studentTable_points").innerHTML = "<span class='table_big'>Punkte</span><span class='table_small'>Pkte.</span>";
+
+                } else {
+
+                    document.getElementById("tests_studentTable_points").innerHTML = "";
+
+                }
+
+                var printStudent;
+
+                if(currentElement.isRoot) {
+
+                    printStudent = function(currentStudentData) {
+
+                        if(currentStudentData.plusPoints == null && !editStudents) {
+
+                            return;
+
+                        }
+
+                        studentTableString +=
+                            "<tr>" +
+                                "<td class='table_name'>" + escapeHTML(currentStudentData.lastName) + "</td>" +
+                                "<td>" + escapeHTML(currentStudentData.firstName) + "</td>" +
+                                "<td></td>" +
+                                "<td>" + (currentStudentData.mark_unrounded != null ? formatNumber(currentStudentData.mark_unrounded) : "") + "</td>" +
+                                "<td class='table_mark'>" + (currentStudentData.plusPoints != null ? formatNumber(currentStudentData.plusPoints) : "") + "</td>" +
+                                buttonString +
+                            "</tr>";
+
+                    }
+
+                } else if(currentElement.data.round == null) {
+
+                    printStudent = function(currentStudentData) {
+
+                        if(currentStudentData.points == null && !editStudents) {
+
+                            return;
+
+                        }
+
+                        studentTableString +=
+                            "<tr>" +
+                                "<td class='table_name'>" + escapeHTML(currentStudentData.lastName) + "</td>" +
+                                "<td>" + escapeHTML(currentStudentData.firstName) + "</td>" +
+                                "<td></td>" + 
+                                "<td></td>" +
+                                "<td class='table_mark studentTable_input'><input type='text' disabled value='" + (currentStudentData.points != null ? formatNumber(currentStudentData.points) : "") + "'></td>" +
+                                buttonString +
+                            "</tr>";
+
+                    }
+
+                } else if(currentElement.data.formula == null) {
+
+                    if(currentElement.data.round == 0) {
+
+                        printStudent = function(currentStudentData) {
+
+                            if(currentStudentData.mark == null && !editStudents) {
+
+                                return;
+    
+                            }
+
+                            studentTableString +=
+                                "<tr>" +
+                                    "<td class='table_name'>" + escapeHTML(currentStudentData.lastName) + "</td>" +
+                                    "<td>" + escapeHTML(currentStudentData.firstName) + "</td>" +
+                                    "<td></td>" +
+                                    "<td></td>" +
+                                    "<td class='table_mark studentTable_input'><input type='text' disabled value='" + (currentStudentData.mark != null ? formatNumber(currentStudentData.mark) : "") + "'></td>" +
+                                    buttonString +
+                                "</tr>";
+    
+                        }
+
+                    } else {
+
+                        printStudent = function(currentStudentData) {
+
+                            if(currentStudentData.mark == null && !editStudents) {
+
+                                return;
+    
+                            }
+
+                            studentTableString +=
+                                "<tr>" +
+                                    "<td class='table_name'>" + escapeHTML(currentStudentData.lastName) + "</td>" +
+                                    "<td>" + escapeHTML(currentStudentData.firstName) + "</td>" +
+                                    "<td></td>" +
+                                    "<td class='studentTable_input'><input type='text' disabled value='" + (currentStudentData.mark_unrounded != null ? formatNumber(currentStudentData.mark_unrounded) : "") + "'></td>" +
+                                    "<td class='table_mark'>" + (currentStudentData.mark != null ? formatNumber(currentStudentData.mark) : "") + "</td>" +
+                                    buttonString +
+                                "</tr>";
+    
+                        }
+
+                    }
+
+                } else {
+
+                    printStudent = function(currentStudentData) {
+
+                        if(currentStudentData.points == null && !editStudents) {
+
+                            return;
+
+                        }
+
+                        studentTableString +=
+                            "<tr>" +
+                                "<td class='table_name'>" + escapeHTML(currentStudentData.lastName) + "</td>" +
+                                "<td>" + escapeHTML(currentStudentData.firstName) + "</td>" +
+                                "<td class='studentTable_input'><input type='text' disabled value='" + (currentStudentData.points != null ? formatNumber(currentStudentData.points) : "") + "'></td>" +
+                                "<td></td>" +
+                                "<td class='table_mark'>" + (currentStudentData.mark != null ? formatNumber(currentStudentData.mark) : "") + "</td>" +
+                                buttonString +
+                            "</tr>";
+
+                    }
+
+                }
+
+                for(var i = 0; i < currentElement.data.students.length; i++) {
+
+                    if(!showHidden.students && currentElement.data.students[i].isHidden) {
+
+                        continue;
+        
+                    }
+
+                    printStudent(currentElement.data.students[i]);
+
+                }
+
+                if(editStudents) {
+
+                    studentTableString = studentTableString.replace(/disabled /g, "");
+
+                }
+
+                document.getElementById("tests_studentTableBody").innerHTML = studentTableString;
+
+                if(studentTableString === "") {
+
+                    document.getElementById("tests_studentTable").style.display = "none";
+
+                } else {
+
+                    document.getElementById("tests_studentTable").style.display = "table";
+
+                }
 
             }
 

@@ -40,7 +40,7 @@ function getTests(Element &$test, bool $withMarks = false) {
         if($withMarks) {
 
             if(!$test->isRoot) {
-
+                
                 if(!is_null($test->data["formula"])) {
 
                     $stmt = $mysqli->prepare("SELECT students.studentID, students.isHidden, students.firstName, students.lastName, students.gender, marks.mark, marks.points, marks.notes FROM students LEFT JOIN marks ON (marks.studentID = students.studentID AND marks.testID = ?) WHERE students.classID = ? AND students.deleteTimestamp IS NULL ORDER BY students.isHidden, students.lastName");
@@ -78,15 +78,15 @@ function getTests(Element &$test, bool $withMarks = false) {
             
             if(!is_null($test->data["round"]) && is_null($test->data["formula"])) {
         
-                $stmt = $mysqli->prepare("SELECT tests.*, IF(tests.round, AVG(LEAST(ROUND(marks.mark * 2) / 2, 6)), AVG(marks.mark)) AS mark FROM tests, marks WHERE tests.parentID = ? AND marks.testID = tests.testID AND EXISTS (SELECT studentID FROM students WHERE students.studentID = marks.studentID AND students.deleteTimestamp IS NULL) AND tests.deleteTimestamp IS NULL HAVING IF(tests.round, AVG(LEAST(ROUND(marks.mark * 2) / 2, 6)), AVG(marks.mark)) IS NOT NULL ORDER BY tests.isHidden, NOT tests.isFolder, tests.date, NOT tests.markCounts, tests.name");
+                $stmt = $mysqli->prepare("SELECT tests.*, IF(tests.round, AVG(LEAST(ROUND(marks.mark * 2) / 2, 6)), AVG(marks.mark)) AS mark FROM tests LEFT JOIN marks ON (marks.testID = tests.testID AND EXISTS (SELECT studentID FROM students WHERE students.studentID = marks.studentID AND students.deleteTimestamp IS NULL)) WHERE tests.parentID = ? AND tests.deleteTimestamp IS NULL GROUP BY tests.testID ORDER BY tests.isHidden, NOT tests.isFolder, tests.date, NOT tests.markCounts, tests.name");
 
             } elseif(!is_null($test->data["formula"])) {
 
-                $stmt = $mysqli->prepare("SELECT tests.*, AVG(marks.points) AS points, IF(tests.round, AVG(LEAST(ROUND(marks.mark * 2) / 2, 6)), AVG(marks.mark)) AS mark, IF(tests.round, AVG(LEAST(ROUND(marks.mark * 2) / 2, 6)), AVG(marks.mark)) AS mark_unrounded FROM tests, marks WHERE tests.parentID = ? AND marks.testID = tests.testID AND EXISTS (SELECT studentID FROM students WHERE students.studentID = marks.studentID AND students.deleteTimestamp IS NULL) AND tests.deleteTimestamp IS NULL HAVING AVG(marks.points) IS NOT NULL AND IF(tests.round, AVG(LEAST(ROUND(marks.mark * 2) / 2, 6)), AVG(marks.mark)) IS NOT NULL ORDER BY tests.isHidden, NOT tests.isFolder, tests.date, NOT tests.markCounts, tests.name");
+                $stmt = $mysqli->prepare("SELECT tests.*, AVG(marks.points) AS points, IF(tests.round, AVG(LEAST(ROUND(marks.mark * 2) / 2, 6)), AVG(marks.mark)) AS mark, IF(tests.round, AVG(LEAST(ROUND(marks.mark * 2) / 2, 6)), AVG(marks.mark)) AS mark_unrounded FROM tests LEFT JOIN marks ON (marks.testID = tests.testID AND EXISTS (SELECT studentID FROM students WHERE students.studentID = marks.studentID AND students.deleteTimestamp IS NULL)) WHERE tests.parentID = ? AND tests.deleteTimestamp IS NULL GROUP BY tests.testID ORDER BY tests.isHidden, NOT tests.isFolder, tests.date, NOT tests.markCounts, tests.name");
 
             } else {
 
-                $stmt = $mysqli->prepare("SELECT tests.*, AVG(marks.points) AS points FROM tests, marks WHERE tests.parentID = ? AND marks.testID = tests.testID AND EXISTS (SELECT studentID FROM students WHERE students.studentID = marks.studentID AND students.deleteTimestamp IS NULL) AND tests.deleteTimestamp IS NULL HAVING AVG(marks.points) IS NOT NULL ORDER BY tests.isHidden, NOT tests.isFolder, tests.date, NOT tests.markCounts, tests.name");
+                $stmt = $mysqli->prepare("SELECT tests.*, AVG(marks.points) AS points FROM tests LEFT JOIN marks ON (marks.testID = tests.testID AND EXISTS (SELECT studentID FROM students WHERE students.studentID = marks.studentID AND students.deleteTimestamp IS NULL)) WHERE tests.parentID = ? AND tests.deleteTimestamp IS NULL GROUP BY tests.testID ORDER BY tests.isHidden, NOT tests.isFolder, tests.date, NOT tests.markCounts, tests.name");
 
             }
 
