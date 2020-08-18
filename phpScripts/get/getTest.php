@@ -210,25 +210,29 @@ if(isset($test->data["classID"]) && $test->accessType !== Element::ACCESS_STUDEN
 
     $result = $stmt->get_result()->fetch_assoc();
 
-    if(!is_null($test->data["round"])) {
+    if(!is_null($result)) {
 
-        $test->data["mark_unrounded"] = $result["mark"];
+        if(!is_null($test->data["round"])) {
 
-        if($test->data["round"] == 0) {
+            $test->data["mark_unrounded"] = $result["mark"];
 
-            $test->data["mark"] = $result["mark"];
+            if($test->data["round"] == 0) {
 
-        } else {
+                $test->data["mark"] = $result["mark"];
 
-            $test->data["mark"] = roundMark_float($result["mark"]);
+            } else {
+
+                $test->data["mark"] = roundMark_float($result["mark"]);
+
+            }
 
         }
 
-    }
+        if(!is_null($test->data["formula"]) || is_null($test->data["round"])) {
 
-    if(!is_null($test->data["formula"]) || is_null($test->data["round"])) {
+            $test->data["points"] = $result["points"];
 
-        $test->data["points"] = $result["points"];
+        }
 
     }
 

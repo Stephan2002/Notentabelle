@@ -185,8 +185,8 @@ include("phpScripts/login.php");
 			<table id="tests_studentTable" class="bigMargin">
                 <thead>
 					<tr>
-						<th>Vorname</th>
 						<th>Nachname</th>
+						<th>Vorname</th>
                         <th id="tests_studentTable_points"><span class="table_big">Punkte</span><span class="table_small">Pkte.</span></th>
 						<th id="tests_studentTable_mark_unrounded">Schnitt</th>
 						<th id="tests_studentTable_mark">Note</th>
@@ -336,8 +336,8 @@ include("phpScripts/login.php");
 			<table>
                 <thead>
 					<tr>
-						<th>Vorname</th>
-                        <th>Nachname</th>
+						<th>Nachname</th>
+                        <th>Vorname</th>
 						<th>Benutzername</th>
 						<th></th>
 					</tr>

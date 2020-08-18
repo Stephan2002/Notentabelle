@@ -230,7 +230,7 @@ class Loading {
 			if(isBody) {
 
 				document.body.classList.remove("stop-scrolling-loading");
-				document.removeEventListener("touchmove", Loading.cancelEvent);
+				document.body.removeEventListener("touchmove", Loading.cancelEvent);
 
 			}
 

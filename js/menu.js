@@ -7,6 +7,7 @@ function openMenu(event) {
 	document.getElementById("menuContent").style.display = "block";
 
 	event.stopImmediatePropagation();
+	event.preventDefault();
 
 }
 
@@ -17,10 +18,26 @@ function closeMenu(event) {
 
 }
 
+function toggleMenu(event) {
+	
+	if(document.getElementById("menu").classList.contains("openMenu")) {
+
+		closeMenu(event);
+
+	} else {
+
+		openMenu(event);
+
+	}
+
+	event.preventDefault();
+
+}
+
 
 var menuString =
 	"<div id='menuContainer' onmouseenter='openMenu(event)' onmouseleave='closeMenu(event)' onfocusin='openMenu(event)' onfocusout='closeMenu(event)'>" + 
-		"<img src='img/logo/logo.svg' alt='' id='logo' tabindex='0'>" + 
+		"<img src='img/logo/logo.svg' alt='' id='logo' tabindex='0' onclick='toggleMenu(event)'>" + 
 		"<div id='menu'>" + 
 			"<div id='menuContent' tabindex='-1'>";
 

@@ -48,6 +48,7 @@ tr {
 	background-color: rgb(240, 240, 240);
 	border-color: black;
 	color: black;
+	cursor: pointer;
 
 }
 
@@ -60,6 +61,7 @@ td, th {
 	padding: 8px 3px;
 	font-size: 16px;
 	text-align: center;
+	cursor: pointer;
 	
 }
 
