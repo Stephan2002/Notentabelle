@@ -6,11 +6,7 @@ Datei, die inkludiert wird, um die Berechtigung auf ein bestimmtes Objekt zu ueb
 
 */
 
-
-define("DB_HOST", "localhost");
-define("DB_USERNAME", "application");
-define("DB_PASSWORD", "VPpCaabN5bl76rnW");
-define("DB_DBNAME", "notentabelle");
+$DB = json_decode(file_get_contents($_SERVER["DOCUMENT_ROOT"] . "/database.json"));
 
 define("ERROR_NONE",        0);     // kein Fehler
 define("ERROR_NOT_LOGGED_IN", 1);     // Nutzer ist nicht eingeloggt
@@ -197,8 +193,9 @@ class Student extends Element {
 function connectToDatabase() : bool {
 
     global $mysqli;
+    global $DB;
     
-    $mysqli = new mysqli(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_DBNAME);
+    $mysqli = new mysqli($DB->HOST, $DB->USERNAME, $DB->PASSWORD, $DB->DBNAME);
 
     if($mysqli->connect_errno) {
 	
@@ -294,7 +291,7 @@ function getSemester(int $semesterID, bool $checkOnlyForTemplate = false) : Seme
                 $stmt->close();
 
                 $semester = new Semester(0, Element::ACCESS_STUDENT, false, $data);
-                $semester->data["studentID"] = $studentData["studentID"];
+                $semester->studentID = $studentData["studentID"];
 
                 return $semester;
 
@@ -377,8 +374,19 @@ function getTest(int $testID, bool $checkOnlyForTemplate = false, bool $irreleva
 
             if($_SESSION["type"] === "teacher" || $_SESSION["type"] === "admin") {
 
-                $stmt->prepare("SELECT writingPermission FROM teachers WHERE userID = ? AND (testID = ? OR testID = ?) AND deleteTimestamp IS NULL");
-                $stmt->bind_param("iii", $_SESSION["userid"], $data["subjectID"], $testID);
+                $stmt->prepare("SELECT writingPermission FROM teachers WHERE userID = ? AND testID = ?");
+
+                if(isset($data["subjectID"])) {
+
+                    $subjectID = $data["subjectID"];
+
+                } else {
+
+                    $subjectID = $testID;
+
+                }
+
+                $stmt->bind_param("ii", $_SESSION["userid"], $subjectID);
                 $stmt->execute();
 
                 $teacherData = $stmt->get_result()->fetch_assoc();

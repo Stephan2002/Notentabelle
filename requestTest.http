@@ -1,15 +1,17 @@
-POST /phpScripts/get/getTests.php HTTP/1.1
+POST /phpScripts/get/getForeignSemesters.php HTTP/1.1
 Host: notentabelle.localhost
 User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:79.0) Gecko/20100101 Firefox/79.0
 Accept: */*
 Accept-Language: de,en-US;q=0.7,en;q=0.3
 Accept-Encoding: gzip, deflate, br
 Content-Type: text/plain;charset=UTF-8
-Content-Length: 29
+Content-Length: 2
 Origin: https://notentabelle.localhost
 Connection: keep-alive
 Referer: https://notentabelle.localhost/app
-Cookie: PHPSESSID=iij2qilsg9cignjhprf3ai532a
+Cookie: PHPSESSID=kdat4rtv14a9vme3iro462h64b
+Pragma: no-cache
+Cache-Control: no-cache
 
 
-{"testID":2,"withMarks":true}
+{}

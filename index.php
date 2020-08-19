@@ -25,10 +25,7 @@ Loggt ausserdem den User ein oder aus
 
 */
 
-define("DB_HOST", "localhost");
-define("DB_USERNAME", "application");
-define("DB_PASSWORD", "VPpCaabN5bl76rnW");
-define("DB_DBNAME", "notentabelle");
+$DB = json_decode(file_get_contents($_SERVER["DOCUMENT_ROOT"] . "/database.json"));
 
 $isAlreadyLoggedIn = false;
 $logout = false;
@@ -57,7 +54,7 @@ if(isset($_GET["error"]) && is_numeric($_GET["error"])) {
 		
 		if($error === 0) {
 			
-			$mysqli = new mysqli(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_DBNAME);
+			$mysqli = new mysqli($DB->HOST, $DB->USERNAME, $DB->PASSWORD, $DB->DBNAME);
 	
 			if($mysqli->connect_errno) {
 				
@@ -216,12 +213,13 @@ if(isset($_GET["error"]) && is_numeric($_GET["error"])) {
 			<h2>Anmeldung</h2>
 			
 			<?php 
-			
-			if($logout) {
 
-				echo "<script>localStorage.removeItem('path');</script>";
+			if($logout || $error === 1 || $error === 2 || $error === 3 || $error === 4) {
+
+				echo "<script>if (typeof (localStorage) !== undefined) localStorage.removeItem('path');</script>";
 
 			}
+
 
 			if($error !== 0) {
 
@@ -246,9 +244,6 @@ if(isset($_GET["error"]) && is_numeric($_GET["error"])) {
 					
 					$text .=	"<p class='blankLine_small'>Auto-Login fehlgeschlagen.</p>" .
 								"<p>Bitte erneut einloggen.</p>";
-
-					$text .=	"<p class='blankLine_small'>Kein Passwort.</p>" .
-								"<p>Bitte Passwort eingeben!</p>";
 					
 				} elseif ($error === 5) {
 					
@@ -320,11 +315,7 @@ if(isset($_GET["error"]) && is_numeric($_GET["error"])) {
 				<input type="submit" class="button_small positive" value="Login">
 			</form>
 
-			<?php if($error === 5 || $error === 6 || $error === 7 || $error === 8) {
-
-				echo "<a href='resetPassword/passwordForgotten" . (isset($_POST["username"]) ? "?" . htmlspecialchars(urlencode($_POST["username"])) : "") . "'>Passwort vergessen</a>";
-
-			} ?>
+			
 		
 			<p class="blankLine_big">Noch kein Konto?</p>
 			<p><a href="register"><button class="button_small positive">Jetzt registrieren</button></a></p>

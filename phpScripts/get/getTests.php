@@ -268,7 +268,7 @@ function getTests(Element &$test, bool $withMarks = false) {
             } elseif($test->accessType === Element::ACCESS_STUDENT) {
 
                 $stmt = $mysqli->prepare("SELECT tests.*, marks.mark, marks.points FROM tests LEFT JOIN marks ON (tests.testID = marks.testID AND marks.studentID = ?) WHERE tests.parentID = ? AND tests.isHidden = 0 AND tests.deleteTimestamp IS NULL ORDER BY tests.isHidden, NOT tests.isFolder, tests.date, NOT tests.markCounts, tests.name");
-                $stmt->bind_param("ii", $test->data["studentID"], $test->data["testID"]);
+                $stmt->bind_param("ii", $test->studentID, $test->data["testID"]);
 
             } else {
                 
@@ -292,7 +292,7 @@ function getTests(Element &$test, bool $withMarks = false) {
             } elseif($test->accessType === Element::ACCESS_STUDENT) {
 
                 $stmt = $mysqli->prepare("SELECT tests.*, marks.mark, marks.points FROM tests LEFT JOIN marks ON (tests.testID = marks.testID AND marks.studentID = ?) WHERE tests.parentID IS NULL AND tests.semesterID = ? AND tests.isHidden = 0 AND tests.deleteTimestamp IS NULL ORDER BY tests.isHidden, NOT tests.isFolder, tests.date, NOT tests.markCounts, tests.name");
-                $stmt->bind_param("ii", $test->data["studentID"], $test->data["semesterID"]);
+                $stmt->bind_param("ii", $test->studentID, $test->data["semesterID"]);
 
             } else {
 
@@ -318,7 +318,7 @@ function getTests(Element &$test, bool $withMarks = false) {
 
         if(!isset($test->data["mark"]) && !isset($test->data["points"])) {
 
-            calculateMark($test->data, $test->childrenData, false);
+            calculateMark($test->data, $test->childrenData, !$test->isRoot);
 
         }
 

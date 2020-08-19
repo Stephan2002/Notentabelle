@@ -138,10 +138,13 @@ th {
 	width: 65px;
 	padding: 0px 10px;
 	text-align: center;
+	-webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none; 
 
 }
 
-.studentTable_input input:disabled {
+.studentTable_input input:read-only {
 
 	background-color: transparent;
 	color: black;

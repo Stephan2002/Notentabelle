@@ -202,7 +202,7 @@ if(isset($test->data["classID"]) && $test->accessType !== Element::ACCESS_STUDEN
 
         }
 
-        $stmt->bind_param("ii", $test->data["testID"], $test->data["studentID"]);
+        $stmt->bind_param("ii", $test->data["testID"], $test->studentID);
 
     }
     

@@ -386,6 +386,8 @@ function printElement() {
         document.getElementById("averageFooter_points_big").style.display = "none";
         document.getElementById("averageFooter_mark_big").style.display = "none";
 
+        document.getElementById("averageFooter").style.display = "block";
+
         if(currentElement.isRoot) {
 
             document.getElementById("tests_addFolderButtons").style.display = "none";
@@ -395,7 +397,16 @@ function printElement() {
             document.getElementById("tests_testButtons").style.display = "none";
             document.getElementById("tests_folderButtons").style.display = "none";
             document.getElementById("tests_semesterButtons").style.display = "block";
-            document.getElementById("tests_showHiddenTests").style.display = "inline-block";
+            
+            if(currentElement.accessType !== ACCESS_STUDENT) {
+
+                document.getElementById("tests_showHiddenTests").style.display = "inline-block";
+
+            } else {
+
+                document.getElementById("tests_showHiddenTests").style.display = "none";
+
+            }
 
             if(currentElement.writingPermission) {
 
@@ -416,6 +427,8 @@ function printElement() {
             }
 
             if(currentElement.accessType === ACCESS_TEACHER) {
+
+                document.getElementById("averageFooter").style.display = "none";
 
                 document.getElementById("averageFooter_plusPoints_big").style.display = "none";
 
@@ -470,7 +483,6 @@ function printElement() {
 
                 document.getElementById("tests_testButtons").style.display = "none";
                 document.getElementById("tests_folderButtons").style.display = "block";
-                document.getElementById("tests_showHiddenTests").style.display = "inline-block";
 
                 if(currentElement.writingPermission && currentElement.accessType !== ACCESS_TEACHER) {
 
@@ -481,6 +493,16 @@ function printElement() {
 
                     document.getElementById("tests_editFolderButtons").style.display = "none";
                     document.getElementById("tests_deletedButton").style.display = "none";
+
+                }
+
+                if(currentElement.accessType !== ACCESS_STUDENT) {
+
+                    document.getElementById("tests_showHiddenTests").style.display = "inline-block";
+
+                } else {
+
+                    document.getElementById("tests_showHiddenTests").style.display = "none";
 
                 }
 
@@ -692,6 +714,12 @@ function printElement() {
 
                     document.getElementById("tests_editStudentButton").style.display = "none";
 
+                    if(currentElement.data.formula === "manual") {
+
+                        document.getElementById("tests_editStudentButton").style.display = "inline-block";
+
+                    }
+
                 } else {
 
                     document.getElementById("tests_testInfoButton").style.display = "inline-block";
@@ -715,7 +743,7 @@ function printElement() {
 
                 var studentTableString = "";
 
-                if(currentElement.writingPermission && editStudents) {
+                if(currentElement.writingPermission) {
 
                     var buttonString = 
                         "<td class='studentTable_buttons'>" +
@@ -799,7 +827,7 @@ function printElement() {
                                 "<td>" + escapeHTML(currentStudentData.firstName) + "</td>" +
                                 "<td></td>" + 
                                 "<td></td>" +
-                                "<td class='table_mark studentTable_input'><input type='text' disabled value='" + (currentStudentData.points != null ? formatNumber(currentStudentData.points) : "") + "'></td>" +
+                                "<td class='table_mark studentTable_input'><input type='text' readonly value='" + (currentStudentData.points != null ? formatNumber(currentStudentData.points) : "") + "'></td>" +
                                 buttonString +
                             "</tr>";
 
@@ -823,7 +851,7 @@ function printElement() {
                                     "<td>" + escapeHTML(currentStudentData.firstName) + "</td>" +
                                     "<td></td>" +
                                     "<td></td>" +
-                                    "<td class='table_mark studentTable_input'><input type='text' disabled value='" + (currentStudentData.mark != null ? formatNumber(currentStudentData.mark) : "") + "'></td>" +
+                                    "<td class='table_mark studentTable_input'><input type='text' readonly value='" + (currentStudentData.mark != null ? formatNumber(currentStudentData.mark) : "") + "'></td>" +
                                     buttonString +
                                 "</tr>";
     
@@ -844,7 +872,7 @@ function printElement() {
                                     "<td class='table_name'>" + escapeHTML(currentStudentData.lastName) + "</td>" +
                                     "<td>" + escapeHTML(currentStudentData.firstName) + "</td>" +
                                     "<td></td>" +
-                                    "<td class='studentTable_input'><input type='text' disabled value='" + (currentStudentData.mark_unrounded != null ? formatNumber(currentStudentData.mark_unrounded) : "") + "'></td>" +
+                                    "<td class='studentTable_input'><input type='text' readonly value='" + (currentStudentData.mark_unrounded != null ? formatNumber(currentStudentData.mark_unrounded) : "") + "'></td>" +
                                     "<td class='table_mark'>" + (currentStudentData.mark != null ? formatNumber(currentStudentData.mark) : "") + "</td>" +
                                     buttonString +
                                 "</tr>";
@@ -855,23 +883,75 @@ function printElement() {
 
                 } else {
 
-                    printStudent = function(currentStudentData) {
+                    if(currentElement.data.formula === "manual") {
 
-                        if(currentStudentData.points == null && !editStudents) {
+                        if(currentElement.isFolder) {
 
-                            return;
+                            printStudent = function(currentStudentData) {
+
+                                if(currentStudentData.points == null && !editStudents) {
+        
+                                    return;
+        
+                                }
+        
+                                studentTableString +=
+                                    "<tr>" +
+                                        "<td class='table_name'>" + escapeHTML(currentStudentData.lastName) + "</td>" +
+                                        "<td>" + escapeHTML(currentStudentData.firstName) + "</td>" +
+                                        "<td>" + (currentStudentData.points != null ? formatNumber(currentStudentData.points) : "") + "</td>" +
+                                        "<td></td>" +
+                                        "<td class='table_mark studentTable_input'><input type='text' readonly value='" +  (currentStudentData.mark != null ? formatNumber(currentStudentData.mark) : "") + "'></td>" +
+                                        buttonString +
+                                    "</tr>";
+        
+                            }
+
+                        } else {
+
+                            printStudent = function(currentStudentData) {
+
+                                if(currentStudentData.points == null && !editStudents) {
+        
+                                    return;
+        
+                                }
+        
+                                studentTableString +=
+                                    "<tr>" +
+                                        "<td class='table_name'>" + escapeHTML(currentStudentData.lastName) + "</td>" +
+                                        "<td>" + escapeHTML(currentStudentData.firstName) + "</td>" +
+                                        "<td class='studentTable_input'><input type='text' readonly value='" + (currentStudentData.points != null ? formatNumber(currentStudentData.points) : "") + "'></td>" +
+                                        "<td></td>" +
+                                        "<td class='table_mark studentTable_input'><input type='text' readonly value='" +  (currentStudentData.mark != null ? formatNumber(currentStudentData.mark) : "") + "'></td>" +
+                                        buttonString +
+                                    "</tr>";
+        
+                            }
 
                         }
 
-                        studentTableString +=
-                            "<tr>" +
-                                "<td class='table_name'>" + escapeHTML(currentStudentData.lastName) + "</td>" +
-                                "<td>" + escapeHTML(currentStudentData.firstName) + "</td>" +
-                                "<td class='studentTable_input'><input type='text' disabled value='" + (currentStudentData.points != null ? formatNumber(currentStudentData.points) : "") + "'></td>" +
-                                "<td></td>" +
-                                "<td class='table_mark'>" + (currentStudentData.mark != null ? formatNumber(currentStudentData.mark) : "") + "</td>" +
-                                buttonString +
-                            "</tr>";
+                    } else {
+
+                        printStudent = function(currentStudentData) {
+
+                            if(currentStudentData.points == null && !editStudents) {
+    
+                                return;
+    
+                            }
+    
+                            studentTableString +=
+                                "<tr>" +
+                                    "<td class='table_name'>" + escapeHTML(currentStudentData.lastName) + "</td>" +
+                                    "<td>" + escapeHTML(currentStudentData.firstName) + "</td>" +
+                                    "<td class='studentTable_input'><input type='text' readonly value='" + (currentStudentData.points != null ? formatNumber(currentStudentData.points) : "") + "'></td>" +
+                                    "<td></td>" +
+                                    "<td class='table_mark'>" + (currentStudentData.mark != null ? formatNumber(currentStudentData.mark) : "") + "</td>" +
+                                    buttonString +
+                                "</tr>";
+    
+                        }
 
                     }
 
@@ -891,7 +971,7 @@ function printElement() {
 
                 if(editStudents) {
 
-                    studentTableString = studentTableString.replace(/disabled /g, "");
+                    studentTableString = studentTableString.replace(/readonly /g, "");
 
                 }
 
@@ -969,6 +1049,95 @@ function printElement() {
     } else if (currentElement.type === TYPE_SEMESTER && currentElement.isForeign) {
         // Fremde Semester
 
+        var buttonString = 
+            "<td class='table_buttons'>" +
+                "<button class='button_square positive table_big'><img src='/img/save.svg' alt='S'></button>" +
+                "<button class='button_square neutral'><img src='/img/info.svg' alt='i'></button>" +
+            "</td>";
+
+        var sharedString = "";
+        var teacherString = "";
+        var studentString = "";
+
+        for(var i = 0; i < currentElement.childrenData.length; i++) {
+
+            var currentChildData = currentElement.childrenData[i];
+
+            var currentString = 
+                "<tr onclick='select(TYPE_TEST, " + currentChildData.semesterID + ", true, true)'>" +
+                    "<td class='table_name'>" + escapeHTML(currentChildData.name) + "</td>" +
+                    "<td>" + escapeHTML(currentChildData.userName) + "</td>" +
+                    buttonString +
+                "</tr>";
+
+            if(currentChildData.category === ACCESS_SHARED) {
+
+                sharedString += currentString;
+
+            } else if(currentChildData.category === ACCESS_STUDENT) {
+
+                studentString += currentString;
+
+            } else {
+
+                teacherString += currentString;
+
+            }
+
+        }
+        
+        document.getElementById("foreignSemesters_shared_tableBody").innerHTML = sharedString;
+        document.getElementById("foreignSemesters_student_tableBody").innerHTML = studentString;
+
+        if(sharedString === "") {
+
+            document.getElementById("foreignSemesters_shared").style.display = "none";
+
+        } else {
+
+            document.getElementById("foreignSemesters_shared").style.display = "block";
+
+        }
+
+        if(studentString === "") {
+
+            document.getElementById("foreignSemesters_student").style.display = "none";
+
+        } else {
+
+            document.getElementById("foreignSemesters_student").style.display = "block";
+
+        }
+
+        if(user.isTeacher) {
+
+            document.getElementById("foreignSemesters_teacher_tableBody").innerHTML = teacherString;
+
+            if(teacherString === "") {
+
+                document.getElementById("foreignSemesters_teacher").style.display = "none";
+    
+            } else {
+    
+                document.getElementById("foreignSemesters_teacher").style.display = "block";
+    
+            }
+
+        }
+
+        if(sharedString === "" && teacherString === "" && studentString === "") {
+
+            document.getElementById("foreignSemesters_empty").style.display = "inline-block";
+
+        } else {
+
+            document.getElementById("foreignSemesters_empty").style.display = "none";
+
+        }
+
+        document.getElementById("title").innerHTML = "Fremde Semester";
+        document.getElementsByTagName("TITLE")[0].innerHTML = "Notentabelle - Fremde Semester";
+        
         panelName = "foreignSemesters_div";
 
     } else if (currentElement.type === TYPE_PUBLIC_TEMPLATES && currentElement.isForeign) {
@@ -984,9 +1153,50 @@ function printElement() {
     } else if (user.isTeacher && currentElement.type === TYPE_CLASS && currentElement.isRoot && !currentElement.isForeign) {
         // Klassenauswahl
 
+        var tableString = "";
+
+        for (var i = 0; i < currentElement.childrenData.length; i++) {
+            
+            var currentChildData = currentElement.childrenData[i];
+
+            if(!showHidden.classes && currentChildData.isHidden) {
+
+                continue;
+
+            }
+
+            tableString +=
+                "<tr onclick='select(TYPE_CLASS, " + currentChildData.classID + ", false, true)'>" +
+                    "<td class='table_name'>" + escapeHTML(currentChildData.name) + "</td>" +
+                    "<td class='table_buttons'>" +
+                        "<button class='button_square negative table_big'><img src='/img/delete.svg' alt='X'></button>" +
+                        "<button class='button_square positive table_big'><img src='/img/edit.svg' alt='.'></button>" +
+                        "<button class='button_square neutral'><img src='/img/info.svg' alt='i'></button>" +
+                    "</td>" +
+                "</tr>";
+
+        }
+
+        document.getElementById("classes_tableBody").innerHTML = tableString;
+
+        if (tableString === "") {
+
+            document.getElementById("classes_table").style.display = "none";
+            document.getElementById("classes_empty").style.display = "inline-block";
+
+        } else {
+
+            document.getElementById("classes_table").style.display = "table";
+            document.getElementById("classes_empty").style.display = "none";
+
+        }
+
+        document.getElementById("title").innerHTML = "Klassen";
+        document.getElementsByTagName("TITLE")[0].innerHTML = "Notentabelle - Klassen";
+
         panelName = "classes_div";
 
-    } else if (user.isTeacher && currentElement.type === TYPE_CLASS && currentElement.isRoot && currentElement.isForeign) {
+    } else if (user.isTeacher && currentElement.type === TYPE_CLASS && currentElement.isRoot) {
         // Fremde Klassen
 
         panelName = "foreignClasses_div";
@@ -1164,7 +1374,15 @@ function loadElementAndPrint() {
     } else if (type === TYPE_SEMESTER && isForeign) {
         // Fremde Semester
 
+        loadData("/phpScripts/get/getForeignSemesters.php", {}, function (data) {
 
+            currentElement = data;
+
+            hideLoading();
+
+        }, loadingError);
+
+        isLoading = true;
 
     } else if (type === TYPE_PUBLIC_TEMPLATES && isForeign) {
         // Oeffenliche Vorlagen
@@ -1191,12 +1409,41 @@ function loadElementAndPrint() {
     } else if (user.isTeacher && type === TYPE_CLASS && isRoot && !isForeign) {
         // Klassenauswahl
 
+        if (!cache.rootClasses) {
 
+            loadData("/phpScripts/get/getClasses.php", {}, function (data) {
 
-    } else if (user.isTeacher && type === TYPE_CLASS && isRoot && isForeign) {
+                currentElement = data;
+                cache.rootClasses = data;
+
+                hideLoading();
+
+            }, loadingError);
+
+            isLoading = true;
+
+        } else {
+
+            currentElement = cache.rootClasses;
+
+            isLoading = false;
+
+        }
+
+        hidePanelsAndPrint();
+
+    } else if (user.isTeacher && type === TYPE_CLASS && isRoot) {
         // Fremde Klassen
 
+        loadData("/phpScripts/get/getForeignSemesters.php", {}, function (data) {
 
+            currentElement = data;
+
+            hideLoading();
+
+        }, loadingError);
+
+        isLoading = true;
 
     } else if (user.isTeacher && type === TYPE_CLASS) {
         // In Klasse
@@ -1220,7 +1467,7 @@ function select(elementType, elementID, isRoot = false, isFolder = true, isForei
 
     path.push({ type: elementType, ID: elementID, isRoot: isRoot, isFolder: isFolder, isForeign: isForeign });
 
-    localStorage.setItem("path", JSON.stringify(path));
+    if (typeof (localStorage) !== undefined) localStorage.setItem("path", JSON.stringify(path));
 
     loadElementAndPrint();
 
@@ -1235,7 +1482,7 @@ function returnFolder() {
     }
 
     path.pop();
-    localStorage.setItem("path", JSON.stringify(path));
+    if (typeof (localStorage) !== undefined) localStorage.setItem("path", JSON.stringify(path));
     loadElementAndPrint();
 
 }
@@ -1263,6 +1510,16 @@ document.addEventListener("DOMContentLoaded", function () {
 
     document.getElementById("returnButton").onclick = returnFolder;
     document.getElementById("error_returnButton").onclick = returnFolder;
+
+    document.getElementById("semesters_templateButton").onclick = function() { select(TYPE_SEMESTER, null, true); };
+    document.getElementById("semesters_foreignSemestersButton").onclick = function() { select(TYPE_SEMESTER, null, true, true, true); };
+
+    if(user.isTeacher) {
+
+        document.getElementById("semesters_classButton").onclick = function() { select(TYPE_CLASS, null, true); };
+        document.getElementById("classes_foreignClassesButton").onclick = function() { select(TYPE_CLASS, null, true, true, true); };
+
+    }
 
     //loadData("/phpScripts/get/getSemesters.php", {}, function(data) {currentElement = data; printElement();});
 

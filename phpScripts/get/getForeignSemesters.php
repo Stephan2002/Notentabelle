@@ -15,7 +15,7 @@ function getForeignSemesters(Semester &$element) {
     global $mysqli;
 
     // Geteilte Semester
-    $stmt = $mysqli->prepare("SELECT * FROM semesters WHERE EXISTS (SELECT permissions.semesterID FROM permissions WHERE semesters.semesterID = permissions.semesterID AND permissions.userID = ?) AND semesters.deleteTimestamp IS NULL ORDER BY semesters.templateType, semesters.name");
+    $stmt = $mysqli->prepare("SELECT semesters.*, users.userName FROM semesters LEFT JOIN users ON semesters.userID = users.userID WHERE EXISTS (SELECT permissions.semesterID FROM permissions WHERE semesters.semesterID = permissions.semesterID AND permissions.userID = ?) AND semesters.deleteTimestamp IS NULL ORDER BY semesters.templateType, semesters.name");
     $stmt->bind_param("i", $_SESSION["userid"]);
     $stmt->execute();
 
@@ -28,7 +28,7 @@ function getForeignSemesters(Semester &$element) {
     }
 
     // Semester mit Schueler-Zugriff
-    $stmt->prepare("SELECT * FROM semesters WHERE EXISTS (SELECT students.studentID FROM students WHERE students.userID = ? AND students.classID = semesters.classID AND students.deleteTimestamp IS NULL) AND semesters.deleteTimestamp IS NULL ORDER BY semesters.templateType, semesters.name");
+    $stmt->prepare("SELECT semesters.*, users.userName FROM semesters LEFT JOIN users ON semesters.userID = users.userID WHERE EXISTS (SELECT students.studentID FROM students WHERE students.userID = ? AND students.classID = semesters.classID AND students.deleteTimestamp IS NULL) AND semesters.deleteTimestamp IS NULL ORDER BY semesters.templateType, semesters.name");
     $stmt->bind_param("i", $_SESSION["userid"]);
     $stmt->execute();
 
@@ -43,7 +43,7 @@ function getForeignSemesters(Semester &$element) {
     // Semester mit Lehrer-Zugriff
     if($_SESSION["type"] === "teacher" || $_SESSION["type"] === "admin") {
 
-        $stmt->prepare("SELECT * FROM semesters WHERE EXISTS (SELECT tests.testID FROM tests WHERE semesters.semesterID = tests.semesterID AND EXISTS (SELECT teachers.teacherID FROM teachers WHERE tests.testID = teachers.testID AND teachers.userID = ?)) AND semesters.deleteTimestamp IS NULL ORDER BY semesters.templateType, semesters.name");
+        $stmt->prepare("SELECT semesters.*, users.userName FROM semesters LEFT JOIN users ON semesters.userID = users.userID WHERE EXISTS (SELECT tests.testID FROM tests WHERE semesters.semesterID = tests.semesterID AND EXISTS (SELECT teachers.teacherID FROM teachers WHERE tests.testID = teachers.testID AND teachers.userID = ?)) AND semesters.deleteTimestamp IS NULL ORDER BY semesters.templateType, semesters.name");
         $stmt->bind_param("i", $_SESSION["userid"]);
         $stmt->execute();
 

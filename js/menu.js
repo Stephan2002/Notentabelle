@@ -46,9 +46,7 @@ if(user.userName === undefined) {
 	menuString += "<p>Sie sind nicht</p>" +
 				"<p>eingeloggt.</p>" +
 				"<p class='blankLine'>" +
-					"<a href='/index'>" +
-						"<button class='button_menu positive'>Anmelden</button>" +
-					"</a>" +
+					"<button class='button_menu positive' onclick='window.location=\"/index\"'>Anmelden</button>" +
 				"</p>";
 	
 } else if (user.userName === "demo") {
@@ -56,15 +54,11 @@ if(user.userName === undefined) {
 	menuString += "<p>Sie sind aktuell</p>" +
 				"<p>im Demo-Modus.</p>" +
 				"<p class='blankLine'>" +
-					"<a href='/index?logout=1'>" +
-						"<button class='button_menu negative'>Zurück</button>" +
-					"</a>" +
+					"<button class='button_menu negative' onclick='window.location=\"/index?logout=1\"'>Zurück</button>" +
 				"</p>" +
 				
 				"<p class='blankLine_small'>" +
-					"<a href='/register'>" +
-						"<button class='button_menu positive'>Jetzt registrieren</button>" +
-					"</a>" +
+					"<button class='button_menu positive' onclick='window.location=\"/register\"'>Jetzt registrieren</button>" +
 				"</p>";
 	
 	
@@ -74,22 +68,16 @@ if(user.userName === undefined) {
 	menuString += "<p><i>Eingeloggt als:</i></p>" +
 				"<p>" + user.userName + "</p>" +
 				"<p class='blankLine'>" +
-					"<a href='/index?logout=1'>" +
-						"<button class='button_menu negative'>Abmelden</button>" +
-					"</a>" +
+					"<button class='button_menu negative' onclick='window.location=\"/index?logout=1\"'>Abmelden</button>" +
 				"</p>" +
 				"<p class='blankLine_small'>" +
-					"<a href='/settings'>" +
-						"<button class='button_menu positive'>Einstellungen</button>" +
-					"</a>" +
+					"<button class='button_menu positive' onclick='window.location=\"/settings\"'>Einstellungen</button>" +
 				"</p>";
 	
 }
 
 menuString += 	"<p class='blankLine'>" +
-					"<a href='/about'>" +
-						"<button class='button_menu positive'>Über Notentabelle</button>" +
-					"</a>" +
+					"<button class='button_menu positive' onclick='window.location=\"/about\"'>Über Notentabelle</button>" +
 				"</p>";
 
 menuString += 

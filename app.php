@@ -31,7 +31,7 @@ include("phpScripts/login.php");
         <?php if($_SESSION["type"] === "teacher" || $_SESSION["type"] === "admin") { ?>
             <script language="javascript" type="text/javascript" src="js/app/appTeacher.js"></script>
         <?php } ?>
-
+		
         <script>
             var user = {
                 userName: "<?php echo addslashes($_SESSION["username"]); ?>",
@@ -93,10 +93,10 @@ include("phpScripts/login.php");
 				<div class="buttonGroup" id="semesters_linkButtons">
 					<?php 
 						if($_SESSION["type"] === "teacher" || $_SESSION["type"] === "admin") {
-							echo "<button class='button_medium positive'>Vorlagen</button>";
-							echo "<button class='button_medium positive'>Klassen</button>";
+							echo "<button id='semesters_templateButton' class='button_medium positive'>Vorlagen</button>";
+							echo "<button id='semesters_classButton' class='button_medium positive'>Klassen</button>";
 						} else {
-							echo "<button class='button_big positive'>Vorlagen</button>";
+							echo "<button id='semesters_templateButton' class='button_big positive'>Vorlagen</button>";
 						} 
 					?>
 				</div>
@@ -106,7 +106,7 @@ include("phpScripts/login.php");
 					<button class="button_big positive">Eigene veröffentlichte Vorlagen</button>
 				</div>
 
-                <button class="button_big positive withMargin">Geteilte Semester / Vorlagen</button>
+                <button id="semesters_foreignSemestersButton" class="button_big positive withMargin">Geteilte Semester / Vorlagen</button>
                 
                 <button class="button_big positive bigMargin">Versteckte Elemente anzeigen</button>
                 <button class="button_big positive">Gelöschte Elemente</button>
@@ -253,6 +253,14 @@ include("phpScripts/login.php");
 		</div>
 
 		<div class="panel" id="foreignSemesters_div" style="display: none">
+			<div class="container">
+				<div id="foreignSemesters_empty">
+					<div class="info gray bigMargin">
+						<p class="blankLine_small">Es gibt keine mit Ihnen geteilten oder Ihnen zugewiesene Semester oder Vorlagen.</p>
+					</div>
+				</div>
+			</div>
+
 			<div id="foreignSemesters_shared">
 				<h2>Geteilte Semester</h2>
 				<table class="bigMargin">
@@ -307,21 +315,26 @@ include("phpScripts/login.php");
 
 		<div class="panel" id="classes_div" style="display: none">
 			<div class="container">
-				<button class="button_big positive withMargin">Neue Klasse</button>
+				<div class="buttonGroup">
+					<button class="button_medium positive withMargin">Neue Klasse</button>
+					<button class="button_medium positive withMargin">Neue Verknüpf.</button>
+				</div>
+
+				<div id="classes_empty">
+					<div class="info gray bigMargin">
+						<p class="blankLine_small">Keine sichtbare Klasse vorhanden.</p>
+						<p>Fügen Sie eine Klasse oder eine Verknüpfung mit den obigen Knöpfen ein.</p>
+					</div>
+				</div>
 			</div>
 
-			<table>
+			<table id="classes_table">
 				<tbody id="classes_tableBody">
 				</tbody>
 			</table>
 
 			<div class="container">
-				<div class="buttonGroup">
-					<button class='button_medium positive'>Semester</button>
-					<button class='button_medium positive'>Vorlagen</button>
-				</div>
-
-				<button class='button_big positive withMargin'>Geteilte Klassen</button>
+				<button id="classes_foreignClassesButton" class='button_big positive withMargin'>Geteilte Klassen</button>
 
                 <button class="button_big positive bigMargin">Versteckte / alte Klassen anzeigen</button>
                 <button class="button_big positive">Gelöschte Klassen</button>

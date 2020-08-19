@@ -78,13 +78,13 @@ function plusPoints($mark) {
 function calculateMark(array &$element, array &$subElements, bool $isTest = true) {
 
     if($isTest && !$element["isFolder"]) {
-
+        
         return;
 
     }
 
     if(!$isTest || (!is_null($element["round"]) && is_null($element["formula"]))) {
-
+        
         $sumWeights = "0";
         $sumMarks = "0";
 
@@ -127,7 +127,7 @@ function calculateMark(array &$element, array &$subElements, bool $isTest = true
         $sumPoints = "0";
         $count = 0;
 
-        foreach($element->childrenData as &$subTest) {
+        foreach($subElements as &$subTest) {
 
             if($subTest["markCounts"] && !is_null($subTest["points"])) {
 
