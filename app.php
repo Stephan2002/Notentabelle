@@ -343,10 +343,17 @@ include("phpScripts/login.php");
 
 		<div class="panel" id="students_div" style="display: none">
 			<div class="container">
-				<button class="button_big positive withMargin">Neue/r Schüler/in</button>
+				<button id="students_addStudentButton" class="button_big positive withMargin">Neue/r Schüler/in</button>
+
+				<div id="students_empty">
+					<div class="info gray bigMargin">
+						<p class="blankLine_small">Keine sichtbaren Schüler/innen vorhanden.</p>
+						<p>Fügen Sie eine Klasse mit dem obigen Knopf ein.</p>
+					</div>
+				</div>
 			</div>
 
-			<table>
+			<table id="students_table">
                 <thead>
 					<tr>
 						<th>Nachname</th>
@@ -373,7 +380,15 @@ include("phpScripts/login.php");
 		</div>
 
 		<div class="panel" id="foreignClasses_div" style="display: none">
-            <table class="bigMargin">
+			<div class="container">
+				<div id="foreignClasses_empty">
+					<div class="info gray bigMargin">
+						<p class="blankLine_small">Es gibt keine mit Ihnen geteilten oder Ihnen zugewiesene Klassen.</p>
+					</div>
+				</div>
+			</div>
+
+            <table class="bigMargin" id="foreignClasses_table">
                 <thead>
 					<tr>
 						<th>Name</th>

@@ -160,6 +160,12 @@ th {
 
 }
 
+td > img {
+
+	height: 32.5px;
+
+}
+
 
 @media (max-width: 400px) {
 	

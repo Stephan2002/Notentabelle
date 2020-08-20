@@ -318,13 +318,13 @@ if(isset($_GET["error"]) && is_numeric($_GET["error"])) {
 			
 		
 			<p class="blankLine_big">Noch kein Konto?</p>
-			<p><a href="register"><button class="button_small positive">Jetzt registrieren</button></a></p>
+			<p><button class="button_small positive" onclick="window.location.href = 'register'">Kostenlos registrieren</button></p>
 			
 			<p class="blankLine_big">Noch nicht überzeugt?</p>
-			<p><a href="demo"><button class="button_small positive">Demo ausprobieren</button></a></p>
+			<p><button class="button_small positive" onclick="window.location.href = 'demo'">Demo ausprobieren</button></p>
 			
 			<p class="blankLine_big">Mehr Informationen</p>
-			<p><a href="about"><button class="button_small positive">Über Notentabelle</button></a></p>
+			<p><button class="button_small positive" onclick="window.location.href = 'about'">Über Notentabelle</button></p>
 		
 		</div>
 	

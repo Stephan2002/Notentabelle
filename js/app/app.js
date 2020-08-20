@@ -55,7 +55,7 @@ function escapeHTML(text) {
 
     if (text == null) {
 
-        return undefined;
+        return "";
 
     }
 
@@ -269,8 +269,10 @@ function printElement() {
 
             }
 
-            var currentString =
-                "<tr onclick='select(" + (currentChildData.isFolder ? TYPE_SEMESTER : TYPE_TEST) + ", " + currentChildData.semesterID + ", " + !currentChildData.isFolder + ", " + currentChildData.isFolder + ")'>" +
+            if(currentChildData.referenceTestID) {
+
+                var currentString =
+                "<tr onclick='select(TYPE_TEST, " + currentChildData.referenceTestID + ", false, true)'>" +
                     "<td class='table_name'>" + escapeHTML(currentChildData.name) + "</td>" +
                     "<td class='table_buttons'>" +
                         "<button class='button_square negative table_big'><img src='/img/delete.svg' alt='X'></button>" +
@@ -278,6 +280,20 @@ function printElement() {
                         "<button class='button_square neutral'><img src='/img/info.svg' alt='i'></button>" +
                     "</td>" +
                 "</tr>";
+
+            } else {
+
+                var currentString =
+                    "<tr onclick='select(" + (currentChildData.isFolder ? TYPE_SEMESTER : TYPE_TEST) + ", " + (currentChildData.referenceID ? currentChildData.referenceID : currentChildData.semesterID) + ", " + !currentChildData.isFolder + ", " + currentChildData.isFolder + ")'>" +
+                        "<td class='table_name'>" + escapeHTML(currentChildData.name) + "</td>" +
+                        "<td class='table_buttons'>" +
+                            "<button class='button_square negative table_big'><img src='/img/delete.svg' alt='X'></button>" +
+                            "<button class='button_square positive table_big'><img src='/img/edit.svg' alt='.'></button>" +
+                            "<button class='button_square neutral'><img src='/img/info.svg' alt='i'></button>" +
+                        "</td>" +
+                    "</tr>";
+
+            }
 
             if (currentChildData.isFolder) {
 
@@ -612,17 +628,55 @@ function printElement() {
     
                 }
 
-                tableString +=
-                    "<tr onclick='select(TYPE_TEST, " + currentChildData.testID + ", false, " + currentChildData.isFolder + ")'>" +
+                var referenceString = "<td></td>";
+
+                if(currentChildData.referenceState) {
+
+                    if(currentChildData.referenceState === "forbidden") {
+
+                        referenceString = "<td><img src='/img/warning.svg' alt='!' title='Kein Zugriff mehr!'>"
+
+                    } else if(currentChildData.referenceState === "removed") {
+
+                        referenceString = "<td><img src='/img/warning.svg' alt='!' title='Element entfernt!'>"
+
+                    } else if(currentChildData.referenceState === "outdated") {
+
+                        referenceString = "<td><img src='/img/warning.svg' alt='!' title='Nicht mehr auf aktuellem Stand!'>"
+
+                    }
+
+                }
+
+                if(currentChildData.referenceState === "ok" || currentChildData.referenceState === "outdated") {
+
+                    tableString +=
+                    "<tr onclick='select(TYPE_TEST, " + currentChildData.referenceID + ", false, " + currentChildData.isFolder + ")'>" +
                         "<td class='table_name'>" + escapeHTML(currentChildData.name) + "</td>" +
                         "<td>" + formatDate(currentChildData.date) + "</td>" +
                         "<td>" + formatNumber(currentChildData.weight) + "</td>" +
                         "<td>" + (currentChildData.formula != null ? (currentChildData.points != null ? formatNumber(currentChildData.points) : "") : "") + "</td>" +
                         "<td>" + ((currentChildData.round != null && currentChildData.round != 0 && currentChildData.formula == null) ? (currentChildData.mark_unrounded != null ? formatNumber(currentChildData.mark_unrounded) : "") : "") + "</td>" +
                         "<td class='table_mark'>" + (currentChildData.round != null ? (currentChildData.mark != null ? formatNumber(currentChildData.mark) : "") : (currentChildData.points != null ? formatNumber(currentChildData.points) : "")) + "</td>" +
-                        "<td></td>" +
+                        referenceString +
                         buttonString +
                     "</tr>";
+
+                } else {
+
+                    tableString +=
+                        "<tr " + (currentChildData.referenceState ? "" : "onclick='select(TYPE_TEST, " + currentChildData.testID + ", false, " + currentChildData.isFolder + ")'") + ">" +
+                            "<td class='table_name'>" + escapeHTML(currentChildData.name) + "</td>" +
+                            "<td>" + formatDate(currentChildData.date) + "</td>" +
+                            "<td>" + formatNumber(currentChildData.weight) + "</td>" +
+                            "<td>" + (currentChildData.formula != null ? (currentChildData.points != null ? formatNumber(currentChildData.points) : "") : "") + "</td>" +
+                            "<td>" + ((currentChildData.round != null && currentChildData.round != 0 && currentChildData.formula == null) ? (currentChildData.mark_unrounded != null ? formatNumber(currentChildData.mark_unrounded) : "") : "") + "</td>" +
+                            "<td class='table_mark'>" + (currentChildData.round != null ? (currentChildData.mark != null ? formatNumber(currentChildData.mark) : "") : (currentChildData.points != null ? formatNumber(currentChildData.points) : "")) + "</td>" +
+                            referenceString +
+                            buttonString +
+                        "</tr>";
+
+                }
 
                 if(!pointsUsed) {
 
@@ -1135,8 +1189,8 @@ function printElement() {
 
         }
 
-        document.getElementById("title").innerHTML = "Fremde Semester";
-        document.getElementsByTagName("TITLE")[0].innerHTML = "Notentabelle - Fremde Semester";
+        document.getElementById("title").innerHTML = "Geteilte Semester";
+        document.getElementsByTagName("TITLE")[0].innerHTML = "Notentabelle - Geteilte Semester";
         
         panelName = "foreignSemesters_div";
 
@@ -1166,7 +1220,7 @@ function printElement() {
             }
 
             tableString +=
-                "<tr onclick='select(TYPE_CLASS, " + currentChildData.classID + ", false, true)'>" +
+                "<tr onclick='select(TYPE_CLASS, " + (currentChildData.referenceID ? currentChildData.referenceID : currentChildData.classID) + ", false, true)'>" +
                     "<td class='table_name'>" + escapeHTML(currentChildData.name) + "</td>" +
                     "<td class='table_buttons'>" +
                         "<button class='button_square negative table_big'><img src='/img/delete.svg' alt='X'></button>" +
@@ -1199,10 +1253,108 @@ function printElement() {
     } else if (user.isTeacher && currentElement.type === TYPE_CLASS && currentElement.isRoot) {
         // Fremde Klassen
 
+        var buttonString = 
+            "<td class='table_buttons'>" +
+                "<button class='button_square positive table_big'><img src='/img/save.svg' alt='S'></button>" +
+                "<button class='button_square neutral'><img src='/img/info.svg' alt='i'></button>" +
+            "</td>";
+
+        var tableString = "";
+
+        for(var i = 0; i < currentElement.childrenData.length; i++) {
+
+            var currentChildData = currentElement.childrenData[i];
+
+            tableString += 
+                "<tr onclick='select(TYPE_CLASS, " + currentChildData.classID + ", false, true)'>" +
+                    "<td class='table_name'>" + escapeHTML(currentChildData.name) + "</td>" +
+                    "<td>" + escapeHTML(currentChildData.userName) + "</td>" +
+                    buttonString +
+                "</tr>";
+
+        }
+        
+        document.getElementById("foreignClasses_tableBody").innerHTML = tableString;
+
+        if(tableString === "") {
+
+            document.getElementById("foreignClasses_empty").style.display = "inline-block";
+            document.getElementById("foreignClasses_table").style.display = "none";
+
+        } else {
+
+            document.getElementById("foreignClasses_empty").style.display = "none";
+            document.getElementById("foreignClasses_table").style.display = "table";
+
+        }
+
+        document.getElementById("title").innerHTML = "Geteilte Klassen";
+        document.getElementsByTagName("TITLE")[0].innerHTML = "Notentabelle - Geteilte Klassen";
+
         panelName = "foreignClasses_div";
 
     } else if (user.isTeacher && currentElement.type === TYPE_CLASS && !currentElement.isRoot) {
         // In Klasse
+
+        if(currentElement.writingPermission) {
+
+            document.getElementById("students_addStudentButton").style.display = "inline-block";
+
+        } else {
+
+            document.getElementById("students_addStudentButton").style.display = "none";
+
+        }
+
+        if(currentElement.accessType === ACCESS_OWNER) {
+
+            document.getElementById("students_editButtons").style.display = "block";
+
+        } else {
+
+            document.getElementById("students_editButtons").style.display = "none";
+
+        }
+
+        var buttonString = 
+            "<td class='table_buttons'>" +
+                "<button class='button_square negative table_big'><img src='/img/delete.svg' alt='X'></button>" +
+                "<button class='button_square positive table_big'><img src='/img/edit.svg' alt='.'></button>" +
+                "<button class='button_square neutral'><img src='/img/info.svg' alt='i'></button>" +
+            "</td>";
+
+        var tableString = "";
+
+        for(var i = 0; i < currentElement.childrenData.length; i++) {
+
+            var currentChildData = currentElement.childrenData[i];
+
+            tableString += 
+                "<tr>" +
+                    "<td class='table_name'>" + escapeHTML(currentChildData.lastName) + "</td>" +
+                    "<td>" + escapeHTML(currentChildData.firstName) + "</td>" +
+                    "<td>" + escapeHTML(currentChildData.userName) + "</td>" +
+                    buttonString +
+                "</tr>";
+
+        }
+        
+        document.getElementById("students_tableBody").innerHTML = tableString;
+
+        if(tableString === "") {
+
+            document.getElementById("students_empty").style.display = "inline-block";
+            document.getElementById("students_table").style.display = "none";
+
+        } else {
+
+            document.getElementById("students_empty").style.display = "none";
+            document.getElementById("students_table").style.display = "table";
+
+        }
+
+        document.getElementById("title").innerHTML = escapeHTML(currentElement.data.name);
+        document.getElementsByTagName("TITLE")[0].innerHTML = "Notentabelle - " + escapeHTML(currentElement.data.name);
 
         panelName = "students_div";
 
@@ -1260,6 +1412,7 @@ function loadElementAndPrint() {
     var isRoot = path[path.length - 1].isRoot;
     var isForeign = path[path.length - 1].isForeign;
     var isFolder = path[path.length - 1].isFolder;
+    var isPublicTemplate = path[path.length - 1].isPublicTemplate;
 
     if (type === TYPE_SEMESTER && isRoot && !isForeign) {
         // Vorlagenauswahl
@@ -1315,8 +1468,16 @@ function loadElementAndPrint() {
         if(isRoot) {
 
             if (!cache.semesters[ID]) {
+
+                var requestObject = { semesterID: ID, withMarks: true };
+
+                if(isPublicTemplate) {
+
+                    requestObject.isPublicTemplate = true;
+    
+                }
             
-                loadData("/phpScripts/get/getTests.php", { semesterID: ID, withMarks: true }, function (data) {
+                loadData("/phpScripts/get/getTests.php", requestObject, function (data) {
                     
                     currentElement = data;
                     cache.semesters[ID] = data;
@@ -1348,8 +1509,16 @@ function loadElementAndPrint() {
             }
 
             if (!cache.tests[ID]) {
+
+                var requestObject = { testID: ID, withMarks: true };
+
+                if(isPublicTemplate) {
+
+                    requestObject.isPublicTemplate = true;
+    
+                }
                 
-                loadData(url, { testID: ID, withMarks: true }, function (data) {
+                loadData(url, requestObject, function (data) {
                     
                     currentElement = data;
                     cache.tests[ID] = data;
@@ -1430,12 +1599,10 @@ function loadElementAndPrint() {
 
         }
 
-        hidePanelsAndPrint();
-
     } else if (user.isTeacher && type === TYPE_CLASS && isRoot) {
         // Fremde Klassen
 
-        loadData("/phpScripts/get/getForeignSemesters.php", {}, function (data) {
+        loadData("/phpScripts/get/getForeignClasses.php", {}, function (data) {
 
             currentElement = data;
 
@@ -1448,6 +1615,26 @@ function loadElementAndPrint() {
     } else if (user.isTeacher && type === TYPE_CLASS) {
         // In Klasse
 
+        if (!cache.classes[ID]) {
+            
+            loadData("/phpScripts/get/getStudents.php", { classID: ID }, function (data) {
+                
+                currentElement = data;
+                cache.classes[ID] = data;
+
+                hideLoading();
+
+            }, loadingError);
+
+            isLoading = true;
+
+        } else {
+
+            currentElement = cache.classes[ID];
+
+            isLoading = false;
+
+        }
 
     }
 
@@ -1457,7 +1644,7 @@ function loadElementAndPrint() {
 }
 
 // Wird aufgerufen, wenn ein Element ausgewaehlt wurde
-function select(elementType, elementID, isRoot = false, isFolder = true, isForeign = false) {
+function select(elementType, elementID, isRoot = false, isFolder = true, isForeign = false, isPublicTemplate = false) {
 
     if(isBlocked) {
 
@@ -1465,7 +1652,15 @@ function select(elementType, elementID, isRoot = false, isFolder = true, isForei
 
     }
 
-    path.push({ type: elementType, ID: elementID, isRoot: isRoot, isFolder: isFolder, isForeign: isForeign });
+    if(isPublicTemplate || (path.length > 0 && path[path.length - 1].isPublicTemplate)) {
+
+        path.push({ type: elementType, ID: elementID, isRoot: isRoot, isFolder: isFolder, isForeign: isForeign, isPublicTemplate: true });
+
+    } else {
+
+        path.push({ type: elementType, ID: elementID, isRoot: isRoot, isFolder: isFolder, isForeign: isForeign });
+
+    }
 
     if (typeof (localStorage) !== undefined) localStorage.setItem("path", JSON.stringify(path));
 
@@ -1520,8 +1715,6 @@ document.addEventListener("DOMContentLoaded", function () {
         document.getElementById("classes_foreignClassesButton").onclick = function() { select(TYPE_CLASS, null, true, true, true); };
 
     }
-
-    //loadData("/phpScripts/get/getSemesters.php", {}, function(data) {currentElement = data; printElement();});
 
     loadElementAndPrint();
 

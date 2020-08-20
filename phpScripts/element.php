@@ -70,7 +70,7 @@ class Element {
         $this->accessType = $accessType;
         $this->writingPermission = $writingPermission;
         $this->data = $data;
-        $this->isFolder = is_null($data) ? true : $data["isFolder"];
+        $this->isFolder = is_null($data) ? true : (isset($data["isFolder"]) ? $data["isFolder"] : true);
 
         if(isset($data["templateType"])) {
 

@@ -19,7 +19,7 @@ function getStudents(StudentClass &$element) {
 
     }
 
-    $stmt = $mysqli->prepare("SELECT * FROM students WHERE classID = ? AND deleteTimestamp IS NULL ORDER BY isHidden, lastName");
+    $stmt = $mysqli->prepare("SELECT students.*, users.userName FROM students LEFT JOIN users ON students.userID = users.userID WHERE classID = ? AND students.deleteTimestamp IS NULL ORDER BY students.isHidden, students.lastName");
     $stmt->bind_param("i", $element->data["classID"]);
     $stmt->execute();
 

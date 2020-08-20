@@ -168,7 +168,7 @@ if(isset($test->data["classID"]) && $test->accessType !== Element::ACCESS_STUDEN
 
 } else {
 
-    if($test->accessType === Element::ACCESS_STUDENT) {
+    if($test->accessType !== Element::ACCESS_STUDENT) {
 
         if(!is_null($test->data["formula"])) {
 
