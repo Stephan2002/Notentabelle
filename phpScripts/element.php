@@ -8,19 +8,37 @@ Datei, die inkludiert wird, um die Berechtigung auf ein bestimmtes Objekt zu ueb
 
 $DB = json_decode(file_get_contents($_SERVER["DOCUMENT_ROOT"] . "/database.json"));
 
-define("ERROR_NONE",        0);     // kein Fehler
-define("ERROR_NOT_LOGGED_IN", 1);     // Nutzer ist nicht eingeloggt
-define("ERROR_BAD_INPUT",    2);     // Schlechter oder fehlender User-Input
-define("ERROR_FORBIDDEN",   3);     // Element existiert nicht oder Nutzer hat kein Zugriffsrecht
-define("ERROR_ONLY_TEACHER", 4);     // Aktion nur fuer Lehrpersonen verfuegbar
-define("ERROR_UNKNOWN",     10);    // Unbekannter / anderer Fehler
+define("ERROR_NONE",                    0);     // kein Fehler
+define("ERROR_NOT_LOGGED_IN",           1);     // Nutzer ist nicht eingeloggt
+define("ERROR_BAD_INPUT",               2);     // Schlechter oder fehlender User-Input
+define("ERROR_FORBIDDEN",               3);     // Element existiert nicht oder Nutzer hat kein Zugriffsrecht
+define("ERROR_ONLY_TEACHER",            4);     // Aktion nur fuer Lehrpersonen verfuegbar
+define("ERROR_NO_WRITING_PERMISSION",   5);     // Benutzer hat nur Leserecht
+define("ERROR_UNKNOWN",                 10);    // Unbekannter / anderer Fehler
 
-function throwError(int $errorCode) {
+function throwError(int $errorCode, int $occuredIn = -1) {
 
-    echo "{\"error\":" . $errorCode . "}";
+    if($occuredIn === -1) {
+
+        echo "{\"error\":" . $errorCode . "}";
+
+    } else {
+
+        echo "{\"error\":" . $errorCode . ", \"occuredIn\":" . $occuredIn . "}";
+
+    }
+
     exit;
 
 }
+
+function finish() {
+
+    echo "{\"error\":" . ERROR_NONE . "}";
+    exit;
+
+}
+
 
 function getData() {
 
@@ -211,7 +229,7 @@ function connectToDatabase() : bool {
 
 
 
-function getSemester(int $semesterID, bool $checkOnlyForTemplate = false) : Semester {
+function getSemester(int $semesterID, int $userID, bool $isTeacher, bool $checkOnlyForTemplate = false) : Semester {
 
     global $mysqli;
 
@@ -228,14 +246,14 @@ function getSemester(int $semesterID, bool $checkOnlyForTemplate = false) : Seme
 
     }
 
-    if($data["isFolder"] && $data["userID"] != $_SESSION["userid"]) {
+    if($data["isFolder"] && $data["userID"] != $userID) {
 
         $stmt->close();
         return new Semester(ERROR_FORBIDDEN);
 
     } 
 
-    if($data["userID"] == $_SESSION["userid"]) {
+    if($data["userID"] == $userID) {
 
         $stmt->close();
         return new Semester(0, Element::ACCESS_OWNER, true, $data);
@@ -245,7 +263,7 @@ function getSemester(int $semesterID, bool $checkOnlyForTemplate = false) : Seme
     if(!$checkOnlyForTemplate) {
 
         $stmt->prepare("SELECT writingPermission FROM permissions WHERE semesterID = ? AND userID = ?");
-        $stmt->bind_param("ii", $semesterID, $_SESSION["userid"]);
+        $stmt->bind_param("ii", $semesterID, $userID);
         $stmt->execute();
 
         $permissionData = $stmt->get_result()->fetch_assoc();
@@ -259,10 +277,10 @@ function getSemester(int $semesterID, bool $checkOnlyForTemplate = false) : Seme
 
         if(isset($data["classID"])) {
 
-            if($_SESSION["type"] === "teacher" || $_SESSION["type"] === "admin") {
+            if($isTeacher) {
 
                 $stmt->prepare("SELECT tests.* FROM tests INNER JOIN teachers ON tests.testID = teachers.testID WHERE tests.semesterID = ? AND teachers.userID = ? AND tests.deleteTimestamp IS NULL");
-                $stmt->bind_param("ii", $semesterID, $_SESSION["userid"]);
+                $stmt->bind_param("ii", $semesterID, $userID);
                 $stmt->execute();
 
                 $testData = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
@@ -281,7 +299,7 @@ function getSemester(int $semesterID, bool $checkOnlyForTemplate = false) : Seme
             }
 
             $stmt->prepare("SELECT studentID FROM students WHERE userID = ? AND EXISTS (SELECT classID FROM classes WHERE classes.classID = students.classID AND EXISTS (SELECT semesterID FROM semesters WHERE semesterID = ? AND semesters.classID = classes.classID)) AND deleteTimestamp IS NULL");
-            $stmt->bind_param("ii", $_SESSION["userid"], $semesterID);
+            $stmt->bind_param("ii", $userID, $semesterID);
             $stmt->execute();
 
             $studentData = $stmt->get_result()->fetch_assoc();
@@ -322,7 +340,7 @@ function getSemester(int $semesterID, bool $checkOnlyForTemplate = false) : Seme
 
 }
 
-function getTest(int $testID, bool $checkOnlyForTemplate = false, bool $irrelevantWritingPermission = false) : Test {
+function getTest(int $testID, int $userID, bool $isTeacher, bool $checkOnlyForTemplate = false, bool $irrelevantWritingPermission = false) : Test {
 
     global $mysqli;
 
@@ -339,7 +357,7 @@ function getTest(int $testID, bool $checkOnlyForTemplate = false, bool $irreleva
 
     }
 
-    if($data["userID"] == $_SESSION["userid"]) {
+    if($data["userID"] == $userID) {
 
         $stmt->close();
         return new Test(0, Element::ACCESS_OWNER, true, $data);
@@ -349,7 +367,7 @@ function getTest(int $testID, bool $checkOnlyForTemplate = false, bool $irreleva
     if(!$checkOnlyForTemplate) {
 
         $stmt->prepare("SELECT writingPermission FROM permissions WHERE semesterID = ? AND userID = ?");
-        $stmt->bind_param("ii", $data["semesterID"], $_SESSION["userid"]);
+        $stmt->bind_param("ii", $data["semesterID"], $userID);
         $stmt->execute();
 
         $permissionData = $stmt->get_result()->fetch_assoc();
@@ -372,7 +390,7 @@ function getTest(int $testID, bool $checkOnlyForTemplate = false, bool $irreleva
 
         if(isset($data["classID"])) {
 
-            if($_SESSION["type"] === "teacher" || $_SESSION["type"] === "admin") {
+            if($isTeacher) {
 
                 $stmt->prepare("SELECT writingPermission FROM teachers WHERE userID = ? AND testID = ?");
 
@@ -386,7 +404,7 @@ function getTest(int $testID, bool $checkOnlyForTemplate = false, bool $irreleva
 
                 }
 
-                $stmt->bind_param("ii", $_SESSION["userid"], $subjectID);
+                $stmt->bind_param("ii", $userID, $subjectID);
                 $stmt->execute();
 
                 $teacherData = $stmt->get_result()->fetch_assoc();
@@ -408,7 +426,7 @@ function getTest(int $testID, bool $checkOnlyForTemplate = false, bool $irreleva
             }
 
             $stmt->prepare("SELECT studentID FROM students WHERE userID = ? AND EXISTS (SELECT classID FROM classes WHERE classes.classID = students.classID AND EXISTS (SELECT semesterID FROM semesters WHERE semesterID = ? AND semesters.classID = classes.classID)) AND deleteTimestamp IS NULL");
-            $stmt->bind_param("ii", $_SESSION["userid"], $data["semesterID"]);
+            $stmt->bind_param("ii", $userID, $data["semesterID"]);
             $stmt->execute();
 
             $studentData = $stmt->get_result()->fetch_assoc();
@@ -449,13 +467,7 @@ function getTest(int $testID, bool $checkOnlyForTemplate = false, bool $irreleva
 
 }
 
-function getClass(int $classID) : StudentClass {
-
-    if($_SESSION["type"] !== "teacher" && $_SESSION["type"] !== "admin") {
-
-        return new StudentClass(ERROR_ONLY_TEACHER);
-
-    }
+function getClass(int $classID, int $userID) : StudentClass {
 
     global $mysqli;
 
@@ -473,7 +485,7 @@ function getClass(int $classID) : StudentClass {
 
     }
 
-    if($data["userID"] == $_SESSION["userid"]) {
+    if($data["userID"] == $userID) {
 
         $stmt->close();
         
@@ -482,7 +494,7 @@ function getClass(int $classID) : StudentClass {
     } 
 
     $stmt->prepare("SELECT writingPermission FROM permissions WHERE classID = ? AND userID = ?");
-    $stmt->bind_param("ii", $classID, $_SESSION["userid"]);
+    $stmt->bind_param("ii", $classID, $userID);
     $stmt->execute();
 
     $permissionData = $stmt->get_result()->fetch_assoc();
@@ -504,13 +516,7 @@ function getClass(int $classID) : StudentClass {
 }
 
 
-function getStudent(int $studentID) : Student {
-
-    if($_SESSION["type"] !== "teacher" && $_SESSION["type"] !== "admin") {
-
-        return new Student(ERROR_ONLY_TEACHER);
-
-    }
+function getStudent(int $studentID, int $userID) : Student {
 
     global $mysqli;
 
@@ -527,7 +533,7 @@ function getStudent(int $studentID) : Student {
 
     }
 
-    if($data["userID"] == $_SESSION["userid"]) {
+    if($data["userID"] == $userID) {
 
         $stmt->close();
         return new Student(0, Element::ACCESS_OWNER, true, $data);
@@ -535,7 +541,7 @@ function getStudent(int $studentID) : Student {
     }
 
     $stmt->prepare("SELECT writingPermission FROM permissions WHERE classID = ? AND userID = ?");
-    $stmt->bind_param("ii", $data["classID"], $_SESSION["userid"]);
+    $stmt->bind_param("ii", $data["classID"], $userID);
     $stmt->execute();
 
     $permissionData = $stmt->get_result()->fetch_assoc();

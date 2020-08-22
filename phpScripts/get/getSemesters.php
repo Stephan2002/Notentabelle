@@ -10,13 +10,13 @@ Input als JSON per POST:
 
 */
 
-function getSemesters(Semester &$element) {
+function getSemesters(Semester &$element) : bool {
 
     global $mysqli;
 
     if($element->error !== ERROR_NONE) {
 
-        return;
+        return false;
 
     }
 
@@ -45,6 +45,8 @@ function getSemesters(Semester &$element) {
     
     $results = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     $element->childrenData = $results;
+
+    return true;
 
 }
 
@@ -78,7 +80,7 @@ if(!connectToDatabase()) {
 
 if(isset($semesterID)) {
 
-    $semesterFolder = getSemester($semesterID);
+    $semesterFolder = getSemester($semesterID, $_SESSION["userid"], $_SESSION["type"] === "teacher" || $_SESSION["type"] === "admin");
 
 } else {
 

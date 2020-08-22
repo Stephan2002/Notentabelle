@@ -1,12 +1,13 @@
 // Javascript fuer app.php
 // Wird immer hinzugefuegt, auch bei Lehrpersonen
 
-const ERROR_NONE = 0;    // kein Fehler
-const ERROR_NOT_LOGGED_IN = 1;    // Nutzer ist nicht eingeloggt
-const ERROR_BAD_INPUT = 2;    // Schlechter oder fehlender User-Input
-const ERROR_FORBIDDEN = 3;    // Element existiert nicht oder Nutzer hat kein Zugriffsrecht
-const ERROR_ONLY_TEACHER = 4;    // Aktion nur fuer Lehrpersonen verfuegbar
-const ERROR_UNKNOWN = 10;    // Unbekannter / anderer Fehler
+const ERROR_NONE                    = 0;    // kein Fehler
+const ERROR_NOT_LOGGED_IN           = 1;    // Nutzer ist nicht eingeloggt
+const ERROR_BAD_INPUT               = 2;    // Schlechter oder fehlender User-Input
+const ERROR_FORBIDDEN               = 3;    // Element existiert nicht oder Nutzer hat kein Zugriffsrecht
+const ERROR_ONLY_TEACHER            = 4;    // Aktion nur fuer Lehrpersonen verfuegbar
+const ERROR_NO_WRITING_PERMISSION   = 5;    // Benutzer hat nur Leserecht
+const ERROR_UNKNOWN                 = 10;   // Unbekannter / anderer Fehler
 
 const TYPE_SEMESTER = 0;
 const TYPE_TEST = 1;
@@ -648,10 +649,30 @@ function printElement() {
 
                 }
 
+                var colorClass = "";
+
+                if(currentChildData.mark != null) {
+
+                    if(currentChildData.mark < user.lowerDisplayBound) {
+
+                        colorClass = "red";
+
+                    } else if(currentChildData.mark > user.upperDisplayBound) {
+
+                        colorClass = "green";
+
+                    } else {
+
+                        colorClass = "yellow";
+
+                    }
+
+                }
+
                 if(currentChildData.referenceState === "ok" || currentChildData.referenceState === "outdated") {
 
                     tableString +=
-                    "<tr onclick='select(TYPE_TEST, " + currentChildData.referenceID + ", false, " + currentChildData.isFolder + ")'>" +
+                    "<tr class='" + colorClass + "' onclick='select(TYPE_TEST, " + currentChildData.referenceID + ", false, " + currentChildData.isFolder + ")'>" +
                         "<td class='table_name'>" + escapeHTML(currentChildData.name) + "</td>" +
                         "<td>" + formatDate(currentChildData.date) + "</td>" +
                         "<td>" + formatNumber(currentChildData.weight) + "</td>" +
@@ -665,7 +686,7 @@ function printElement() {
                 } else {
 
                     tableString +=
-                        "<tr " + (currentChildData.referenceState ? "" : "onclick='select(TYPE_TEST, " + currentChildData.testID + ", false, " + currentChildData.isFolder + ")'") + ">" +
+                        "<tr class='" + colorClass + "' " + (currentChildData.referenceState ? "" : "onclick='select(TYPE_TEST, " + currentChildData.testID + ", false, " + currentChildData.isFolder + ")'") + ">" +
                             "<td class='table_name'>" + escapeHTML(currentChildData.name) + "</td>" +
                             "<td>" + formatDate(currentChildData.date) + "</td>" +
                             "<td>" + formatNumber(currentChildData.weight) + "</td>" +
@@ -845,7 +866,7 @@ function printElement() {
 
                 if(currentElement.isRoot) {
 
-                    printStudent = function(currentStudentData) {
+                    printStudent = function(currentStudentData, colorClass) {
 
                         if(currentStudentData.plusPoints == null && !editStudents) {
 
@@ -853,8 +874,24 @@ function printElement() {
 
                         }
 
+                        colorClass = 0;
+
+                        if(currentStudentData.plusPoints != null) {
+
+                            if(currentStudentData.plusPoints >= 0) {
+
+                                colorClass = "green";
+
+                            } else {
+
+                                colorClass = "red";
+
+                            }
+
+                        }
+
                         studentTableString +=
-                            "<tr>" +
+                            "<tr class='" + colorClass + "'>" +
                                 "<td class='table_name'>" + escapeHTML(currentStudentData.lastName) + "</td>" +
                                 "<td>" + escapeHTML(currentStudentData.firstName) + "</td>" +
                                 "<td></td>" +
@@ -867,7 +904,7 @@ function printElement() {
 
                 } else if(currentElement.data.round == null) {
 
-                    printStudent = function(currentStudentData) {
+                    printStudent = function(currentStudentData, colorClass) {
 
                         if(currentStudentData.points == null && !editStudents) {
 
@@ -891,7 +928,7 @@ function printElement() {
 
                     if(currentElement.data.round == 0) {
 
-                        printStudent = function(currentStudentData) {
+                        printStudent = function(currentStudentData, colorClass) {
 
                             if(currentStudentData.mark == null && !editStudents) {
 
@@ -900,7 +937,7 @@ function printElement() {
                             }
 
                             studentTableString +=
-                                "<tr>" +
+                                "<tr class='" + colorClass + "'>" +
                                     "<td class='table_name'>" + escapeHTML(currentStudentData.lastName) + "</td>" +
                                     "<td>" + escapeHTML(currentStudentData.firstName) + "</td>" +
                                     "<td></td>" +
@@ -913,7 +950,7 @@ function printElement() {
 
                     } else {
 
-                        printStudent = function(currentStudentData) {
+                        printStudent = function(currentStudentData, colorClass) {
 
                             if(currentStudentData.mark == null && !editStudents) {
 
@@ -922,7 +959,7 @@ function printElement() {
                             }
 
                             studentTableString +=
-                                "<tr>" +
+                                "<tr class='" + colorClass + "'>" +
                                     "<td class='table_name'>" + escapeHTML(currentStudentData.lastName) + "</td>" +
                                     "<td>" + escapeHTML(currentStudentData.firstName) + "</td>" +
                                     "<td></td>" +
@@ -941,7 +978,7 @@ function printElement() {
 
                         if(currentElement.isFolder) {
 
-                            printStudent = function(currentStudentData) {
+                            printStudent = function(currentStudentData, colorClass) {
 
                                 if(currentStudentData.points == null && !editStudents) {
         
@@ -950,7 +987,7 @@ function printElement() {
                                 }
         
                                 studentTableString +=
-                                    "<tr>" +
+                                    "<tr class='" + colorClass + "'>" +
                                         "<td class='table_name'>" + escapeHTML(currentStudentData.lastName) + "</td>" +
                                         "<td>" + escapeHTML(currentStudentData.firstName) + "</td>" +
                                         "<td>" + (currentStudentData.points != null ? formatNumber(currentStudentData.points) : "") + "</td>" +
@@ -963,7 +1000,7 @@ function printElement() {
 
                         } else {
 
-                            printStudent = function(currentStudentData) {
+                            printStudent = function(currentStudentData, colorClass) {
 
                                 if(currentStudentData.points == null && !editStudents) {
         
@@ -972,7 +1009,7 @@ function printElement() {
                                 }
         
                                 studentTableString +=
-                                    "<tr>" +
+                                    "<tr class='" + colorClass + "'>" +
                                         "<td class='table_name'>" + escapeHTML(currentStudentData.lastName) + "</td>" +
                                         "<td>" + escapeHTML(currentStudentData.firstName) + "</td>" +
                                         "<td class='studentTable_input'><input type='text' readonly value='" + (currentStudentData.points != null ? formatNumber(currentStudentData.points) : "") + "'></td>" +
@@ -987,7 +1024,7 @@ function printElement() {
 
                     } else {
 
-                        printStudent = function(currentStudentData) {
+                        printStudent = function(currentStudentData, colorClass) {
 
                             if(currentStudentData.points == null && !editStudents) {
     
@@ -996,7 +1033,7 @@ function printElement() {
                             }
     
                             studentTableString +=
-                                "<tr>" +
+                                "<tr class='" + colorClass + "'>" +
                                     "<td class='table_name'>" + escapeHTML(currentStudentData.lastName) + "</td>" +
                                     "<td>" + escapeHTML(currentStudentData.firstName) + "</td>" +
                                     "<td class='studentTable_input'><input type='text' readonly value='" + (currentStudentData.points != null ? formatNumber(currentStudentData.points) : "") + "'></td>" +
@@ -1013,13 +1050,35 @@ function printElement() {
 
                 for(var i = 0; i < currentElement.data.students.length; i++) {
 
-                    if(!showHidden.students && currentElement.data.students[i].isHidden) {
+                    var currentChildData = currentElement.data.students[i];
+
+                    if(!showHidden.students && currentChildData.isHidden) {
 
                         continue;
         
                     }
 
-                    printStudent(currentElement.data.students[i]);
+                    var colorClass = "";
+
+                    if(currentChildData.mark != null) {
+
+                        if(currentChildData.mark < user.lowerDisplayBound) {
+
+                            colorClass = "red";
+
+                        } else if(currentChildData.mark > user.upperDisplayBound) {
+
+                            colorClass = "green";
+
+                        } else {
+
+                            colorClass = "yellow";
+
+                        }
+
+                    }
+
+                    printStudent(currentElement.data.students[i], colorClass);
 
                 }
 

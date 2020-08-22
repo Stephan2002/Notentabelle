@@ -10,7 +10,7 @@ Input als JSON per POST:
 
 */
 
-function getForeignSemesters(Semester &$element) {
+function getForeignSemesters(Semester &$element) : bool {
 
     global $mysqli;
 
@@ -62,6 +62,8 @@ function getForeignSemesters(Semester &$element) {
         $element->childrenData = array_merge($sharedResults, $studentResults);
 
     }
+
+    return true;
 
 }
 

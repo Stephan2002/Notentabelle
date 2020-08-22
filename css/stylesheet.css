@@ -318,7 +318,8 @@ nav h1 {
 	font-size: 40px;
 	line-height: 30px;
 	color: white;
-    transition: background-color 0.4s, opacity 0.2s;
+	transition: background-color 0.4s, opacity 0.2s;
+	outline: none;
 	
 }
 
@@ -337,7 +338,7 @@ nav h1 {
 }
 
 
-#returnButton:hover, #logo:hover, #logo:focus {
+#returnButton:hover, #returnButton:focus, #logo:hover, #logo:focus {
 	
 	background-color: #248728;
 	

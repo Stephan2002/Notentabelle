@@ -41,7 +41,7 @@ if(!connectToDatabase()) {
 
 }
 
-$test = getTest($testID, isset($data["isPublicTemplate"]));
+$test = getTest($testID, $_SESSION["userid"], $_SESSION["type"] === "teacher" || $_SESSION["type"] === "admin", isset($data["isPublicTemplate"]));
 
 if($test->error !== ERROR_NONE) {
 

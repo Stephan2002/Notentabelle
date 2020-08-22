@@ -1,17 +1,36 @@
-POST /phpScripts/get/getForeignSemesters.php HTTP/1.1
+POST /phpScripts/edit/editSemester.php HTTP/1.1
 Host: notentabelle.localhost
 User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:79.0) Gecko/20100101 Firefox/79.0
 Accept: */*
 Accept-Language: de,en-US;q=0.7,en;q=0.3
 Accept-Encoding: gzip, deflate, br
 Content-Type: text/plain;charset=UTF-8
-Content-Length: 2
+Content-Length: 206
 Origin: https://notentabelle.localhost
 Connection: keep-alive
 Referer: https://notentabelle.localhost/app
-Cookie: PHPSESSID=kdat4rtv14a9vme3iro462h64b
+Cookie: PHPSESSID=79l3sd6shb0750cd39psdgbg0a
 Pragma: no-cache
 Cache-Control: no-cache
 
 
-{}
+[
+    {
+        "semesterID": 2,
+        "permissions": [
+
+            {
+                "userName": "studentTest",
+                "writingPermission": null
+
+            },
+            {
+                "userName": "teachertest",
+                "writingPermission": null
+
+            }
+
+        ]
+    }
+
+]

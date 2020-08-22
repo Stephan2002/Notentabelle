@@ -9,7 +9,7 @@ Input als JSON per POST:
 
 */
 
-function getClasses(Element $element) {
+function getClasses(Element $element) : bool {
 
     global $mysqli;
 
@@ -19,6 +19,8 @@ function getClasses(Element $element) {
 
     $results = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     $element->childrenData = $results;
+
+    return true;
 
 }
 

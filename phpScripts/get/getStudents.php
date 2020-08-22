@@ -9,13 +9,13 @@ Input als JSON per POST:
 
 */
 
-function getStudents(StudentClass &$element) {
+function getStudents(StudentClass &$element) : bool {
 
     global $mysqli;
 
     if($element->error !== ERROR_NONE) {
 
-        return;
+        return false;
 
     }
 
@@ -25,6 +25,8 @@ function getStudents(StudentClass &$element) {
 
     $result = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     $element->childrenData = $result;
+
+    return true;
 
 }
 
@@ -42,6 +44,12 @@ if(!isset($isNotMain)) {
 
     session_write_close();
 
+    if($_SESSION["type"] !== "teacher" && $_SESSION["type"] !== "admin") {
+
+        throwError(ERROR_ONLY_TEACHER);
+
+    }
+
     $data = getData();
 
     if(!isset($data["classID"]) || !is_numeric($data["classID"])) {
@@ -58,7 +66,7 @@ if(!isset($isNotMain)) {
 
     }
 
-    $class = getClass($classID);
+    $class = getClass($classID, $_SESSION["userid"]);
 
     getStudents($class);
     $class->sendResponse();

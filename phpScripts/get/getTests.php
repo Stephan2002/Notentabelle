@@ -12,26 +12,25 @@ Input als JSON per POST:
 
 */
 
-function getTests(Element &$test, bool $withMarks = false) {
+function getTests(Element &$test, bool $withMarks = false) : bool {
 
     global $mysqli;
 
     if($test->error !== ERROR_NONE) {
 
-        return;
+        return false;
 
     }
 
     if(!$test->data["isFolder"] && !$test->isRoot) {
 
-        $test->error = ERROR_BAD_INPUT;
-        return;
+        return false;
 
     }
 
     if($test->isRoot && $test->accessType === Element::ACCESS_TEACHER) {
 
-        return;
+        return true;
 
     }
 
@@ -106,7 +105,7 @@ function getTests(Element &$test, bool $withMarks = false) {
 
         if(!$withMarks) {
 
-            return;
+            return true;
 
         }
 
@@ -310,7 +309,7 @@ function getTests(Element &$test, bool $withMarks = false) {
 
         if(!$withMarks) {
 
-            return;
+            return true;
 
         }
 
@@ -370,7 +369,9 @@ function getTests(Element &$test, bool $withMarks = false) {
 
         }
 
-    }      
+    }
+
+    return true;
 
 }
 
@@ -420,17 +421,27 @@ if(!isset($isNotMain)) {
 
     if(isset($testID)) {
 
-        $test = getTest($testID, isset($data["isPublicTemplate"]));
+        $test = getTest($testID, $_SESSION["userid"], $_SESSION["type"] === "teacher" || $_SESSION["type"] === "admin", isset($data["isPublicTemplate"]));
 
     } else {
 
-        $test = getSemester($semesterID, isset($data["isPublicTemplate"]));
+        $test = getSemester($semesterID, $_SESSION["userid"], $_SESSION["type"] === "teacher" || $_SESSION["type"] === "admin", isset($data["isPublicTemplate"]));
         $test->type = Element::TYPE_TEST;
         $test->isRoot = true;
 
     }
 
-    getTests($test, isset($data["withMarks"]));
+    if($test->error != ERROR_NONE) {
+
+        throwError($test->error);
+
+    }
+
+    if(!getTests($test, isset($data["withMarks"]))) {
+
+        throwError(ERROR_BAD_INPUT);
+
+    }
 
     $test->sendResponse();
 
