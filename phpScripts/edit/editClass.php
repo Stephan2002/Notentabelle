@@ -5,8 +5,325 @@ Klasse bearbeiten.
 
 Input als JSON per POST bestehend aus Array, jeweils mit: 
     classID
-    Alle Daten, die geaendert werden sollten
+    Alle Daten, die geaendert werden sollten (*: Darf NULL sein):
+        name
+        isHidden
+        notes*
+        permissions
 
 */
+
+function editClass(StudentClass &$class, array &$data) : bool {
+    
+    global $mysqli;
+
+    if($class->error !== ERROR_NONE) {
+
+        return false;
+
+    }
+
+    $changedProperties = array();
+
+    if(array_key_exists("name", $data)) {
+
+        if(!is_string($data["name"]) || strlen($data["name"]) >= 64) {
+
+            return false;
+
+        }
+
+        if($data["name"] !== $class->data["name"]) {
+
+            $changedProperties["name"] = $data["name"];
+
+        } 
+
+    }
+
+    if(array_key_exists("isHidden", $data)) {
+        
+        if(!is_bool($data["isHidden"])) {
+
+            return false;
+
+        }
+        
+        if($data["isHidden"] != $class->data["isHidden"]) {
+            
+            $changedProperties["isHidden"] = (int)$data["isHidden"];
+
+        }
+
+    }
+
+    if(array_key_exists("notes", $data)) {
+
+        if((!is_string($data["notes"]) && !is_null($data["notes"])) || strlen($data["notes"] >= 256)) {
+
+            return false;
+
+        }
+
+        if($data["notes"] === "") {
+
+            $data["notes"] = NULL;
+
+        }
+
+        if($data["notes"] != $class->data["notes"]) {
+
+            $changedProperties["notes"] = $data["notes"];
+
+        }
+
+    }
+
+    
+    if(count($changedProperties) > 0) {
+
+        $queryString = "UPDATE classes SET ";
+        $typeString = "";
+
+        foreach($changedProperties as $key => &$value) {
+
+            $queryString .= $key . " = ?, ";
+            
+            if(is_int($value)) {
+
+                $typeString .= "i";
+
+            } else {
+
+                $typeString .= "s";
+
+            }
+
+        }
+
+        $queryString = substr($queryString, 0, -2);
+        $queryString .= " WHERE classID = ?";
+        $typeString .= "i";
+
+        $changedProperties[] = $class->data["classID"];
+
+        $stmt = $mysqli->prepare($queryString);
+
+        $stmt->bind_param($typeString, ...array_values($changedProperties));
+        $stmt->execute();
+        $stmt->close();
+
+    }
+
+    
+    if(array_key_exists("permissions", $data)) {
+        
+        if(!is_array($data["permissions"])) {
+
+            return false;
+
+        }
+
+        $stmt = $mysqli->prepare("SELECT permissions.*, users.userName FROM permissions LEFT JOIN users ON permissions.userID = users.userID WHERE classID = ?");
+        $stmt->bind_param("i", $class->data["classID"]);
+        $stmt->execute();
+
+        $result = $stmt->get_result();
+        $permissionData = array();
+
+        while($currentRow = $result->fetch_assoc()) {
+            
+            if(isset($permissionData[$currentRow["userName"]])) {
+
+                return false;
+
+            }
+
+            $permissionData[strtolower($currentRow["userName"])]["writingPermission"] = (bool)$currentRow["writingPermission"];
+            $permissionData[strtolower($currentRow["userName"])]["userID"] = $currentRow["userID"];
+
+        }
+
+        $permissionsToAdd = array();
+        $permissionsToChange = array();
+        $permissionsToDelete = array();
+        
+        foreach($data["permissions"] as &$currentPermission) {
+
+            if(!is_array($currentPermission) || !is_string($currentPermission["userName"]) || !array_key_exists("writingPermission", $currentPermission)) {
+
+                return false;
+
+            }
+
+            $currentPermission["userName"] = strtolower($currentPermission["userName"]);
+            
+            if(array_key_exists($currentPermission["userName"], $permissionData)) {
+                
+                $currentPermission["userID"] = $permissionData[$currentPermission["userName"]]["userID"];
+
+                if(is_null($currentPermission["writingPermission"])) {
+
+                    $permissionsToDelete[] = $currentPermission;
+
+                } else if($currentPermission["writingPermission"] !== $permissionData[$currentPermission["userName"]]["writingPermission"]) {
+
+                    $permissionsToChange[] = $currentPermission;
+
+                }
+
+            } else {
+
+                if(!is_null($currentPermission["writingPermission"])) {
+
+                    $permissionsToAdd[] = $currentPermission;
+
+                }
+
+            }
+
+        }
+        
+        if(!empty($permissionsToDelete)) {
+            
+            $stmt->prepare("DELETE FROM permissions WHERE classID = ? AND userID = ?");
+
+            foreach($permissionsToDelete as &$currentPermission) {
+
+                $stmt->bind_param("ii", $class->data["classID"], $currentPermission["userID"]);
+                $stmt->execute();
+
+            }
+
+        }
+
+        if(!empty($permissionsToChange)) {
+
+            $stmt->prepare("UPDATE permissions SET writingPermission = ? WHERE classID = ? AND userID = ?");
+
+            foreach($permissionsToChange as &$currentPermission) {
+
+                $stmt->bind_param("iii", $currentPermission["writingPermission"], $class->data["classID"], $currentPermission["userID"]);
+                $stmt->execute();
+
+            }
+
+        }
+
+        if(!empty($permissionsToAdd)) {
+            
+            $stmt->prepare("SELECT userID, type FROM users WHERE userName = ? AND deleteTimestamp IS NULL");
+
+            foreach($permissionsToAdd as &$currentPermission) {
+                
+                $stmt->bind_param("s", $currentPermission["userName"]);
+                $stmt->execute();
+
+                $result = $stmt->get_result()->fetch_assoc();
+
+                if(is_null($result)) {
+
+                    return false;
+
+                }
+
+                if($result["type"] !== "teacher" && $result["type"] !== "admin") {
+
+                    return false;
+
+                }
+
+                if($result["userID"] === $class->data["userID"]) {
+
+                    return false;
+
+                }
+
+                $currentPermission["userID"] = $result["userID"];
+
+            }
+
+            $stmt->prepare("INSERT INTO permissions (classID, userID, writingPermission) VALUES (?, ?, ?)");
+
+            foreach($permissionsToAdd as &$currentPermission) {
+
+                $stmt->bind_param("iii", $class->data["classID"], $currentPermission["userID"], $currentPermission["writingPermission"]);
+                $stmt->execute();
+
+            }
+
+        }
+
+        $stmt->close();
+
+    }
+
+    return true;
+
+}
+
+include($_SERVER["DOCUMENT_ROOT"] . "/phpScripts/element.php");
+
+session_start();
+
+if(!isset($_SESSION["userid"])) {
+
+    throwError(ERROR_NOT_LOGGED_IN);
+
+}
+
+session_write_close();
+
+if($_SESSION["type"] !== "teacher" && $_SESSION["type"] !== "admin") {
+
+    throwError(ERROR_ONLY_TEACHER);
+
+}
+
+$data = getData();
+
+if(!connectToDatabase()) {
+
+    throwError(ERROR_UNKNOWN);
+
+}
+
+if(!is_array($data)) {
+
+    throwError(ERROR_BAD_INPUT);
+
+}
+
+foreach($data as $key => &$currentClassData) {
+
+    if(!isset($currentClassData["classID"]) || !is_numeric($currentClassData["classID"])) {
+
+        throwError(ERROR_BAD_INPUT, $key);    
+    
+    }
+
+    $class = getClass((int)$currentClassData["classID"], $_SESSION["userid"]);
+
+    if($class->error !== ERROR_NONE) {
+
+        throwError(ERROR_FORBIDDEN, $key);
+
+    }
+
+    if($class->accessType !== Element::ACCESS_OWNER) {
+
+        throwError(ERROR_NO_WRITING_PERMISSION, $key);
+
+    }
+
+    if(!editClass($class, $currentClassData)) {
+
+        throwError(ERROR_BAD_INPUT, $key);
+
+    }
+
+}
+
+finish();
 
 ?>

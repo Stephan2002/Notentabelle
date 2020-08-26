@@ -114,6 +114,7 @@ class Element {
         } else {
 
             unset($this->data["userID"]);
+            unset($this->data["classUserID"]);
 
         }
 
@@ -520,20 +521,20 @@ function getStudent(int $studentID, int $userID) : Student {
 
     global $mysqli;
 
-    $stmt = $mysqli->prepare("SELECT students.*, classes.userID FROM students INNER JOIN classes ON classes.classID = students.classID WHERE students.studentID = ? AND students.deleteTimestamp IS NULL");
+    $stmt = $mysqli->prepare("SELECT students.*, classes.userID AS classUserID, users.userName FROM students INNER JOIN classes ON classes.classID = students.classID LEFT JOIN users ON users.userID = students.userID WHERE students.studentID = ? AND students.deleteTimestamp IS NULL");
     $stmt->bind_param("i", $studentID);
     $stmt->execute();
 
     $data = $stmt->get_result()->fetch_assoc();
 
     if(is_null($data)) {
-
+        
         $stmt->close();
         return new Student(ERROR_FORBIDDEN);
 
     }
 
-    if($data["userID"] == $userID) {
+    if($data["classUserID"] == $userID) {
 
         $stmt->close();
         return new Student(0, Element::ACCESS_OWNER, true, $data);

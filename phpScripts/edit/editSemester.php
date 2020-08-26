@@ -6,12 +6,12 @@ Semester oder Semesterordner bearbeiten
 
 Input als JSON per POST bestehend aus Array, jeweils mit:
     semesterID
-    Alle Daten, die geaendert werden sollten:
+    Alle Daten, die geaendert werden sollten (*: Darf NULL sein):
         name
         isHidden
-        notes
+        notes*
         templateType (bei Vorlagen)
-        referenceTestID (wenn referenceID gesetzt)
+        referenceTestID* (wenn referenceID gesetzt)
         templateSemesterID (zu verwendende Vorlage)
 
 */
@@ -261,7 +261,7 @@ function editSemester(Semester &$semester, array &$data) : bool {
 
         if(!empty($permissionsToAdd)) {
             
-            $stmt->prepare("SELECT userID, type FROM users WHERE userName = ?");
+            $stmt->prepare("SELECT userID, type FROM users WHERE userName = ? AND deleteTimestamp IS NULL");
 
             foreach($permissionsToAdd as &$currentPermission) {
                 
@@ -270,7 +270,7 @@ function editSemester(Semester &$semester, array &$data) : bool {
 
                 $result = $stmt->get_result()->fetch_assoc();
 
-                if(is_null($result["userID"])) {
+                if(is_null($result)) {
 
                     return false;
 

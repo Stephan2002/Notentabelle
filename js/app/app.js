@@ -1359,9 +1359,21 @@ function printElement() {
 
             document.getElementById("students_addStudentButton").style.display = "inline-block";
 
+            var buttonString = 
+                "<td class='table_buttons'>" +
+                    "<button class='button_square negative table_big'><img src='/img/delete.svg' alt='X'></button>" +
+                    "<button class='button_square positive table_big'><img src='/img/edit.svg' alt='.'></button>" +
+                    "<button class='button_square neutral'><img src='/img/info.svg' alt='i'></button>" +
+                "</td>";
+
         } else {
 
             document.getElementById("students_addStudentButton").style.display = "none";
+
+            var buttonString = 
+                "<td class='table_buttons noWritingPermission'>" +
+                    "<button class='button_square neutral'><img src='/img/info.svg' alt='i'></button>" +
+                "</td>";
 
         }
 
@@ -1375,18 +1387,17 @@ function printElement() {
 
         }
 
-        var buttonString = 
-            "<td class='table_buttons'>" +
-                "<button class='button_square negative table_big'><img src='/img/delete.svg' alt='X'></button>" +
-                "<button class='button_square positive table_big'><img src='/img/edit.svg' alt='.'></button>" +
-                "<button class='button_square neutral'><img src='/img/info.svg' alt='i'></button>" +
-            "</td>";
-
         var tableString = "";
 
         for(var i = 0; i < currentElement.childrenData.length; i++) {
 
             var currentChildData = currentElement.childrenData[i];
+
+            if(!showHidden.students && currentChildData.isHidden) {
+
+                continue;
+
+            }
 
             tableString += 
                 "<tr>" +

@@ -1,4 +1,4 @@
-POST /phpScripts/edit/editSemester.php HTTP/1.1
+POST /phpScripts/edit/editStudent.php HTTP/1.1
 Host: notentabelle.localhost
 User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:79.0) Gecko/20100101 Firefox/79.0
 Accept: */*
@@ -9,28 +9,22 @@ Content-Length: 206
 Origin: https://notentabelle.localhost
 Connection: keep-alive
 Referer: https://notentabelle.localhost/app
-Cookie: PHPSESSID=79l3sd6shb0750cd39psdgbg0a
+Cookie: PHPSESSID=l8og8akpupv3qmv6l81a0j4n0j
 Pragma: no-cache
 Cache-Control: no-cache
 
 
 [
     {
-        "semesterID": 2,
-        "permissions": [
+        "studentID": 2,
+        "userName": null
+    
+    },
+    {
 
-            {
-                "userName": "studentTest",
-                "writingPermission": null
+        "studentID": 1,
+        "userName": "StudentTest"
 
-            },
-            {
-                "userName": "teachertest",
-                "writingPermission": null
-
-            }
-
-        ]
     }
 
 ]
