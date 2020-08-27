@@ -68,6 +68,12 @@ if(!isset($isNotMain)) {
 
     $class = getClass($classID, $_SESSION["userid"]);
 
+    if(!is_null($class->data["referenceID"])) {
+
+        throwError(ERROR_BAD_INPUT);
+
+    }
+
     getStudents($class);
     $class->sendResponse();
 

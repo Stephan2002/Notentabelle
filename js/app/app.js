@@ -48,6 +48,7 @@ var showHidden = {
 };
 
 var editStudents = false;
+var showStudentsWithoutMark = false;
 
 var currentElement;
 
@@ -868,7 +869,7 @@ function printElement() {
 
                     printStudent = function(currentStudentData, colorClass) {
 
-                        if(currentStudentData.plusPoints == null && !editStudents) {
+                        if(currentStudentData.plusPoints == null && !editStudents && !showStudentsWithoutMark) {
 
                             return;
 
@@ -891,7 +892,7 @@ function printElement() {
                         }
 
                         studentTableString +=
-                            "<tr class='" + colorClass + "'>" +
+                            "<tr class='noSelect " + colorClass + "'>" +
                                 "<td class='table_name'>" + escapeHTML(currentStudentData.lastName) + "</td>" +
                                 "<td>" + escapeHTML(currentStudentData.firstName) + "</td>" +
                                 "<td></td>" +
@@ -906,14 +907,14 @@ function printElement() {
 
                     printStudent = function(currentStudentData, colorClass) {
 
-                        if(currentStudentData.points == null && !editStudents) {
+                        if(currentStudentData.points == null && !editStudents && !showStudentsWithoutMark) {
 
                             return;
 
                         }
 
                         studentTableString +=
-                            "<tr>" +
+                            "<tr class='noSelect'>" +
                                 "<td class='table_name'>" + escapeHTML(currentStudentData.lastName) + "</td>" +
                                 "<td>" + escapeHTML(currentStudentData.firstName) + "</td>" +
                                 "<td></td>" + 
@@ -930,14 +931,14 @@ function printElement() {
 
                         printStudent = function(currentStudentData, colorClass) {
 
-                            if(currentStudentData.mark == null && !editStudents) {
+                            if(currentStudentData.mark == null && !editStudents && !showStudentsWithoutMark) {
 
                                 return;
     
                             }
 
                             studentTableString +=
-                                "<tr class='" + colorClass + "'>" +
+                                "<tr class='noSelect " + colorClass + "'>" +
                                     "<td class='table_name'>" + escapeHTML(currentStudentData.lastName) + "</td>" +
                                     "<td>" + escapeHTML(currentStudentData.firstName) + "</td>" +
                                     "<td></td>" +
@@ -952,14 +953,14 @@ function printElement() {
 
                         printStudent = function(currentStudentData, colorClass) {
 
-                            if(currentStudentData.mark == null && !editStudents) {
+                            if(currentStudentData.mark == null && !editStudents && !showStudentsWithoutMark) {
 
                                 return;
     
                             }
 
                             studentTableString +=
-                                "<tr class='" + colorClass + "'>" +
+                                "<tr class='noSelect " + colorClass + "'>" +
                                     "<td class='table_name'>" + escapeHTML(currentStudentData.lastName) + "</td>" +
                                     "<td>" + escapeHTML(currentStudentData.firstName) + "</td>" +
                                     "<td></td>" +
@@ -980,14 +981,14 @@ function printElement() {
 
                             printStudent = function(currentStudentData, colorClass) {
 
-                                if(currentStudentData.points == null && !editStudents) {
+                                if(currentStudentData.points == null && !editStudents && !showStudentsWithoutMark) {
         
                                     return;
         
                                 }
         
                                 studentTableString +=
-                                    "<tr class='" + colorClass + "'>" +
+                                    "<tr class='noSelect " + colorClass + "'>" +
                                         "<td class='table_name'>" + escapeHTML(currentStudentData.lastName) + "</td>" +
                                         "<td>" + escapeHTML(currentStudentData.firstName) + "</td>" +
                                         "<td>" + (currentStudentData.points != null ? formatNumber(currentStudentData.points) : "") + "</td>" +
@@ -1002,14 +1003,14 @@ function printElement() {
 
                             printStudent = function(currentStudentData, colorClass) {
 
-                                if(currentStudentData.points == null && !editStudents) {
+                                if(currentStudentData.points == null && !editStudents && !showStudentsWithoutMark) {
         
                                     return;
         
                                 }
         
                                 studentTableString +=
-                                    "<tr class='" + colorClass + "'>" +
+                                    "<tr class='noSelect " + colorClass + "'>" +
                                         "<td class='table_name'>" + escapeHTML(currentStudentData.lastName) + "</td>" +
                                         "<td>" + escapeHTML(currentStudentData.firstName) + "</td>" +
                                         "<td class='studentTable_input'><input type='text' readonly value='" + (currentStudentData.points != null ? formatNumber(currentStudentData.points) : "") + "'></td>" +
@@ -1026,14 +1027,14 @@ function printElement() {
 
                         printStudent = function(currentStudentData, colorClass) {
 
-                            if(currentStudentData.points == null && !editStudents) {
+                            if(currentStudentData.points == null && !editStudents && !showStudentsWithoutMark) {
     
                                 return;
     
                             }
     
                             studentTableString +=
-                                "<tr class='" + colorClass + "'>" +
+                                "<tr class='noSelect " + colorClass + "'>" +
                                     "<td class='table_name'>" + escapeHTML(currentStudentData.lastName) + "</td>" +
                                     "<td>" + escapeHTML(currentStudentData.firstName) + "</td>" +
                                     "<td class='studentTable_input'><input type='text' readonly value='" + (currentStudentData.points != null ? formatNumber(currentStudentData.points) : "") + "'></td>" +
@@ -1400,7 +1401,7 @@ function printElement() {
             }
 
             tableString += 
-                "<tr>" +
+                "<tr class='noSelect'>" +
                     "<td class='table_name'>" + escapeHTML(currentChildData.lastName) + "</td>" +
                     "<td>" + escapeHTML(currentChildData.firstName) + "</td>" +
                     "<td>" + escapeHTML(currentChildData.userName) + "</td>" +

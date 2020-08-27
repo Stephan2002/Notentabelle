@@ -426,6 +426,13 @@ if(!isset($isNotMain)) {
     } else {
 
         $test = getSemester($semesterID, $_SESSION["userid"], $_SESSION["type"] === "teacher" || $_SESSION["type"] === "admin", isset($data["isPublicTemplate"]));
+        
+        if(!is_null($test->data["referenceID"])) {
+
+            throwError(ERROR_BAD_INPUT);
+
+        }
+        
         $test->type = Element::TYPE_TEST;
         $test->isRoot = true;
 

@@ -48,7 +48,50 @@ tr {
 	background-color: rgb(240, 240, 240);
 	border-color: black;
 	color: black;
+	transition: background-color 0.4s;
+
+}
+
+tr:hover:not(.noSelect) {
+
+	background-color: rgb(230, 230, 230);
 	cursor: pointer;
+
+}
+
+tr.red {
+
+	background-color: rgb(255,199,206);
+
+}
+
+tr.yellow {
+
+	background-color: rgb(255, 235, 156);
+
+}
+
+tr.green {
+
+	background-color: rgb(198, 239, 206);
+
+}
+
+tr.red:hover:not(.noSelect) {
+
+	background-color: rgb(255, 179, 187);
+
+}
+
+tr.yellow:hover:not(.noSelect) {
+
+	background-color: rgb(255, 227, 115);
+
+}
+
+tr.green:hover:not(.noSelect) {
+
+	background-color: rgb(160, 235, 174);
 
 }
 
@@ -61,7 +104,6 @@ td, th {
 	padding: 8px 3px;
 	font-size: 16px;
 	text-align: center;
-	cursor: pointer;
 	
 }
 
@@ -70,6 +112,7 @@ th {
 	font-size: 18px;
 	background-color: hsl(0,0%,85%);
 	font-weight: bold;
+	cursor: auto;
 	
 }
 

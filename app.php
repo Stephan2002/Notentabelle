@@ -205,6 +205,7 @@ include("phpScripts/login.php");
                 <div id="tests_studentButtons">
                     <button id="tests_editStudentButton" class="button_big positive withMargin">Noten / Punkte bearbeiten</button>
                     <button class="button_big positive withMargin">Versteckte Schüler/innen anzeigen</button>
+                    <button class="button_big positive">Schüler/innen ohne Noten anzeigen</button>
                 </div>
 
                 <?php } ?>

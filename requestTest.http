@@ -1,4 +1,4 @@
-POST /phpScripts/edit/editStudent.php HTTP/1.1
+POST /test.php HTTP/1.1
 Host: notentabelle.localhost
 User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:79.0) Gecko/20100101 Firefox/79.0
 Accept: */*
@@ -15,16 +15,6 @@ Cache-Control: no-cache
 
 
 [
-    {
-        "studentID": 2,
-        "userName": null
-    
-    },
-    {
-
-        "studentID": 1,
-        "userName": "StudentTest"
-
-    }
+   
 
 ]
