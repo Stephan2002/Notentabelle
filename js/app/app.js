@@ -687,7 +687,7 @@ function printElement() {
                 } else {
 
                     tableString +=
-                        "<tr class='" + colorClass + "' " + (currentChildData.referenceState ? "" : "onclick='select(TYPE_TEST, " + currentChildData.testID + ", false, " + currentChildData.isFolder + ")'") + ">" +
+                        "<tr class='" + colorClass + (currentChildData.referenceState ? " noSelect'" : "' onclick='select(TYPE_TEST, " + currentChildData.testID + ", false, " + currentChildData.isFolder + ")'") + ">" +
                             "<td class='table_name'>" + escapeHTML(currentChildData.name) + "</td>" +
                             "<td>" + formatDate(currentChildData.date) + "</td>" +
                             "<td>" + formatNumber(currentChildData.weight) + "</td>" +

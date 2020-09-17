@@ -1,6 +1,6 @@
 <?php
 
-$isNotMain = true;
+/*$isNotMain = true;
 
 include($_SERVER["DOCUMENT_ROOT"] . "/phpScripts/element.php");
 include($_SERVER["DOCUMENT_ROOT"] . "/phpScripts/calculateMarks.php");
@@ -15,6 +15,13 @@ getStudents($class);
 $test->data["students"] = $class->childrenData;
 //getTests($test, true);
 
-updateMarks($test, true);
+updateMarks($test, true);*/
+
+
+include($_SERVER["DOCUMENT_ROOT"] . "/phpScripts/element.php");
+connectToDatabase();
+
+$stmt = $mysqli->prepare("UPDATE tests SET isReferenced = 0");
+$stmt->execute();
 
 ?>

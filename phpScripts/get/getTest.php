@@ -80,6 +80,7 @@ if(isset($test->data["classID"]) && $test->accessType !== Element::ACCESS_STUDEN
 
     $result = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     $test->data["students"] = $result;
+    $test->withStudents = true;
 
     $stmt->close();
 

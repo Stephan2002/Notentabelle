@@ -1,4 +1,4 @@
-POST /test.php HTTP/1.1
+POST /phpScripts/edit/editClass.php HTTP/1.1
 Host: notentabelle.localhost
 User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:79.0) Gecko/20100101 Firefox/79.0
 Accept: */*
@@ -9,12 +9,28 @@ Content-Length: 206
 Origin: https://notentabelle.localhost
 Connection: keep-alive
 Referer: https://notentabelle.localhost/app
-Cookie: PHPSESSID=l8og8akpupv3qmv6l81a0j4n0j
+Cookie: PHPSESSID=4q8cc8c5h230cadd9rnmij4m63
 Pragma: no-cache
 Cache-Control: no-cache
 
 
 [
-   
+    {
+        "classID": 1,
+        "permissions": [
+
+            {
+                "userName": "teacherTest2",
+                "writingPermission": true
+            },
+            {
+                "userName": "teacherTesT2",
+                "writingPermission": false
+            }
+
+        ]
+        
+
+    }
 
 ]

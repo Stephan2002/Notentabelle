@@ -95,6 +95,12 @@ if(isset($semesterID)) {
 
 }
 
+if($semesterFolder->error !== ERROR_NONE) {
+
+    throwError($semesterFolder->error);
+
+}
+
 getSemesters($semesterFolder);
 $semesterFolder->sendResponse();
 

@@ -79,6 +79,8 @@ class Element {
     public $isForeign = false;
     public $isTemplate = false;
     public $isFolder = false;
+    public $withMarks = false;
+    public $withStudents = false;
 
     public $childrenData; // array
 
@@ -153,6 +155,18 @@ class Element {
         if(!$this->isFolder) {
 
             unset($this->isFolder);
+
+        }
+
+        if(!$this->withMarks) {
+
+            unset($this->withMarks);
+
+        }
+
+        if(!$this->withStudents) {
+
+            unset($this->withStudents);
 
         }
 
@@ -341,7 +355,7 @@ function getSemester(int $semesterID, int $userID, bool $isTeacher, bool $checkO
 
 }
 
-function getTest(int $testID, int $userID, bool $isTeacher, bool $checkOnlyForTemplate = false, bool $irrelevantWritingPermission = false) : Test {
+function getTest(int $testID, int $userID, bool $isTeacher, bool $checkOnlyForTemplate = false, bool $irrelevantWritingPermission = false, bool $skipSharedTest = false) : Test {
 
     global $mysqli;
 
@@ -367,23 +381,28 @@ function getTest(int $testID, int $userID, bool $isTeacher, bool $checkOnlyForTe
 
     if(!$checkOnlyForTemplate) {
 
-        $stmt->prepare("SELECT writingPermission FROM permissions WHERE semesterID = ? AND userID = ?");
-        $stmt->bind_param("ii", $data["semesterID"], $userID);
-        $stmt->execute();
-
-        $permissionData = $stmt->get_result()->fetch_assoc();
         $hasSharedPermission = false;
 
-        if(!is_null($permissionData)) {
+        if($skipSharedTest) {
 
-            if($permissionData["writingPermission"] || !isset($data["classID"]) || $irrelevantWritingPermission) {
+            $stmt->prepare("SELECT writingPermission FROM permissions WHERE semesterID = ? AND userID = ?");
+            $stmt->bind_param("ii", $data["semesterID"], $userID);
+            $stmt->execute();
 
-                $stmt->close();
-                return new Test(0, Element::ACCESS_SHARED, (bool)$permissionData["writingPermission"], $data);
+            $permissionData = $stmt->get_result()->fetch_assoc();
 
-            } else {
+            if(!is_null($permissionData)) {
 
-                $hasSharedPermission = true;
+                if($permissionData["writingPermission"] || !isset($data["classID"]) || $irrelevantWritingPermission) {
+
+                    $stmt->close();
+                    return new Test(0, Element::ACCESS_SHARED, (bool)$permissionData["writingPermission"], $data);
+
+                } else {
+
+                    $hasSharedPermission = true;
+
+                }
 
             }
 

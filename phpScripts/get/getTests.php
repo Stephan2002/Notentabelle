@@ -28,6 +28,12 @@ function getTests(Element &$test, bool $withMarks = false) : bool {
 
     }
 
+    if(!is_null($test->data["referenceID"])) {
+
+        return false;
+
+    }
+
     if($test->isRoot && $test->accessType === Element::ACCESS_TEACHER) {
 
         return true;
@@ -68,6 +74,7 @@ function getTests(Element &$test, bool $withMarks = false) : bool {
 
             $result = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
             $test->data["students"] = $result;
+            $test->withStudents = true;
 
             $stmt->close();
 
@@ -105,9 +112,12 @@ function getTests(Element &$test, bool $withMarks = false) : bool {
 
         if(!$withMarks) {
 
+            $test->withMarks = false;
             return true;
 
-        }
+        } 
+
+        $test->withMarks = true;
 
         include_once($_SERVER["DOCUMENT_ROOT"] . "/phpScripts/calculateMarks.php");
 
@@ -426,12 +436,6 @@ if(!isset($isNotMain)) {
     } else {
 
         $test = getSemester($semesterID, $_SESSION["userid"], $_SESSION["type"] === "teacher" || $_SESSION["type"] === "admin", isset($data["isPublicTemplate"]));
-        
-        if(!is_null($test->data["referenceID"])) {
-
-            throwError(ERROR_BAD_INPUT);
-
-        }
         
         $test->type = Element::TYPE_TEST;
         $test->isRoot = true;

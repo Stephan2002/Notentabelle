@@ -75,7 +75,7 @@ function plusPoints($mark) {
 
 }
 
-function calculateMark(array &$element, array &$subElements, bool $isTest = true, bool $unsetVars = true) {
+function calculateMark(array &$element, array &$subElements, bool $isTest = true, bool $nullSetVars = false) {
 
     if($isTest && !$element["isFolder"]) {
         
@@ -113,8 +113,8 @@ function calculateMark(array &$element, array &$subElements, bool $isTest = true
 
         if($sumWeights == 0) {
 
-            if($unsetVars) unset($element["mark"]);
-            elseif(isset($element["mark"])) $element["mark"] = NULL;
+            if(!$nullSetVars) unset($element["mark"]);
+            else $element["mark"] = NULL;
 
         } else {
 
@@ -143,8 +143,8 @@ function calculateMark(array &$element, array &$subElements, bool $isTest = true
 
         if($count === 0) {
 
-            if($unsetVars) unset($element["points"]);
-            elseif(isset($element["points"])) $element["points"] = NULL;
+            if(!$nullSetVars) unset($element["points"]);
+            else $element["points"] = NULL;
 
         } else {
 
@@ -165,8 +165,8 @@ function calculateMark(array &$element, array &$subElements, bool $isTest = true
 
             } else {
 
-                if($unsetVars) unset($element["mark"]);
-                elseif(isset($element["mark"])) $element["mark"] = NULL;
+                if(!$nullSetVars) unset($element["mark"]);
+                else $element["mark"] = NULL;
 
             }
 
@@ -176,7 +176,7 @@ function calculateMark(array &$element, array &$subElements, bool $isTest = true
 
 }
 
-function calculateMark_Class(array &$element, array &$subElements, bool $isTest = true, bool $classAverage = false, bool $withPlusPoints = false, bool $unsetVars = true) {
+function calculateMark_Class(array &$element, array &$subElements, bool $isTest = true, bool $classAverage = false, bool $withPlusPoints = false, bool $nullSetVars = false) {
 
     if(!$element["isFolder"] && $isTest) {
 
@@ -319,8 +319,8 @@ function calculateMark_Class(array &$element, array &$subElements, bool $isTest 
 
                 if($count === 0) {
 
-                    if($unsetVars) unset($subTest["mark"]);
-                    elseif(isset($subTest["mark"])) $subTest["mark"] = NULL;
+                    if(!$nullSetVars) unset($subTest["mark"]);
+                    else $subTest["mark"] = NULL;
 
                 } else {
 
@@ -337,8 +337,8 @@ function calculateMark_Class(array &$element, array &$subElements, bool $isTest 
 
             if($students[$student["studentID"]]["sumWeights"] == 0) {
 
-                if($unsetVars) unset($student["mark"]);
-                elseif(isset($student["mark"])) $student["mark"] = NULL;
+                if(!$nullSetVars) unset($student["mark"]);
+                else $student["mark"] = NULL;
 
             } else {
 
@@ -408,8 +408,8 @@ function calculateMark_Class(array &$element, array &$subElements, bool $isTest 
 
                 if($count === 0) {
 
-                    if($unsetVars) unset($subTest["points"]);
-                    elseif(isset($subTest["points"])) $subTest["points"] = NULL;
+                    if(!$nullSetVars) unset($subTest["points"]);
+                    else $subTest["points"] = NULL;
 
                 } else {
 
@@ -425,8 +425,8 @@ function calculateMark_Class(array &$element, array &$subElements, bool $isTest 
 
             if($students[$student["studentID"]]["count"] === 0) {
 
-                if($unsetVars) unset($student["points"]);
-                elseif(isset($student["points"])) $student["points"] = NULL;
+                if(!$nullSetVars) unset($student["points"]);
+                else $student["points"] = NULL;
 
             } else {
 
@@ -451,8 +451,8 @@ function calculateMark_Class(array &$element, array &$subElements, bool $isTest 
     
                 } else {
     
-                    if($unsetVars) unset($student["mark"]);
-                    elseif(isset($student["mark"])) $student["mark"] = NULL;
+                    if(!$nullSetVars) unset($student["mark"]);
+                    else $student["mark"] = NULL;
                     
     
                 }
@@ -466,9 +466,296 @@ function calculateMark_Class(array &$element, array &$subElements, bool $isTest 
 }
 
 
-function updateMarks(Test &$test, bool $isClass = false, bool $updateCurrent = true) {
+function updateMarks(Test &$test, /* bool $isClass = false,  */ bool $updateCurrent = true) {
 
     global $mysqli;
+
+    $hasChanged = true;
+
+    if($test->isRoot) {
+
+        return;
+
+    }
+
+    if(!is_null($test->data["classID"])) {
+
+        if(!$test->withStudents) {
+
+            $stmt->prepare("SELECT students.studentID, students.isHidden, students.firstName, students.lastName, students.gender FROM students WHERE classID = ?");
+            $stmt->bind_param("i", $test->data["classID"]);
+            $stmt->execute();
+
+            $test->data["students"] = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+            $test->withStudents = true;
+
+        }
+
+    }
+
+    if($test->isFolder && $updateCurrent) {
+
+        if(is_null($test->data["classID"])) {
+
+            if(!$test->withMarks) {
+
+                $stmt->prepare("SELECT mark, points FROM marks WHERE testID = ?");
+                $stmt->bind_param("i", $test->data["testID"]);
+
+            }
+
+            $stmt->prepare("SELECT tests.*, marks.mark, marks.points FROM tests LEFT JOIN marks ON marks.testID = tests.testID WHERE tests.parentID = ? AND tests.markCounts = 1 AND tests.deleteTiemstamp IS NULL");
+            $stmt->bind_param("i", $test->data["testID"]);
+            $stmt->execute();
+
+            $childrenData = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+            $stmt->close();
+
+
+            $oldMark = isset($test->data["mark"]) ? $test->data["mark"] : NULL;
+            $oldPoints = isset($test->data["points"]) ? $test->data["points"] : NULL;
+            
+            calculateMark($test->data, $test->childrenData, true, true);
+
+            $newMark = isset($test->data["mark"]) ? $test->data["mark"] : NULL;
+            $newPoints = isset($test->data["points"]) ? $test->data["points"] : NULL;
+            
+            if(is_null($newMark) && is_null($newPoints)) {
+
+                if(!is_null($oldMark) || !is_null($oldPoints)) {
+
+                    $stmt = $mysqli->prepare("DELETE FROM marks WHERE testID = ?");
+                    $stmt->bind_param("i", $test->data["testID"]);
+                    $stmt->execute();
+                    $stmt->close();
+
+                } else {
+
+                    $hasChanged = false;
+
+                }
+
+            } elseif($oldMark !== $newMark || $oldPoints !== $newPoints) {
+                
+                if(is_null($oldMark) && is_null($oldPoints)) {
+
+                    $stmt = $mysqli->prepare("INSERT INTO marks (testID, mark, points) VALUES (?, ?, ?)");
+                    $stmt->bind_param("iss", $test->data["testID"], $newMark, $newPoints);
+
+
+                } else {
+
+                    $stmt = $mysqli->prepare("UPDATE marks SET mark = ?, points = ? WHERE testID = ?");
+                    $stmt->bind_param("ssi", $newMark, $newPoints, $test->data["testID"]);
+
+
+                }
+
+                $stmt->execute();
+                $stmt->close();
+
+            } else {
+
+                $hasChanged = false;
+
+            }
+
+        } else {
+
+            $stmt->prepare("SELECT * FROM tests WHERE tests.parentID = ? AND tests.markCounts = 1 AND tests.deleteTiemstamp IS NULL");
+            $stmt->bind_param("i", $test->data["testID"]);
+            $stmt->execute();
+
+            $childrenData = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+            $students = array();
+
+            foreach($test->data["students"] as &$student) {
+
+                $students[$student["studentID"]] = $student;
+
+                if(!isset($student["mark"])) {
+
+                    $students[$student["studentID"]]["mark"] = NULL;
+
+                }
+
+                if(!isset($student["points"])) {
+
+                    $students[$student["studentID"]]["points"] = NULL;
+
+                }
+
+            }
+
+            $stmt->prepare("SELECT studentID, mark, points FROM marks WHERE testID = ? AND EXISTS (SELECT studentID FROM students WHERE students.studentID = marks.studentID AND students.deleteTimestamp IS NULL)");
+            
+            if(!$test->withMarks) {
+
+                $stmt->bind_param("i", $test->data["testID"]);
+                $stmt->execute();
+
+                $results = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+                foreach($results as &$student) {
+
+                    $students["studentID"]["mark"] = $student["mark"];
+                    $students["studentID"]["points"] = $student["points"];
+
+                }
+
+            }
+
+            foreach($childrenData as &$subTest) {
+
+                $stmt->bind_param("i", $subTest["testID"]);
+                $stmt->execute();
+
+                $results = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+                $subTest["students"] = $results;
+
+            }
+
+            
+            calculateMark_Class($test->data, $test->childrenData, true, false, false, true);
+
+            $studentsToDelete = array();
+            $studentsToChange = array();
+            $studentsToAdd = array();
+
+            $hasChanged = false;
+
+            foreach($test->data["students"] as &$student) {
+
+                $oldStudent = &$students[$student["studentID"]];
+
+                $newMark = isset($student["mark"]) ? $student["mark"] : NULL;
+                $newPoints = isset($student["points"]) ? $student["points"] : NULL;
+
+                if(is_null($newMark) && is_null($newPoints)) {
+                    
+                    if(!is_null($oldStudent["mark"]) || !is_null($oldStudent["points"])) {
+                        
+                        $hasChanged = true;
+                        $studentsToDelete[] = &$student;
+    
+                    }
+    
+                } elseif($oldStudent["mark"] !== $newMark || $oldStudent["points"] !== $newPoints) {
+                    
+                    $hasChanged = true;
+
+                    if(is_null($oldStudent["mark"]) && is_null($oldStudent["points"])) {
+                        
+                        $studentsToAdd[] = &$student;
+    
+    
+                    } else {
+                        
+                        $studentsToChange[] = &$student;
+    
+    
+                    }
+    
+                }
+
+            }
+
+            if(count($studentsToDelete) > 0) {
+
+                $arguments = array();
+                $parameterTypes = str_repeat("i", count($studentsToDelete) + 1);
+                $queryFragment = str_repeat("?", count($studentsToDelete));
+
+                foreach($studentsToDelete as &$student) {
+
+                    $arguments[] = $student["studentID"];
+
+                }
+
+                $stmt->prepare("DELETE FROM marks WHERE testID = ? AND studentID IN (" . $queryFragment . ")");
+                $stmt->bind_param($parameterTypes, $test->data["testID"], ...$arguments);
+                $stmt->execute();
+
+            }
+
+            if(count($studentsToAdd) > 0) {
+
+                $arguments = array();
+                $parameterTypes = str_repeat("iiss", count($studentsToAdd));
+                $queryFragment = str_repeat("(?, ?, ?, ?), ", count($studentsToAdd) - 1) . "(?, ?, ?, ?)";
+
+                $nullVar = NULL;
+
+                foreach($studentsToAdd as &$student) {
+
+                    array_push($arguments, $test->data["testID"], $student["studentID"], isset($student["mark"]) ? $student["mark"] : $nullVar, isset($student["points"]) ? $student["points"] : $nullVar);
+
+                }
+
+                $stmt->prepare("INSERT INTO marks (testID, studentID, mark, points) VALUES " . $queryFragment);
+                $stmt->bind_param($parameterTypes, ...$arguments);
+                $stmt->execute();
+
+            }
+
+            if(count($studentsToChange) > 0) {
+
+                $stmt->prepare("UPDATE marks SET mark = ?, points = ? WHERE testID = ? AND studentID = ?");
+
+                $nullVar = NULL;
+
+                foreach($studentsToChange as &$student) {
+
+                    $stmt->bind_param("ssii", isset($student["mark"]) ? $student["mark"] : $nullVar, isset($student["points"]) ? $student["points"] : $nullVar, $test->data["testID"], $student["studentID"]);
+                    $stmt->execute();
+
+                }
+
+            }
+
+            $stmt->close();
+
+        }
+
+    }
+
+    if(!is_null($test->data["classID"]) && $test->withMarks) {
+
+        foreach($test->data["students"] as &$student) {
+
+            unset($student["mark"]);
+            unset($student["points"]);
+
+        }
+
+    }
+
+    if($hasChanged) {
+
+        if(!is_null($test->data["parentID"])) {
+
+            $stmt = $mysqli->prepare("SELECT tests.*, semesters.userID, semesters.classID, semesters.templateType FROM tests INNER JOIN semesters ON tests.semesterID = semesters.semesterID WHERE tests.testID = ?");
+            $stmt->bind_param("i", $test->data["parentID"]);
+            $stmt->execute();
+
+            $result = $stmt->get_result()->fetch_assoc();
+            $parentTest = new Test(ERROR_NONE, -1, true, $result);
+            $parentTest->data["students"] = &$test->data["students"];
+
+            updateMarks($parentTest);
+
+
+        }
+
+    }
+
+    return;
+
+    /*global $mysqli;
+
+    $hasChanged = true;
 
     if($test->isFolder && $updateCurrent) {
 
@@ -487,6 +774,10 @@ function updateMarks(Test &$test, bool $isClass = false, bool $updateCurrent = t
                     $stmt->bind_param("i", $test->data["testID"]);
                     $stmt->execute();
                     $stmt->close();
+
+                } else {
+
+                    $hasChanged = false;
 
                 }
 
@@ -509,6 +800,10 @@ function updateMarks(Test &$test, bool $isClass = false, bool $updateCurrent = t
                 $stmt->execute();
                 $stmt->close();
 
+            } else {
+
+                $hasChanged = false;
+
             }
 
         } else {
@@ -527,6 +822,8 @@ function updateMarks(Test &$test, bool $isClass = false, bool $updateCurrent = t
             $studentsToChange = array();
             $studentsToAdd = array();
 
+            $hasChanged = false;
+
             foreach($test->data["students"] as &$student) {
 
                 $oldStudent = &$students[$student["studentID"]];
@@ -535,17 +832,20 @@ function updateMarks(Test &$test, bool $isClass = false, bool $updateCurrent = t
 
                 $newMark = isset($student["mark"]) ? $student["mark"] : NULL;
                 $newPoints = isset($student["points"]) ? $student["points"] : NULL;
-                
+
                 if(is_null($newMark) && is_null($newPoints)) {
                     
                     if(!is_null($oldMark) || !is_null($oldPoints)) {
                         
+                        $hasChanged = true;
                         $studentsToDelete[] = &$student;
     
                     }
     
                 } elseif($oldMark !== $newMark || $oldPoints !== $newPoints) {
                     
+                    $hasChanged = true;
+
                     if(is_null($oldMark) && is_null($oldPoints)) {
                         
                         $studentsToAdd[] = &$student;
@@ -611,7 +911,7 @@ function updateMarks(Test &$test, bool $isClass = false, bool $updateCurrent = t
 
     }
 
-    if(!is_null($test->data["parentID"])) {
+    if($hasChanged && !is_null($test->data["parentID"])) {
 
         if(!$isClass) {
 
@@ -623,7 +923,7 @@ function updateMarks(Test &$test, bool $isClass = false, bool $updateCurrent = t
 
             $parentTest = new Test(ERROR_NONE, -1, true, $results);
 
-            $stmt->prepare("SELECT tests.*, marks.mark, marks.points FROM tests LEFT JOIN marks ON marks.testID = tests.testID WHERE tests.parentID = ?");
+            $stmt->prepare("SELECT tests.*, marks.mark, marks.points FROM tests LEFT JOIN marks ON marks.testID = tests.testID WHERE tests.parentID = ? AND tests.markCounts = 1 AND tests.deleteTiemstamp IS NULL");
             $stmt->bind_param("i", $test->data["parentID"]);
             $stmt->execute();
 
@@ -645,7 +945,7 @@ function updateMarks(Test &$test, bool $isClass = false, bool $updateCurrent = t
             $parentTest = new Test(ERROR_NONE, -1, true, $results);
             $parentTest->data["students"] = array();
 
-            $stmt->prepare("SELECT * FROM tests WHERE tests.parentID = ?");
+            $stmt->prepare("SELECT * FROM tests WHERE tests.parentID = ? AND tests.markCounts = 1 AND tests.deleteTiemstamp IS NULL");
             $stmt->bind_param("i", $test->data["parentID"]);
             $stmt->execute();
 
@@ -653,7 +953,7 @@ function updateMarks(Test &$test, bool $isClass = false, bool $updateCurrent = t
             
             $parentTest->childrenData = $results;
 
-            $stmt->prepare("SELECT studentID, mark, points FROM marks WHERE testID = ?");
+            $stmt->prepare("SELECT studentID, mark, points FROM marks WHERE testID = ? AND EXISTS (SELECT studentID FROM students WHERE students.studentID = marks.studentID AND students.deleteTimestamp IS NULL)");
             $stmt->bind_param("i", $parentTest->data["testID"]);
             $stmt->execute();
 
@@ -707,7 +1007,7 @@ function updateMarks(Test &$test, bool $isClass = false, bool $updateCurrent = t
 
         }
 
-    }
+    }*/
 
 }
 

@@ -129,20 +129,20 @@ function editClass(StudentClass &$class, array &$data) : bool {
         $stmt->execute();
 
         $result = $stmt->get_result();
-        $permissionData = array();
+        $oldPermissions = array();
 
         while($currentRow = $result->fetch_assoc()) {
-            
-            if(isset($permissionData[$currentRow["userName"]])) {
 
-                return false;
+            $oldPermissions[strtolower($currentRow["userName"])] = array(
 
-            }
+                "writingPermission" => (bool)$currentRow["writingPermission"],
+                "userID" => $currentRow["userID"]
 
-            $permissionData[strtolower($currentRow["userName"])]["writingPermission"] = (bool)$currentRow["writingPermission"];
-            $permissionData[strtolower($currentRow["userName"])]["userID"] = $currentRow["userID"];
+            );
 
         }
+
+        $newPermissions = array();
 
         $permissionsToAdd = array();
         $permissionsToChange = array();
@@ -157,18 +157,26 @@ function editClass(StudentClass &$class, array &$data) : bool {
             }
 
             $currentPermission["userName"] = strtolower($currentPermission["userName"]);
+
+            if(isset($newPermissions[$currentPermission["userName"]])) {
+
+                return false;
+
+            }
+
+            $newPermissions[$currentPermission["userName"]] = true;
             
-            if(array_key_exists($currentPermission["userName"], $permissionData)) {
+            if(array_key_exists($currentPermission["userName"], $oldPermissions)) {
                 
-                $currentPermission["userID"] = $permissionData[$currentPermission["userName"]]["userID"];
+                $currentPermission["userID"] = $oldPermissions[$currentPermission["userName"]]["userID"];
 
                 if(is_null($currentPermission["writingPermission"])) {
 
-                    $permissionsToDelete[] = $currentPermission;
+                    $permissionsToDelete[] = &$currentPermission;
 
-                } else if($currentPermission["writingPermission"] !== $permissionData[$currentPermission["userName"]]["writingPermission"]) {
+                } else if($currentPermission["writingPermission"] !== $oldPermissions[$currentPermission["userName"]]["writingPermission"]) {
 
-                    $permissionsToChange[] = $currentPermission;
+                    $permissionsToChange[] = &$currentPermission;
 
                 }
 
@@ -176,7 +184,7 @@ function editClass(StudentClass &$class, array &$data) : bool {
 
                 if(!is_null($currentPermission["writingPermission"])) {
 
-                    $permissionsToAdd[] = $currentPermission;
+                    $permissionsToAdd[] = &$currentPermission;
 
                 }
 

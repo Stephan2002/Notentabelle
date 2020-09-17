@@ -19,6 +19,12 @@ function getStudents(StudentClass &$element) : bool {
 
     }
 
+    if(!is_null($element->data["referenceID"])) {
+
+        return false;
+
+    }
+
     $stmt = $mysqli->prepare("SELECT students.*, users.userName FROM students LEFT JOIN users ON students.userID = users.userID WHERE classID = ? AND students.deleteTimestamp IS NULL ORDER BY students.isHidden, students.lastName");
     $stmt->bind_param("i", $element->data["classID"]);
     $stmt->execute();
@@ -68,13 +74,18 @@ if(!isset($isNotMain)) {
 
     $class = getClass($classID, $_SESSION["userid"]);
 
-    if(!is_null($class->data["referenceID"])) {
+    if($class->error != ERROR_NONE) {
+
+        throwError($class->error);
+
+    }
+
+    if(!getStudents($class)) {
 
         throwError(ERROR_BAD_INPUT);
 
     }
-
-    getStudents($class);
+    
     $class->sendResponse();
 
 }
