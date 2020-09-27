@@ -193,15 +193,20 @@ function editClass(StudentClass &$class, array &$data) : bool {
         }
         
         if(!empty($permissionsToDelete)) {
-            
-            $stmt->prepare("DELETE FROM permissions WHERE classID = ? AND userID = ?");
+
+            $arguments = array();
+            $parameterTypes = str_repeat("i", count($permissionsToDelete) + 1);
+            $queryFragment = str_repeat("?", count($permissionsToDelete));
 
             foreach($permissionsToDelete as &$currentPermission) {
 
-                $stmt->bind_param("ii", $class->data["classID"], $currentPermission["userID"]);
-                $stmt->execute();
+                $arguments[] = $currentPermission["userID"];
 
             }
+            
+            $stmt->prepare("DELETE FROM permissions WHERE classID = ? AND userID IN (" . $queryFragment . ")");
+            $stmt->bind_param($parameterTypes, $class->data["classID"], ...$arguments);
+            $stmt->execute();
 
         }
 
@@ -251,14 +256,19 @@ function editClass(StudentClass &$class, array &$data) : bool {
 
             }
 
-            $stmt->prepare("INSERT INTO permissions (classID, userID, writingPermission) VALUES (?, ?, ?)");
+            $arguments = array();
+            $parameterTypes = str_repeat("i", count($permissionsToAdd) * 3);
+            $queryFragment = str_repeat("(?, ?, ?), ", count($permissionsToAdd) - 1) . "(?, ?, ?)";
 
             foreach($permissionsToAdd as &$currentPermission) {
 
-                $stmt->bind_param("iii", $class->data["classID"], $currentPermission["userID"], $currentPermission["writingPermission"]);
-                $stmt->execute();
+                array_push($arguments, $class->data["classID"], $currentPermission["userID"], $currentPermission["writingPermission"]);
 
             }
+
+            $stmt->prepare("INSERT INTO permissions (classID, userID, writingPermission) VALUES (?, ?, ?)");
+            $stmt->bind_param($parameterTypes, ...$arguments);
+            $stmt->execute();
 
         }
 

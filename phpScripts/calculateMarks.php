@@ -77,6 +77,8 @@ function plusPoints($mark) {
 
 function calculateMark(array &$element, array &$subElements, bool $isTest = true, bool $nullSetVars = false) {
 
+    // Wenn nullSetVars true: Variablen sind nur auf Null gesetzt, wenn Wert moeglich, aber nicht vorhanden
+
     if($isTest && !$element["isFolder"]) {
         
         return;
@@ -161,7 +163,7 @@ function calculateMark(array &$element, array &$subElements, bool $isTest = true
             if(isset($element["points"])) {
 
                 // $element["mark"] = $element["points"] / $element["maxPoints"] * 5 + 1;
-                $element["mark"] = bcadd(bcmul(bcdiv($element["points"], $element["maxPoints"], 6), "5", 6), 1, 6);
+                $element["mark"] = bcadd(bcmul(bcdiv($element["points"], $element["maxPoints"], 6), "5", 6), "1", 6);
 
             } else {
 
@@ -177,6 +179,8 @@ function calculateMark(array &$element, array &$subElements, bool $isTest = true
 }
 
 function calculateMark_Class(array &$element, array &$subElements, bool $isTest = true, bool $classAverage = false, bool $withPlusPoints = false, bool $nullSetVars = false) {
+
+    // Wenn nullSetVars true: Variablen sind nur auf Null gesetzt, wenn Wert moeglich, aber nicht vorhanden
 
     if(!$element["isFolder"] && $isTest) {
 
@@ -447,7 +451,7 @@ function calculateMark_Class(array &$element, array &$subElements, bool $isTest 
                 if(isset($student["points"])) {
 
                     //$student["mark"] = $student["points"] / $element["maxPoints"] * 5 + 1;
-                    $student["mark"] = bcadd(bcmul(bcdiv($student["points"], $element["maxPoints"], 6), "5", 6), 1, 6);
+                    $student["mark"] = bcadd(bcmul(bcdiv($student["points"], $element["maxPoints"], 6), "5", 6), "1", 6);
     
                 } else {
     
@@ -465,8 +469,179 @@ function calculateMark_Class(array &$element, array &$subElements, bool $isTest 
 
 }
 
+function calculateMark_Ref(array &$refElement, array &$originalElement, int $studentIndex = NULL, bool $nullSetVars = false) {
 
-function updateMarks(Test &$test, /* bool $isClass = false,  */ bool $updateCurrent = true) {
+    // Wenn nullSetVars true: Variablen sind nur auf Null gesetzt, wenn Wert moeglich, aber nicht vorhanden
+
+    if(is_null($studentIndex)) {
+
+        $originalPoints = isset($originalElement["points"]) ? $originalElement["points"] : NULL;
+        $originalMark = isset($originalElement["mark"]) ? $originalElement["mark"] : NULL;
+
+    } else {
+
+        $originalPoints = isset($originalElement["students"][$studentIndex]["points"]) ? $originalElement["students"][$studentIndex]["points"] : NULL;
+        $originalMark = isset($originalElement["students"][$studentIndex]["mark"]) ? $originalElement["students"][$studentIndex]["mark"] : NULL;
+
+    }
+
+    if(!is_null($refElement["round"]) && is_null($refElement["formula"])) {
+
+        if(!is_null($originalMark)) {
+
+            if($refElement["round"] == 0) {
+
+                $refElement["mark"] = $originalMark;
+
+            } else {
+
+                $refElement["mark"] = roundMark($originalMark, $refElement["round"]);
+
+            }
+
+        } else {
+
+            if(!$nullSetVars) unset($refElement["mark"]);
+            else $refElement["mark"] = NULL;
+
+        }
+
+    } else {
+
+        if(!is_null($originalPoints)) {
+
+            $refElement["points"] = $originalPoints;
+
+        } else {
+
+            if(!$nullSetVars) unset($refElement["points"]);
+            else $refElement["points"] = NULL;
+
+        }
+
+    }
+
+    if(!is_null($refElement["formula"])) {
+
+        if($refElement["formula"] === "linear") {
+
+            if(isset($refElement["points"])) {
+
+                // $element["mark"] = $element["points"] / $element["maxPoints"] * 5 + 1;
+                $refElement["mark"] = bcadd(bcmul(bcdiv($refElement["points"], $refElement["maxPoints"], 6), "5", 6), "1", 6);
+
+            } else {
+
+                if(!$nullSetVars) unset($refElement["mark"]);
+                else $refElement["mark"] = NULL;
+
+            }
+
+        }
+
+    }
+
+}
+
+function calculateMark_Class_Ref(array &$refElement, array &$originalElement, bool $nullSetVars = false) {
+
+    // Wenn nullSetVars true: Variablen sind nur auf Null gesetzt, wenn Wert moeglich, aber nicht vorhanden
+
+    $students = array();
+
+    if(!is_null($element["round"]) && is_null($element["formula"])) {
+
+        foreach($originalElement["students"] as &$student) {
+
+            if(isset($student["mark"])) {
+
+                if($refElement["round"] == 0) {
+    
+                    $students[$student["studentID"]]["mark"] = $student["mark"];
+    
+                } else {
+    
+                    $students[$student["studentID"]]["mark"] = roundMark($student["mark"], $refElement["round"]);
+    
+                }
+    
+            }
+
+        }
+
+    } else {
+
+        foreach($originalElement["students"] as &$student) {
+
+            if(isset($student["points"])) {
+
+                $students[$student["studentID"]]["points"] = $student["points"];
+    
+            }
+
+        }
+
+    }
+
+    if(!is_null($element["formula"])) {
+
+        if($element["formula"] === "linear") {
+
+            foreach($element["students"] as &$student) {
+
+                if(isset($student["points"])) {
+
+                    //$student["mark"] = $student["points"] / $element["maxPoints"] * 5 + 1;
+                    $student["mark"] = bcadd(bcmul(bcdiv($student["points"], $element["maxPoints"], 6), "5", 6), "1", 6);
+    
+                }
+
+            }
+
+        }
+
+    }
+
+    foreach($refElement["students"] as &$student) {
+
+        if(!is_null($refElement["round"])) {
+
+            if(isset($students[$student["studentID"]]["mark"])) {
+
+                $student["mark"] = $students[$student["studentID"]]["mark"];
+
+            } else {
+
+                if(!$nullSetVars) unset($student["mark"]);
+                else $student["mark"] = NULL;
+
+            }
+
+        }
+
+        if(is_null($refElement["round"]) || !is_null($refElement["formula"])) {
+
+            if(isset($students[$student["studentID"]]["points"])) {
+
+                $student["points"] = $students[$student["studentID"]]["points"];
+
+            } else {
+
+                if(!$nullSetVars) unset($student["points"]);
+                else $student["points"] = NULL;
+
+            }
+
+        }
+
+    }
+
+}
+
+
+
+
+function updateMarks(Test &$test, bool $updateCurrent = true, int $recursionLevel = 5) {
 
     global $mysqli;
 
@@ -599,8 +774,8 @@ function updateMarks(Test &$test, /* bool $isClass = false,  */ bool $updateCurr
 
                 foreach($results as &$student) {
 
-                    $students["studentID"]["mark"] = $student["mark"];
-                    $students["studentID"]["points"] = $student["points"];
+                    $students[$student["studentID"]]["mark"] = $student["mark"];
+                    $students[$student["studentID"]]["points"] = $student["points"];
 
                 }
 
@@ -721,6 +896,235 @@ function updateMarks(Test &$test, /* bool $isClass = false,  */ bool $updateCurr
 
     }
 
+    if($test->data["isReferenced"]) {
+
+        $refsToUpdate = array();
+
+        $stmt = $mysqli->prepare("SELECT tests.testID, tests.parentID, tests.maxPoints, tests.round, tests.formula, marks.points, marks.mark, semesters.classID, semesters.userID FROM tests LEFT JOIN marks ON (marks.testID = tests.testID) INNER JOIN semesters ON (tests.semesterID = semesters.semesterID) WHERE tests.referenceID = ? AND (tests.referenceState = \"ok\" OR tests.referenceState = \"outdated\") AND tests.deleteTimestamp IS NULL");
+        $stmt->bind_param("i", $test->data["testID"]);
+        $stmt->execute();
+
+        $results = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+        $marksToDelete = array();
+        $marksToChange = array();
+        $marksToAdd = array();
+
+        $studentIDQueryReady = false;
+        $markClassQueryReady = false;
+
+        foreach($results as &$currentRef) {
+
+            if(is_null($currentRef["classID"])) {
+
+                $oldMark = isset($currentRef["mark"]) ? $currentRef["mark"] : NULL;
+                $oldPoints = isset($currentRef["points"]) ? $currentRef["points"] : NULL;
+
+                if(!is_null($test->data["classID"])) {
+                    
+                    if(!$studentIDQueryReady) {
+
+                        $stmt_studentID = $mysqli->prepare("SELECT students.studentID FROM students WHERE students.classID = ? AND students.userID = ?");
+                        $studentIDQueryReady = true;
+
+                    }
+
+                    $stmt_studentID->bind_param("ii", $test->data["classID"], $currentRef["userID"]);
+                    $stmt_studentID->execute();
+
+                    $studentID = $stmt->get_result()->fetch_assoc()["studentID"];
+
+                } else {
+
+                    $studentID = NULL;
+
+                }
+                
+                calculateMark_Ref($currentRef, $test->data, $studentID, true);
+
+                $newMark = isset($currentRef["mark"]) ? $currentRef["mark"] : NULL;
+                $newPoints = isset($currentRef["points"]) ? $currentRef["points"] : NULL;
+                
+                if(is_null($newMark) && is_null($newPoints)) {
+
+                    if(!is_null($oldMark) || !is_null($oldPoints)) {
+
+                        $marksToDelete[] = $currentRef["testID"];
+                        $refsToUpdate[$currentRef["testID"]] = $currentRef["parentID"];
+
+                    }
+
+                } elseif($oldMark !== $newMark || $oldPoints !== $newPoints) {
+                    
+                    if(is_null($oldMark) && is_null($oldPoints)) {
+
+                        $marksToAdd[] = &$currentRef;
+
+                    } else {
+
+                        $marksToChange[] = &$currentRef;
+
+                    }
+
+                    $refsToUpdate[$currentRef["testID"]] = $currentRef["parentID"];
+
+                }
+
+            } else {
+
+                $students = array();
+
+                foreach($test->data["students"] as &$student) {
+
+                    $students[$student["studentID"]] = array(
+                        "studentID" => $student["studentID"],
+                        "mark" => NULL,
+                        "points" => NULL
+                    );
+
+                }
+
+                if(!$markClassQueryReady) {
+
+                    $stmt_markClass = $mysqli->prepare("SELECT studentID, points, mark FROM marks WHERE testID = ?");
+        
+                }
+
+                $stmt_markClass->bind_param("i", $currentRef["testID"]);
+                $stmt_markClass->execute();
+
+                $result = $stmt_markClass->get_result()->fetch_all(MYSQLI_ASSOC);
+
+                foreach($result as &$student) {
+
+                    $students[$student["studentID"]]["points"] = $student["points"];
+                    $students[$student["studentID"]]["mark"] = $student["mark"];
+
+                }
+
+                $currentRef["students"] = array_values($students);
+
+                calculateMark_Class_Ref($currentRef, $test->data, true);
+
+                foreach($currentRef["students"] as &$student) {
+
+                    $oldMark = $students[$student["studentID"]]["mark"];
+                    $oldPoints = $students[$student["studentID"]]["points"];
+
+                    $newMark = isset($student["mark"]) ? $student["mark"] : NULL;
+                    $newPoints = isset($student["points"]) ? $student["points"] : NULL;
+
+                    if(is_null($newMark) && is_null($newPoints)) {
+
+                        if(!is_null($oldMark) || !is_null($oldPoints)) {
+    
+                            $marksToDelete[] = $currentRef["testID"];
+                            $refsToUpdate[$currentRef["testID"]] = $currentRef["parentID"];
+    
+                        }
+    
+                    } elseif($oldMark !== $newMark || $oldPoints !== $newPoints) {
+                        
+                        if(is_null($oldMark) && is_null($oldPoints)) {
+    
+                            $marksToAdd[] = &$currentRef;
+    
+                        } else {
+    
+                            $marksToChange[] = &$currentRef;
+    
+                        }
+    
+                        $refsToUpdate[$currentRef["testID"]] = $currentRef["parentID"];
+    
+                    }
+
+                }
+
+            }
+
+        }
+
+        if($studentIDQueryReady) {
+
+            $stmt_studentID->close();
+
+        }
+
+        if($markClassQueryReady) {
+
+            $stmt_markClass->close();
+
+        }
+
+        if(!empty($marksToDelete)) {
+
+            $queryFragment = str_repeat("?", count($marksToDelete));
+            $parameterTypes = str_repeat("i", count($marksToDelete));
+
+            $stmt->prepare("DELETE FROM marks WHERE testID IN (" . $queryFragment . ")");
+            $stmt->bind_param($parameterTypes, ...$marksToDelete);
+            $stmt->execute();
+
+        }
+
+        if(!empty($marksToChange)) {
+
+            $stmt->prepare("UPDATE marks SET points = ?, marks = ? WHERE testID = ?");
+            
+            if($selectStudent) {
+
+                $stmt_class = $mysqli->prepare("UPDATE marks SET points = ?, marks = ? WHERE testID = ? AND studentID = ?");
+
+            }
+
+            $nullVar = NULL;
+            
+            foreach($marksToChange as &$currentMark) {
+
+                if(isset($currentMark["studentID"])) {
+
+                    $stmt_class->bind_param("ssii", isset($currentMark["points"]) ? $currentMark["points"] : $nullVar, isset($currentMark["mark"]) ? $currentMark["mark"] : $nullVar, $currentMark["testID"], $currentMark["studentID"]);
+                    $stmt_class->execute();
+
+                } else {
+                
+                    $stmt->bind_param("ssi", isset($currentMark["points"]) ? $currentMark["points"] : $nullVar, isset($currentMark["mark"]) ? $currentMark["mark"] : $nullVar, $currentMark["testID"]);
+                    $stmt->execute();
+
+                }
+
+            }
+
+        }
+
+        if(!empty($marksToAdd)) {
+
+            $arguments = array();
+            $queryFragment = str_repeat("(?, ?, ?, ?), ", count($studentsToAdd) - 1) . "(?, ?, ?, ?)";
+            $parameterTypes = str_repeat("iiss", count($studentsToAdd));
+
+            $nullVar = NULL;
+
+            foreach($marksToAdd as &$currentMark) {
+
+                array_push($arguments,
+                    $currentMark["testID"],
+                    isset($currentMark["studentID"]) ? $currentMark["studentID"] : $nullVar,
+                    isset($currentMark["points"]) ? $currentMark["points"] : $nullVar,
+                    isset($currentMark["mark"]) ? $currentMark["mark"] : $nullVar
+                );
+
+            }
+
+            $stmt->prepare("INSERT INTO marks (testID, studentID, points, mark) VALUES " . $queryFragment);
+            $stmt->bind_param($parameterTypes, ...$arguments);
+            $stmt->execute();
+
+        }
+
+    }
+    
     if(!is_null($test->data["classID"]) && $test->withMarks) {
 
         foreach($test->data["students"] as &$student) {
@@ -732,6 +1136,50 @@ function updateMarks(Test &$test, /* bool $isClass = false,  */ bool $updateCurr
 
     }
 
+    if($test->data["isReferenced"] && !empty($refsToUpdate)) {
+
+        if($recursionLevel > 0) {
+
+            $parentIDs = array_unique(array_values($refsToUpdate));
+
+            $queryFragment = str_repeat("?", count($parentIDs));
+            $parameterTypes = str_repeat("i", count($parentIDs));
+
+            $stmt->prepare("SELECT tests.*, semesters.userID, semesters.classID, semesters.templateType FROM tests INNER JOIN semesters ON tests.semesterID = semesters.semesterID WHERE tests.testID IN (" . $queryFragment . ")");
+            $stmt->bind_param($parameterTypes, ...$parentIDs);
+            $stmt->execute();
+
+            $results = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+            foreach($results as $currentData) {
+
+                $currentTest = new Test(ERROR_NONE, -1, true, $currentData);
+                
+                if(!is_null($currentTest->data["classID"])) {
+
+                    $currentTest->data["students"] = $test->data["students"];
+
+                }
+
+                updateMarks($currentTest, true, $recursionLevel - 1);
+
+            }
+
+        } else {
+
+            $queryFragment = str_repeat("?", count($refsToUpdate));
+            $parameterTypes = str_repeat("i", count($refsToUpdate));
+
+            $stmt->prepare("UPDATE tests SET referenceState = \"outdated\" WHERE testID IN (" . $queryFragment . ")");
+            $stmt->bind_param($parameterTypes, ...array_keys($refsToUpdate));
+            $stmt->execute();
+
+        }
+
+    }
+
+    $stmt->close();
+
     if($hasChanged) {
 
         if(!is_null($test->data["parentID"])) {
@@ -742,16 +1190,19 @@ function updateMarks(Test &$test, /* bool $isClass = false,  */ bool $updateCurr
 
             $result = $stmt->get_result()->fetch_assoc();
             $parentTest = new Test(ERROR_NONE, -1, true, $result);
-            $parentTest->data["students"] = &$test->data["students"];
 
-            updateMarks($parentTest);
+            if(!is_null($parentTest->data["classID"])) {
+
+                $parentTest->data["students"] = $test->data["students"];
+
+            }
+
+            updateMarks($parentTest, true, $recursionLevel);
 
 
         }
 
     }
-
-    return;
 
     /*global $mysqli;
 

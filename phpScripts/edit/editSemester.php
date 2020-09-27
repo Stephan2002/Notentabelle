@@ -244,6 +244,8 @@ function editSemester(Semester &$semester, array &$data) : bool {
         
         if(!empty($permissionsToDelete)) {
 
+            // Berechtigungen loeschen
+
             $arguments = array();
             $parameterTypes = str_repeat("i", count($permissionsToDelete) + 1);
             $queryFragment = str_repeat("?", count($permissionsToDelete));
@@ -257,6 +259,11 @@ function editSemester(Semester &$semester, array &$data) : bool {
             $stmt->prepare("DELETE FROM permissions WHERE semesterID = ? AND userID IN (" . $queryFragment . ")");
             $stmt->bind_param($parameterTypes, $semester->data["semesterID"], ...$arguments);
             $stmt->execute();
+
+
+
+            // IDs der Verknuepfungen inkl. IDs der Zielobjekte laden, die auf ein Element in diesem Semester verweisen.
+            // Testen, ob noch berechtigt
 
             //$stmt->prepare("DELETE FROM permissions WHERE semesterID = ? AND userID = ?");
             $stmt->prepare("SELECT tests.testID, tests.referenceID, semesters.classID FROM tests INNER JOIN semesters ON (semesters.semesterID = tests.semesterID AND semesters.userID = ?) WHERE (tests.referenceState = \"ok\" OR tests.referenceState = \"outdated\") AND EXISTS (SELECT 1 FROM tests AS tests2 WHERE tests2.testID = tests.referenceID AND tests2.semesterID = ?)");
@@ -308,6 +315,10 @@ function editSemester(Semester &$semester, array &$data) : bool {
 
             }
 
+
+
+            // Verknuepfungen als forbidden bezeichnen
+
             $parameterTypes = str_repeat("i", count($refsToChange));
             $queryFragment = str_repeat("?", count($refsToChange));
 
@@ -316,6 +327,9 @@ function editSemester(Semester &$semester, array &$data) : bool {
             $stmt->execute();
 
             //$stmt_setRef->close();
+
+
+            // isReferenced nach moeglicher Aenderung untersuchen und aktualisieren
 
             $arguments = array();
             $parameterTypes = "i";
@@ -394,6 +408,8 @@ function editSemester(Semester &$semester, array &$data) : bool {
 
         if(!empty($permissionsToAdd)) {
 
+            // userID zu entsprechendem userName laden und ueberpruefen, ob Berechtigung ueberhaupt moeglich
+
             $stmt->prepare("SELECT userID, type FROM users WHERE userName = ? AND deleteTimestamp IS NULL");
             //$stmt_refs = $mysqli->prepare("UPDATE tests SET tests.referenceState = \"ok\" WHERE EXISTS (SELECT semesters.userID FROM semesters WHERE semesters.semesterID = tests.semesterID AND semesters.semesterID = ?) AND EXISTS (SELECT tests2.testID FROM tests AS tests2 WHERE tests.referenceID = test2.testID AND tests2.semesterID = ?)");
 
@@ -426,6 +442,9 @@ function editSemester(Semester &$semester, array &$data) : bool {
 
             }
 
+
+            // Berechtigungen hinzufuegen
+
             $arguments = array();
             $parameterTypes = str_repeat("i", count($permissionsToAdd) * 3);
             $queryFragment = str_repeat("(?, ?, ?), ", count($permissionsToAdd) - 1) . "(?, ?, ?)";
@@ -454,6 +473,8 @@ function editSemester(Semester &$semester, array &$data) : bool {
 
             $stmt_refs->close();*/
 
+            // Elemente laden, auf die der Zugriff nun berechtigt ist.
+
             $arguments = array();
             $parameterTypes = str_repeat("i", count($permissionsToAdd) + 1);
             $queryFragment = str_repeat("?", count($permissionsToAdd));
@@ -472,6 +493,10 @@ function editSemester(Semester &$semester, array &$data) : bool {
 
             $results = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
+
+
+            // Elemente als zugriffsberechtigt markieren
+
             $referencedTests = array();
             
             $arguments = array();
@@ -488,6 +513,12 @@ function editSemester(Semester &$semester, array &$data) : bool {
             $stmt->prepare("UPDATE tests SET tests.referenceState = \"ok\" WHERE tests.testID IN (" . $arguments . ")");
             $stmt->bind_param($parameterTypes, ...$arguments);
             $stmt->execute();
+
+            // TODO: Verknuepfungen aktualisieren
+
+
+
+            // Neu referenzierte Elemente als referenziert bezeichnen
 
             $arguments = array();
             $parameterTypes = str_repeat("i", count($referencedTests));
