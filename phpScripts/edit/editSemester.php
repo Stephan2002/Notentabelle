@@ -265,17 +265,12 @@ function editSemester(Semester &$semester, array &$data) : bool {
             // IDs der Verknuepfungen inkl. IDs der Zielobjekte laden, die auf ein Element in diesem Semester verweisen.
             // Testen, ob noch berechtigt
 
-            //$stmt->prepare("DELETE FROM permissions WHERE semesterID = ? AND userID = ?");
             $stmt->prepare("SELECT tests.testID, tests.referenceID, semesters.classID FROM tests INNER JOIN semesters ON (semesters.semesterID = tests.semesterID AND semesters.userID = ?) WHERE (tests.referenceState = \"ok\" OR tests.referenceState = \"outdated\") AND EXISTS (SELECT 1 FROM tests AS tests2 WHERE tests2.testID = tests.referenceID AND tests2.semesterID = ?)");
-            //$stmt_setRef = $mysqli->prepare("UPDATE tests SET referenceState = \"forbidden\" WHERE testID = ?");
 
             $referencedTests = array();
             $refsToChange = array();
 
             foreach($permissionsToDelete as &$currentPermission) {
-
-                /*$stmt->bind_param("ii", $semester->data["semesterID"], $currentPermission["userID"]);
-                $stmt->execute();*/
 
                 $stmt->bind_param("ii", $currentPermission["userID"], $semester->data["semesterID"]);
                 $stmt->execute();
@@ -284,16 +279,9 @@ function editSemester(Semester &$semester, array &$data) : bool {
 
                 foreach($result as &$refTestData) {
 
-                    //if($refTestData["referenceState"] === "ok" || $refTestData["referenceState"] === "outdated") {
-
                     $test = getTest($refTestData["referenceID"], $currentPermission["userID"], $currentPermission["isTeacher"], false, true, true);
-                    
-                    // $referencedTests[] = $test->data["testID"];
 
                     if($test->error !== ERROR_NONE || (!is_null($refTestData["classID"]) && $test->accessType === Element::ACCESS_STUDENT)) {
-
-                        /*$stmt_setRef->bind_param("i", $test->data["testID"]);
-                        $stmt_setRef->execute();*/
 
                         $refsToChange[] = $refTestData["testID"];
 
@@ -308,8 +296,6 @@ function editSemester(Semester &$semester, array &$data) : bool {
                         $referencedTests[$refTestData["testID"]] = true;
 
                     }
-
-                    //}
 
                 }
 
@@ -326,9 +312,8 @@ function editSemester(Semester &$semester, array &$data) : bool {
             $stmt->bind_param($parameterTypes, ...$refsToChange);
             $stmt->execute();
 
-            //$stmt_setRef->close();
 
-
+            
             // isReferenced nach moeglicher Aenderung untersuchen und aktualisieren
 
             $arguments = array();
@@ -350,46 +335,6 @@ function editSemester(Semester &$semester, array &$data) : bool {
             $stmt->prepare("UPDATE tests SET tests.isReferenced = 0 WHERE tests.testID IN (" . $arguments . ") AND tests.isReferenced = 1 AND NOT EXISTS (SELECT 1 FROM tests AS tests2 WHERE tests.testID = tests2.referenceID AND (tests2.referenceState = \"ok\" OR tests2.referenceState = \"outdated\"))");
             $stmt->bind_param($parameterTypes, ...$arguments);
             $stmt->execute();
-
-            /*$stmt->prepare("UPDATE tests SET tests.isReferenced = 0 WHERE tests.testID = ? AND NOT EXISTS (SELECT tests2.referenceState FROM tests AS tests2 WHERE tests2.referenceID = tests.testID AND (tests2.referenceState = \"ok\" OR tests2.referenceState = \"outdated\"))");
-            
-            foreach($referencedTests as $testID) {
-
-                $stmt->bind_param("i", $testID);
-                $stmt->execute();
-
-            }*/
-
-            /*$arguments = array();
-            $parameterTypes = "i";
-            $queryFragment = "";
-
-            foreach($permissionsToDelete as &$currentPermission) {
-
-                $arguments[] = $currentPermission["userID"];
-                $parameterTypes .= "i";
-                $queryFragment .= "? ";
-
-            }
-
-            $stmt->prepare("DELETE FROM permissions WHERE semesterID = ? AND userID IN (" . $queryFragment . ")");
-            $stmt->bind_param($parameterTypes, $semester->data["semesterID"], ...$arguments);
-            $stmt->execute();
-
-            $arguments[] = $semester->data["semesterID"];
-
-            $stmt->prepare("SELECT semesters.userID, tests.testID, tests.referenceID FROM tests INNER JOIN semesters ON (semesters.semesterID = tests.semesterID AND semesters.userID IN (" . $queryFragment . ")) WHERE (ests.referenceState = \"ok\" OR tests.referenceState = \"outdated\") AND EXISTS (SELECT 1 FROM tests AS tests2 WHERE tests2.testID = tests.referenceID AND tests2.semesterID = ?)");
-            $stmt->bind_param($parameterTypes, ...$arguments);
-            $stmt->execute();
-
-            $results = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-
-            foreach($results as &$currentTest) {
-
-                $test = getTest($currentTest["referenceID"], )
-
-            }*/
-
 
         }
 
@@ -459,19 +404,7 @@ function editSemester(Semester &$semester, array &$data) : bool {
             $stmt->bind_param($parameterTypes, ...$arguments);
             $stmt->execute();
 
-            /*$stmt->prepare("INSERT INTO permissions (semesterID, userID, writingPermission) VALUES (?, ?, ?)");
 
-            foreach($permissionsToAdd as &$currentPermission) {
-
-                $stmt->bind_param("iii", $semester->data["semesterID"], $currentPermission["userID"], $currentPermission["writingPermission"]);
-                $stmt->execute();
-
-                $stmt_refs->bind_param("ii", $currentPermission["userID"], $semester->data["semesterID"]);
-                $stmt_refs->execute();
-
-            }
-
-            $stmt_refs->close();*/
 
             // Elemente laden, auf die der Zugriff nun berechtigt ist.
 
@@ -534,26 +467,6 @@ function editSemester(Semester &$semester, array &$data) : bool {
             $stmt->bind_param($parameterTypes, ...$arguments);
             $stmt->execute();
 
-            
-
-            /*
-
-            $userIDs = array();
-            $parameterString = "i";
-            $queryFragment = "";
-
-            foreach($permissionsToAdd as &$currentPermission) {
-
-                $userID[] = $currentPermission["userID"];
-                $parameterString .= "i";
-                $queryFragment .= "? ";
-
-            }
-
-            //$stmt->prepare("UPDATE tests SET tests.isReferenced = 1 WHERE tests.semesterID = ? AND tests.isReferenced = 0 AND EXISTS (SELECT tests2.testID FROM tests AS tests2 WHERE tests2.referenceID = tests.testID AND (tests.referenceState = \"ok\" OR tests.referenceState = \"outdated\"))");
-            $stmt->prepare("UPDATE tests AS tests2 INNER JOIN tests ON tests2.referenceID = tests.testID SET tests.isReferenced = 1 WHERE tests.semesterID = 1 AND EXISTS (SELECT userID FROM semesters WHERE semesters.semesterID = tests2.semesterID AND semesters.userID IN (" . $queryFragment . ")) AND (tests2.referenceState = \"ok\" OR tests2.referenceState = \"outdated\") AND tests2.deleteTimestamp IS NULL");
-            $stmt->bind_param($parameterString, $semester->data["semesterID"], ...$userIDs);
-            $stmt->execute();*/
 
         }
 

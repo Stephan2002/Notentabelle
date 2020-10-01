@@ -549,7 +549,7 @@ function calculateMark_Class_Ref(array &$refElement, array &$originalElement, bo
 
     $students = array();
 
-    if(!is_null($element["round"]) && is_null($element["formula"])) {
+    if(!is_null($refElement["round"]) && is_null($refElement["formula"])) {
 
         foreach($originalElement["students"] as &$student) {
 
@@ -583,16 +583,16 @@ function calculateMark_Class_Ref(array &$refElement, array &$originalElement, bo
 
     }
 
-    if(!is_null($element["formula"])) {
+    if(!is_null($refElement["formula"])) {
 
-        if($element["formula"] === "linear") {
+        if($refElement["formula"] === "linear") {
 
-            foreach($element["students"] as &$student) {
+            foreach($refElement["students"] as &$student) {
 
                 if(isset($student["points"])) {
 
                     //$student["mark"] = $student["points"] / $element["maxPoints"] * 5 + 1;
-                    $student["mark"] = bcadd(bcmul(bcdiv($student["points"], $element["maxPoints"], 6), "5", 6), "1", 6);
+                    $student["mark"] = bcadd(bcmul(bcdiv($student["points"], $refElement["maxPoints"], 6), "5", 6), "1", 6);
     
                 }
 
@@ -657,91 +657,33 @@ function updateMarks(Test &$test, bool $updateCurrent = true, int $recursionLeve
 
         if(!$test->withStudents) {
 
-            $stmt->prepare("SELECT students.studentID, students.isHidden, students.firstName, students.lastName, students.gender FROM students WHERE classID = ?");
+            $stmt = $mysqli->prepare("SELECT students.studentID, students.isHidden, students.firstName, students.lastName, students.gender FROM students WHERE classID = ?");
             $stmt->bind_param("i", $test->data["classID"]);
             $stmt->execute();
 
             $test->data["students"] = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
             $test->withStudents = true;
 
+            $stmt->close();
+
         }
 
     }
 
-    if($test->isFolder && $updateCurrent) {
+    if(!$test->withMarks) {
 
         if(is_null($test->data["classID"])) {
 
-            if(!$test->withMarks) {
-
-                $stmt->prepare("SELECT mark, points FROM marks WHERE testID = ?");
-                $stmt->bind_param("i", $test->data["testID"]);
-
-            }
-
-            $stmt->prepare("SELECT tests.*, marks.mark, marks.points FROM tests LEFT JOIN marks ON marks.testID = tests.testID WHERE tests.parentID = ? AND tests.markCounts = 1 AND tests.deleteTiemstamp IS NULL");
+            $stmt = $mysqli->prepare("SELECT mark, points FROM marks WHERE testID = ?");
             $stmt->bind_param("i", $test->data["testID"]);
-            $stmt->execute();
 
-            $childrenData = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+            $result = $stmt->get_result()->fetch_assoc();
+            $test->data["mark"] = $result["mark"];
+            $test->data["points"] = $result["points"];
+
             $stmt->close();
 
-
-            $oldMark = isset($test->data["mark"]) ? $test->data["mark"] : NULL;
-            $oldPoints = isset($test->data["points"]) ? $test->data["points"] : NULL;
-            
-            calculateMark($test->data, $test->childrenData, true, true);
-
-            $newMark = isset($test->data["mark"]) ? $test->data["mark"] : NULL;
-            $newPoints = isset($test->data["points"]) ? $test->data["points"] : NULL;
-            
-            if(is_null($newMark) && is_null($newPoints)) {
-
-                if(!is_null($oldMark) || !is_null($oldPoints)) {
-
-                    $stmt = $mysqli->prepare("DELETE FROM marks WHERE testID = ?");
-                    $stmt->bind_param("i", $test->data["testID"]);
-                    $stmt->execute();
-                    $stmt->close();
-
-                } else {
-
-                    $hasChanged = false;
-
-                }
-
-            } elseif($oldMark !== $newMark || $oldPoints !== $newPoints) {
-                
-                if(is_null($oldMark) && is_null($oldPoints)) {
-
-                    $stmt = $mysqli->prepare("INSERT INTO marks (testID, mark, points) VALUES (?, ?, ?)");
-                    $stmt->bind_param("iss", $test->data["testID"], $newMark, $newPoints);
-
-
-                } else {
-
-                    $stmt = $mysqli->prepare("UPDATE marks SET mark = ?, points = ? WHERE testID = ?");
-                    $stmt->bind_param("ssi", $newMark, $newPoints, $test->data["testID"]);
-
-
-                }
-
-                $stmt->execute();
-                $stmt->close();
-
-            } else {
-
-                $hasChanged = false;
-
-            }
-
         } else {
-
-            $stmt->prepare("SELECT * FROM tests WHERE tests.parentID = ? AND tests.markCounts = 1 AND tests.deleteTiemstamp IS NULL");
-            $stmt->bind_param("i", $test->data["testID"]);
-            $stmt->execute();
-
-            $childrenData = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
             $students = array();
 
@@ -763,14 +705,15 @@ function updateMarks(Test &$test, bool $updateCurrent = true, int $recursionLeve
 
             }
 
-            $stmt->prepare("SELECT studentID, mark, points FROM marks WHERE testID = ? AND EXISTS (SELECT studentID FROM students WHERE students.studentID = marks.studentID AND students.deleteTimestamp IS NULL)");
-            
             if(!$test->withMarks) {
 
+                $stmt = $mysqli->prepare("SELECT studentID, mark, points FROM marks WHERE testID = ? AND EXISTS (SELECT studentID FROM students WHERE students.studentID = marks.studentID AND students.deleteTimestamp IS NULL)");
                 $stmt->bind_param("i", $test->data["testID"]);
                 $stmt->execute();
 
                 $results = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+                $stmt->close();
 
                 foreach($results as &$student) {
 
@@ -779,9 +722,88 @@ function updateMarks(Test &$test, bool $updateCurrent = true, int $recursionLeve
 
                 }
 
+                foreach($test->data["students"] as &$student) {
+
+                    $student["mark"] = $students[$student["studentID"]]["mark"];
+                    $student["points"] = $students[$student["studentID"]]["points"];
+
+                }
+
             }
 
-            foreach($childrenData as &$subTest) {
+        }
+
+    }
+
+    if($test->isFolder && $updateCurrent) {
+
+        if(is_null($test->data["classID"])) {
+
+            $stmt = $mysqli->prepare("SELECT tests.*, marks.mark, marks.points FROM tests LEFT JOIN marks ON marks.testID = tests.testID WHERE tests.parentID = ? AND tests.markCounts = 1 AND tests.deleteTiemstamp IS NULL");
+            $stmt->bind_param("i", $test->data["testID"]);
+            $stmt->execute();
+
+            $test->childrenData = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+            $oldMark = isset($test->data["mark"]) ? $test->data["mark"] : NULL;
+            $oldPoints = isset($test->data["points"]) ? $test->data["points"] : NULL;
+            
+            calculateMark($test->data, $test->childrenData, true, true);
+
+            $newMark = isset($test->data["mark"]) ? $test->data["mark"] : NULL;
+            $newPoints = isset($test->data["points"]) ? $test->data["points"] : NULL;
+            
+            if(is_null($newMark) && is_null($newPoints)) {
+
+                if(!is_null($oldMark) || !is_null($oldPoints)) {
+
+                    $stmt->prepare("DELETE FROM marks WHERE testID = ?");
+                    $stmt->bind_param("i", $test->data["testID"]);
+                    $stmt->execute();
+
+                } else {
+
+                    $hasChanged = false;
+
+                }
+
+            } elseif($oldMark !== $newMark || $oldPoints !== $newPoints) {
+                
+                if(is_null($oldMark) && is_null($oldPoints)) {
+
+                    $stmt->prepare("INSERT INTO marks (testID, mark, points) VALUES (?, ?, ?)");
+                    $stmt->bind_param("iss", $test->data["testID"], $newMark, $newPoints);
+
+
+                } else {
+
+                    $stmt->prepare("UPDATE marks SET mark = ?, points = ? WHERE testID = ?");
+                    $stmt->bind_param("ssi", $newMark, $newPoints, $test->data["testID"]);
+
+
+                }
+
+                $stmt->execute();
+
+            } else {
+
+                $hasChanged = false;
+
+            }
+
+            $stmt->close();
+
+        } else {
+
+            $stmt = $mysqli->prepare("SELECT * FROM tests WHERE tests.parentID = ? AND tests.markCounts = 1 AND tests.deleteTimestamp IS NULL");
+            $stmt->bind_param("i", $test->data["testID"]);
+            $stmt->execute();
+
+            $test->childrenData = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+            $stmt->prepare("SELECT studentID, mark, points FROM marks WHERE testID = ? AND EXISTS (SELECT studentID FROM students WHERE students.studentID = marks.studentID AND students.deleteTimestamp IS NULL)");
+
+            foreach($test->childrenData as &$subTest) {
 
                 $stmt->bind_param("i", $subTest["testID"]);
                 $stmt->execute();
@@ -792,7 +814,6 @@ function updateMarks(Test &$test, bool $updateCurrent = true, int $recursionLeve
 
             }
 
-            
             calculateMark_Class($test->data, $test->childrenData, true, false, false, true);
 
             $studentsToDelete = array();
@@ -865,7 +886,10 @@ function updateMarks(Test &$test, bool $updateCurrent = true, int $recursionLeve
 
                 foreach($studentsToAdd as &$student) {
 
-                    array_push($arguments, $test->data["testID"], $student["studentID"], isset($student["mark"]) ? $student["mark"] : $nullVar, isset($student["points"]) ? $student["points"] : $nullVar);
+                    $mark = isset($student["mark"]) ? $student["mark"] : $nullVar;
+                    $points = isset($student["points"]) ? $student["points"] : $nullVar;
+
+                    array_push($arguments, $test->data["testID"], $student["studentID"], $mark, $points);
 
                 }
 
@@ -883,7 +907,10 @@ function updateMarks(Test &$test, bool $updateCurrent = true, int $recursionLeve
 
                 foreach($studentsToChange as &$student) {
 
-                    $stmt->bind_param("ssii", isset($student["mark"]) ? $student["mark"] : $nullVar, isset($student["points"]) ? $student["points"] : $nullVar, $test->data["testID"], $student["studentID"]);
+                    $mark = isset($student["mark"]) ? $student["mark"] : $nullVar;
+                    $points = isset($student["points"]) ? $student["points"] : $nullVar;
+
+                    $stmt->bind_param("ssii", $mark, $points, $test->data["testID"], $student["studentID"]);
                     $stmt->execute();
 
                 }
@@ -897,7 +924,7 @@ function updateMarks(Test &$test, bool $updateCurrent = true, int $recursionLeve
     }
 
     if($test->data["isReferenced"]) {
-
+        
         $refsToUpdate = array();
 
         $stmt = $mysqli->prepare("SELECT tests.testID, tests.parentID, tests.maxPoints, tests.round, tests.formula, marks.points, marks.mark, semesters.classID, semesters.userID FROM tests LEFT JOIN marks ON (marks.testID = tests.testID) INNER JOIN semesters ON (tests.semesterID = semesters.semesterID) WHERE tests.referenceID = ? AND (tests.referenceState = \"ok\" OR tests.referenceState = \"outdated\") AND tests.deleteTimestamp IS NULL");
@@ -912,6 +939,7 @@ function updateMarks(Test &$test, bool $updateCurrent = true, int $recursionLeve
 
         $studentIDQueryReady = false;
         $markClassQueryReady = false;
+        $selectStudent = false;
 
         foreach($results as &$currentRef) {
 
@@ -955,14 +983,20 @@ function updateMarks(Test &$test, bool $updateCurrent = true, int $recursionLeve
                     }
 
                 } elseif($oldMark !== $newMark || $oldPoints !== $newPoints) {
+
+                    $arr = array(
+                        "testID" => $currentRef["testID"],
+                        "mark" => $newMark,
+                        "points" => $newPoints
+                    );
                     
                     if(is_null($oldMark) && is_null($oldPoints)) {
 
-                        $marksToAdd[] = &$currentRef;
+                        $marksToAdd[] = $arr;
 
                     } else {
 
-                        $marksToChange[] = &$currentRef;
+                        $marksToChange[] = $arr;
 
                     }
 
@@ -971,7 +1005,7 @@ function updateMarks(Test &$test, bool $updateCurrent = true, int $recursionLeve
                 }
 
             } else {
-
+                
                 $students = array();
 
                 foreach($test->data["students"] as &$student) {
@@ -1025,13 +1059,21 @@ function updateMarks(Test &$test, bool $updateCurrent = true, int $recursionLeve
     
                     } elseif($oldMark !== $newMark || $oldPoints !== $newPoints) {
                         
+                        $arr = array(
+                            "testID" => $currentRef["testID"],
+                            "studentID" => $student["studentID"],
+                            "mark" => $newMark,
+                            "points" => $newPoints
+                        );
+
                         if(is_null($oldMark) && is_null($oldPoints)) {
     
-                            $marksToAdd[] = &$currentRef;
+                            $marksToAdd[] = $arr;
     
                         } else {
     
-                            $marksToChange[] = &$currentRef;
+                            $marksToChange[] = $arr;
+                            $selectStudent = true;
     
                         }
     
@@ -1070,11 +1112,11 @@ function updateMarks(Test &$test, bool $updateCurrent = true, int $recursionLeve
 
         if(!empty($marksToChange)) {
 
-            $stmt->prepare("UPDATE marks SET points = ?, marks = ? WHERE testID = ?");
+            $stmt->prepare("UPDATE marks SET points = ?, mark = ? WHERE testID = ?");
             
             if($selectStudent) {
-
-                $stmt_class = $mysqli->prepare("UPDATE marks SET points = ?, marks = ? WHERE testID = ? AND studentID = ?");
+                
+                $stmt_class = $mysqli->prepare("UPDATE marks SET points = ?, mark = ? WHERE testID = ? AND studentID = ?");
 
             }
 
@@ -1084,12 +1126,18 @@ function updateMarks(Test &$test, bool $updateCurrent = true, int $recursionLeve
 
                 if(isset($currentMark["studentID"])) {
 
-                    $stmt_class->bind_param("ssii", isset($currentMark["points"]) ? $currentMark["points"] : $nullVar, isset($currentMark["mark"]) ? $currentMark["mark"] : $nullVar, $currentMark["testID"], $currentMark["studentID"]);
+                    $points = isset($currentMark["points"]) ? $currentMark["points"] : $nullVar;
+                    $mark = isset($currentMark["mark"]) ? $currentMark["mark"] : $nullVar;
+
+                    $stmt_class->bind_param("ssii", $points, $mark, $currentMark["testID"], $currentMark["studentID"]);
                     $stmt_class->execute();
 
                 } else {
+
+                    $points = isset($currentMark["points"]) ? $currentMark["points"] : $nullVar;
+                    $mark = isset($currentMark["mark"]) ? $currentMark["mark"] : $nullVar;
                 
-                    $stmt->bind_param("ssi", isset($currentMark["points"]) ? $currentMark["points"] : $nullVar, isset($currentMark["mark"]) ? $currentMark["mark"] : $nullVar, $currentMark["testID"]);
+                    $stmt->bind_param("ssi", $points, $mark, $currentMark["testID"]);
                     $stmt->execute();
 
                 }
@@ -1101,18 +1149,22 @@ function updateMarks(Test &$test, bool $updateCurrent = true, int $recursionLeve
         if(!empty($marksToAdd)) {
 
             $arguments = array();
-            $queryFragment = str_repeat("(?, ?, ?, ?), ", count($studentsToAdd) - 1) . "(?, ?, ?, ?)";
-            $parameterTypes = str_repeat("iiss", count($studentsToAdd));
+            $queryFragment = str_repeat("(?, ?, ?, ?), ", count($marksToAdd) - 1) . "(?, ?, ?, ?)";
+            $parameterTypes = str_repeat("iiss", count($marksToAdd));
 
             $nullVar = NULL;
 
             foreach($marksToAdd as &$currentMark) {
 
+                $studentID = isset($currentMark["studentID"]) ? $currentMark["studentID"] : $nullVar;
+                $points = isset($currentMark["points"]) ? $currentMark["points"] : $nullVar;
+                $mark = isset($currentMark["mark"]) ? $currentMark["mark"] : $nullVar;
+
                 array_push($arguments,
                     $currentMark["testID"],
-                    isset($currentMark["studentID"]) ? $currentMark["studentID"] : $nullVar,
-                    isset($currentMark["points"]) ? $currentMark["points"] : $nullVar,
-                    isset($currentMark["mark"]) ? $currentMark["mark"] : $nullVar
+                    $studentID,
+                    $points,
+                    $mark
                 );
 
             }
@@ -1123,9 +1175,11 @@ function updateMarks(Test &$test, bool $updateCurrent = true, int $recursionLeve
 
         }
 
+        $stmt->close();
+
     }
     
-    if(!is_null($test->data["classID"]) && $test->withMarks) {
+    if(!is_null($test->data["classID"])) {
 
         foreach($test->data["students"] as &$student) {
 
@@ -1145,7 +1199,7 @@ function updateMarks(Test &$test, bool $updateCurrent = true, int $recursionLeve
             $queryFragment = str_repeat("?", count($parentIDs));
             $parameterTypes = str_repeat("i", count($parentIDs));
 
-            $stmt->prepare("SELECT tests.*, semesters.userID, semesters.classID, semesters.templateType FROM tests INNER JOIN semesters ON tests.semesterID = semesters.semesterID WHERE tests.testID IN (" . $queryFragment . ")");
+            $stmt = $mysqli->prepare("SELECT tests.*, semesters.userID, semesters.classID, semesters.templateType FROM tests INNER JOIN semesters ON tests.semesterID = semesters.semesterID WHERE tests.testID IN (" . $queryFragment . ")");
             $stmt->bind_param($parameterTypes, ...$parentIDs);
             $stmt->execute();
 
@@ -1170,15 +1224,15 @@ function updateMarks(Test &$test, bool $updateCurrent = true, int $recursionLeve
             $queryFragment = str_repeat("?", count($refsToUpdate));
             $parameterTypes = str_repeat("i", count($refsToUpdate));
 
-            $stmt->prepare("UPDATE tests SET referenceState = \"outdated\" WHERE testID IN (" . $queryFragment . ")");
+            $stmt = $mysqli->prepare("UPDATE tests SET referenceState = \"outdated\" WHERE testID IN (" . $queryFragment . ")");
             $stmt->bind_param($parameterTypes, ...array_keys($refsToUpdate));
             $stmt->execute();
 
         }
 
-    }
+        $stmt->close();
 
-    $stmt->close();
+    }
 
     if($hasChanged) {
 
@@ -1203,263 +1257,6 @@ function updateMarks(Test &$test, bool $updateCurrent = true, int $recursionLeve
         }
 
     }
-
-    /*global $mysqli;
-
-    $hasChanged = true;
-
-    if($test->isFolder && $updateCurrent) {
-
-        if(!$isClass) {
-
-            $oldMark = $test->data["mark"];
-            $oldPoints = $test->data["points"];
-            
-            calculateMark($test->data, $test->childrenData, true, false);
-            
-            if(is_null($test->data["mark"]) && is_null($test->data["mark"])) {
-
-                if(!is_null($oldMark) || !is_null($oldPoints)) {
-
-                    $stmt = $mysqli->prepare("DELETE FROM marks WHERE testID = ?");
-                    $stmt->bind_param("i", $test->data["testID"]);
-                    $stmt->execute();
-                    $stmt->close();
-
-                } else {
-
-                    $hasChanged = false;
-
-                }
-
-            } elseif($oldMark !== $test->data["mark"] || $oldPoints !== $test->data["points"]) {
-                
-                if(is_null($oldMark) && is_null($oldPoints)) {
-
-                    $stmt = $mysqli->prepare("INSERT INTO marks (testID, mark, points) VALUES (?, ?, ?)");
-                    $stmt->bind_param("iss", $test->data["testID"], $test->data["mark"], $test->data["points"]);
-
-
-                } else {
-
-                    $stmt = $mysqli->prepare("UPDATE marks SET mark = ?, points = ? WHERE testID = ?");
-                    $stmt->bind_param("ssi", $test->data["mark"], $test->data["points"], $test->data["testID"]);
-
-
-                }
-
-                $stmt->execute();
-                $stmt->close();
-
-            } else {
-
-                $hasChanged = false;
-
-            }
-
-        } else {
-
-            $students = array();
-
-            foreach($test->data["students"] as &$student) {
-
-                $students[$student["studentID"]] = $student;
-
-            }
-            
-            calculateMark_Class($test->data, $test->childrenData, true, false, false, false);
-
-            $studentsToDelete = array();
-            $studentsToChange = array();
-            $studentsToAdd = array();
-
-            $hasChanged = false;
-
-            foreach($test->data["students"] as &$student) {
-
-                $oldStudent = &$students[$student["studentID"]];
-                $oldMark = isset($oldStudent["mark"]) ? $oldStudent["mark"] : NULL;
-                $oldPoints = isset($oldStudent["points"]) ? $oldStudent["points"] : NULL;
-
-                $newMark = isset($student["mark"]) ? $student["mark"] : NULL;
-                $newPoints = isset($student["points"]) ? $student["points"] : NULL;
-
-                if(is_null($newMark) && is_null($newPoints)) {
-                    
-                    if(!is_null($oldMark) || !is_null($oldPoints)) {
-                        
-                        $hasChanged = true;
-                        $studentsToDelete[] = &$student;
-    
-                    }
-    
-                } elseif($oldMark !== $newMark || $oldPoints !== $newPoints) {
-                    
-                    $hasChanged = true;
-
-                    if(is_null($oldMark) && is_null($oldPoints)) {
-                        
-                        $studentsToAdd[] = &$student;
-    
-    
-                    } else {
-                        
-                        $studentsToChange[] = &$student;
-    
-    
-                    }
-    
-                }
-
-            }
-
-            if(count($studentsToDelete) > 0) {
-
-                $stmt = $mysqli->prepare("DELETE FROM marks WHERE testID = ? AND studentID = ?");
-
-                foreach($studentsToDelete as &$student) {
-
-                    $stmt->bind_param("ii", $test->data["testID"], $student["studentID"]);
-                    $stmt->execute();
-
-                }
-
-                $stmt->close();
-
-            }
-
-            if(count($studentsToAdd) > 0) {
-
-                $stmt = $mysqli->prepare("INSERT INTO marks (testID, studentID, mark, points) VALUES (?, ?, ?, ?)");
-                
-                foreach($studentsToAdd as &$student) {
-
-                    $stmt->bind_param("iiss", $test->data["testID"], $student["studentID"], $student["mark"], $student["points"]);
-                    $stmt->execute();
-
-                }
-
-                $stmt->close();
-
-            }
-
-            if(count($studentsToChange) > 0) {
-
-                $stmt = $mysqli->prepare("UPDATE marks SET mark = ?, points = ? WHERE testID = ? AND studentID = ?");
-
-                foreach($studentsToChange as &$student) {
-
-                    $stmt->bind_param("ssii", $student["mark"], $student["points"], $test->data["testID"], $student["studentID"]);
-                    $stmt->execute();
-
-                }
-
-                $stmt->close();
-
-            }
-
-        }
-
-    }
-
-    if($hasChanged && !is_null($test->data["parentID"])) {
-
-        if(!$isClass) {
-
-            $stmt = $mysqli->prepare("SELECT tests.*, marks.mark, marks.points FROM tests LEFT JOIN marks ON marks.testID = tests.testID WHERE tests.testID = ?");
-            $stmt->bind_param("i", $test->data["parentID"]);
-            $stmt->execute();
-
-            $results = $stmt->get_result()->fetch_assoc();
-
-            $parentTest = new Test(ERROR_NONE, -1, true, $results);
-
-            $stmt->prepare("SELECT tests.*, marks.mark, marks.points FROM tests LEFT JOIN marks ON marks.testID = tests.testID WHERE tests.parentID = ? AND tests.markCounts = 1 AND tests.deleteTiemstamp IS NULL");
-            $stmt->bind_param("i", $test->data["parentID"]);
-            $stmt->execute();
-
-            $results = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-            $stmt->close();
-
-            $parentTest->childrenData = $results;
-
-            updateMarks($parentTest, false);
-
-        } else {
-
-            $stmt = $mysqli->prepare("SELECT * FROM tests WHERE tests.testID = ?");
-            $stmt->bind_param("i", $test->data["parentID"]);
-            $stmt->execute();
-
-            $results = $stmt->get_result()->fetch_assoc();
-
-            $parentTest = new Test(ERROR_NONE, -1, true, $results);
-            $parentTest->data["students"] = array();
-
-            $stmt->prepare("SELECT * FROM tests WHERE tests.parentID = ? AND tests.markCounts = 1 AND tests.deleteTiemstamp IS NULL");
-            $stmt->bind_param("i", $test->data["parentID"]);
-            $stmt->execute();
-
-            $results = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-            
-            $parentTest->childrenData = $results;
-
-            $stmt->prepare("SELECT studentID, mark, points FROM marks WHERE testID = ? AND EXISTS (SELECT studentID FROM students WHERE students.studentID = marks.studentID AND students.deleteTimestamp IS NULL)");
-            $stmt->bind_param("i", $parentTest->data["testID"]);
-            $stmt->execute();
-
-            $results = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-
-            $students = array();
-
-            foreach($results as &$student) {
-
-                $students[$student["studentID"]] = array(
-
-                    "mark" => $student["mark"],
-                    "points" => $student["points"]
-
-                );
-
-            }
-
-            foreach($test->data["students"] as &$student) {
-
-                if(array_key_exists($student["studentID"], $students)) {
-
-                    $newStudent = $students[$student["studentID"]];
-                    
-                } else {
-
-                    $newStudent = array();
-
-                }
-
-                $newStudent["studentID"] = $student["studentID"];
-
-                $parentTest->data["students"][] = $newStudent;
-
-            }
-
-            foreach($parentTest->childrenData as &$subTest) {
-
-                $stmt->bind_param("i", $subTest["testID"]);
-                $stmt->execute();
-
-                $results = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-
-                $subTest["students"] = $results;
-
-            }
-
-            $stmt->close();
-
-            updateMarks($parentTest, true);
-
-        }
-
-    }*/
-
 }
 
 ?>
