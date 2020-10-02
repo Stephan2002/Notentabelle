@@ -10,7 +10,7 @@ Input als JSON per POST:
 
 */
 
-function getForeignSemesters(Semester &$element) : bool {
+function getForeignSemesters(Semester $element) : bool {
 
     global $mysqli;
 

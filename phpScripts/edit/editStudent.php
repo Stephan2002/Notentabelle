@@ -15,7 +15,7 @@ Input als JSON per POST bestehend aus Array, jeweils mit:
 
 */
 
-function editStudent(Student &$student, array &$data) : bool {
+function editStudent(Student $student, array &$data) : bool {
     
     global $mysqli;
 
@@ -96,6 +96,8 @@ function editStudent(Student &$student, array &$data) : bool {
         }
 
     }
+
+    // Dieser Abschnitt muss geaendert werden, denn Verknuepfungen werden nicht aktualisiert
 
     if(array_key_exists("userName", $data)) {
 

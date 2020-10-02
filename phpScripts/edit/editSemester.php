@@ -15,7 +15,7 @@ Input als JSON per POST bestehend aus Array, jeweils mit:
 
 */
 
-function editSemester(Semester &$semester, array &$data) : bool {
+function editSemester(Semester $semester, array &$data) : bool {
     
     global $mysqli;
 
@@ -420,11 +420,11 @@ function editSemester(Semester &$semester, array &$data) : bool {
 
             $arguments[] = $semester->data["semesterID"];
 
-            $stmt->prepare("SELECT tests.testID, tests.referenceID FROM tests INNER JOIN semesters ON semesters.semesterID = tests.semesterID WHERE semesters.userID IN (" . $queryFragment . ") AND tests.referenceState = \"forbidden\" AND EXISTS (SELECT 1 FROM tests AS tests2 WHERE tests2.testID = tests.referenceID AND tests2.semesterID = ?) AND EXISTS(SELECT 1 FROM semesters AS semesters2 WHERE semesters2.classID IS NOT DISTINCT FROM semesters.classID)");
+            $stmt->prepare("SELECT tests.*, semesters.classID, semesters.userID FROM tests INNER JOIN semesters ON semesters.semesterID = tests.semesterID WHERE semesters.userID IN (" . $queryFragment . ") AND tests.referenceState = \"forbidden\" AND EXISTS (SELECT 1 FROM tests AS tests2 WHERE tests2.testID = tests.referenceID AND tests2.semesterID = ?) AND EXISTS(SELECT 1 FROM semesters AS semesters2 WHERE semesters2.classID IS NOT DISTINCT FROM semesters.classID)");
             $stmt->bind_param($parameterTypes, ...$arguments);
             $stmt->execute();
 
-            $results = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+            $changedRefs = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
 
 
@@ -433,10 +433,10 @@ function editSemester(Semester &$semester, array &$data) : bool {
             $referencedTests = array();
             
             $arguments = array();
-            $parameterTypes = str_repeat("i", count($results));
-            $queryFragment = str_repeat("?", count($results));
+            $parameterTypes = str_repeat("i", count($changedRefs));
+            $queryFragment = str_repeat("?", count($changedRefs));
 
-            foreach($results as &$currentRef) {
+            foreach($changedRefs as &$currentRef) {
 
                 $arguments[] = $currentRef["testID"];
                 $referencedTests[$currentRef["referenceID"]] = true;
@@ -446,8 +446,6 @@ function editSemester(Semester &$semester, array &$data) : bool {
             $stmt->prepare("UPDATE tests SET tests.referenceState = \"ok\" WHERE tests.testID IN (" . $arguments . ")");
             $stmt->bind_param($parameterTypes, ...$arguments);
             $stmt->execute();
-
-            // TODO: Verknuepfungen aktualisieren
 
 
 
@@ -467,6 +465,16 @@ function editSemester(Semester &$semester, array &$data) : bool {
             $stmt->bind_param($parameterTypes, ...$arguments);
             $stmt->execute();
 
+
+
+            // Verknuepfungen neu berechnen lassen
+
+            foreach($changedRefs as &$currentRef) {
+
+                $currentTest = new Test(ERROR_NONE, -1, true, $currentRef);
+                updateMarks($currentTest);
+
+            }
 
         }
 

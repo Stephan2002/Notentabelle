@@ -9,7 +9,7 @@ Input als JSON per POST:
 
 */
 
-function getStudents(StudentClass &$element) : bool {
+function getStudents(StudentClass $element) : bool {
 
     global $mysqli;
 

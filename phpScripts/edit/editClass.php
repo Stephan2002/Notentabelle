@@ -13,7 +13,7 @@ Input als JSON per POST bestehend aus Array, jeweils mit:
 
 */
 
-function editClass(StudentClass &$class, array &$data) : bool {
+function editClass(StudentClass $class, array &$data) : bool {
     
     global $mysqli;
 
