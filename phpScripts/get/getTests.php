@@ -15,7 +15,7 @@ Input als JSON per POST:
 function getTests(Element &$test, bool $withMarks = false) : bool {
 
     global $mysqli;
-
+    
     if($test->error !== ERROR_NONE) {
 
         return false;
@@ -428,9 +428,9 @@ if(!isset($isNotMain)) {
         throwError(ERROR_UNKNOWN);
     
     }
-
+    
     if(isset($testID)) {
-
+        
         $test = getTest($testID, $_SESSION["userid"], $_SESSION["type"] === "teacher" || $_SESSION["type"] === "admin", isset($data["isPublicTemplate"]));
 
     } else {
@@ -441,12 +441,13 @@ if(!isset($isNotMain)) {
         $test->isRoot = true;
 
     }
-
+    
     if($test->error != ERROR_NONE) {
 
         throwError($test->error);
 
     }
+    
 
     if(!getTests($test, isset($data["withMarks"]))) {
 

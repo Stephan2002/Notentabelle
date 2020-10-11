@@ -334,7 +334,7 @@ function getSemester(int $semesterID, int $userID, bool $isTeacher, bool $checkO
 
     }
 
-    if($data["isTemplate"]) {
+    if(!is_null($data["templateType"])) {
 
         $stmt->prepare("SELECT type FROM publictemplates WHERE semesterID = ?");
         $stmt->bind_param("i", $semesterID);
@@ -364,14 +364,14 @@ function getTest(int $testID, int $userID, bool $isTeacher, bool $checkOnlyForTe
     $stmt->execute();
 
     $data = $stmt->get_result()->fetch_assoc();
-
+    
     if(is_null($data)) {
 
         $stmt->close();
         return new Test(ERROR_FORBIDDEN);
 
     }
-
+    
     if($data["userID"] == $userID) {
 
         $stmt->close();
@@ -382,9 +382,9 @@ function getTest(int $testID, int $userID, bool $isTeacher, bool $checkOnlyForTe
     if(!$checkOnlyForTemplate) {
 
         $hasSharedPermission = false;
-
-        if($skipSharedTest) {
-
+        
+        if(!$skipSharedTest) {
+            
             $stmt->prepare("SELECT writingPermission FROM permissions WHERE semesterID = ? AND userID = ?");
             $stmt->bind_param("ii", $data["semesterID"], $userID);
             $stmt->execute();

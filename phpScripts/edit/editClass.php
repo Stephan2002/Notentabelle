@@ -196,7 +196,7 @@ function editClass(StudentClass $class, array &$data) : bool {
 
             $arguments = array();
             $parameterTypes = str_repeat("i", count($permissionsToDelete) + 1);
-            $queryFragment = str_repeat("?", count($permissionsToDelete));
+            $queryFragment = str_repeat("?, ", count($permissionsToDelete) - 1) . "?";
 
             foreach($permissionsToDelete as &$currentPermission) {
 

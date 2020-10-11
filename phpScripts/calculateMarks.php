@@ -736,7 +736,7 @@ function updateCurrentMark_Class(int $testID, array &$oldMarks, array &$newMarks
 
         $arguments = array();
         $parameterTypes = str_repeat("i", count($studentsToDelete) + 1);
-        $queryFragment = str_repeat("?", count($studentsToDelete));
+        $queryFragment = str_repeat("?, ", count($studentsToDelete) - 1) . "?";
 
         foreach($studentsToDelete as &$student) {
 
@@ -901,7 +901,7 @@ function updateMarks(Test $test, bool $updateCurrent = true, int $recursionLevel
         $hasChanged = false;
 
         if($test->data["referenceState"] === "ok" || $test->data["referenceState"] === "outdated") {
-
+            
             if(is_null($test->data["classID"])) {
 
                 $stmt = $mysqli->prepare("SELECT tests.*, marks.mark, marks.points FROM tests INNER JOIN semesters ON semesters.semesterID = tests.semesterID LEFT JOIN marks ON marks.testID = tests.testID AND (semesters.classID IS NULL OR marks.studentID = (SELECT students.studentID FROM students WHERE students.classID = semesters.classID AND students.userID = ?)) WHERE tests.testID = ?");
@@ -1186,7 +1186,7 @@ function updateMarks(Test $test, bool $updateCurrent = true, int $recursionLevel
 
         if(!empty($marksToDelete)) {
 
-            $queryFragment = str_repeat("?", count($marksToDelete));
+            $queryFragment = str_repeat("?, ", count($marksToDelete) - 1) . "?";
             $parameterTypes = str_repeat("i", count($marksToDelete));
 
             $stmt->prepare("DELETE FROM marks WHERE testID IN (" . $queryFragment . ")");
@@ -1282,7 +1282,7 @@ function updateMarks(Test $test, bool $updateCurrent = true, int $recursionLevel
             // Referenzen wiederaktivieren
 
             $arguments = array_keys($refsToUpdate);
-            $queryFragment = str_repeat("?", count($refsToUpdate));
+            $queryFragment = str_repeat("?, ", count($refsToUpdate) - 1) . "?";
             $parameterTypes = str_repeat("i", count($refsToUpdate));
 
             $stmt = $mysqli->prepare("UPDATE tests SET referenceState = \"ok\" WHERE testID IN (" . $queryFragment . ")");
@@ -1314,7 +1314,6 @@ function updateMarks(Test $test, bool $updateCurrent = true, int $recursionLevel
                     foreach($results as &$newReference) {
 
                         $currentTest = new Test(ERROR_NONE, -1, true, $newReference);
-                        var_dump($currentTest);
                         updateMarks($currentTest);
 
                     }
@@ -1331,7 +1330,7 @@ function updateMarks(Test $test, bool $updateCurrent = true, int $recursionLevel
 
             // Uebergeordnete Ordner der Referenzen aktualisieren
 
-            $queryFragment = str_repeat("?", count($parentIDs));
+            $queryFragment = str_repeat("?, ", count($parentIDs) - 1) . "?";
             $parameterTypes = str_repeat("i", count($parentIDs));
 
             $stmt->prepare("SELECT tests.*, semesters.userID, semesters.classID, semesters.templateType FROM tests INNER JOIN semesters ON tests.semesterID = semesters.semesterID WHERE tests.testID IN (" . $queryFragment . ")");
@@ -1359,7 +1358,7 @@ function updateMarks(Test $test, bool $updateCurrent = true, int $recursionLevel
             // Referenzen als outdated markieren
 
             $arguments = array_keys($refsToUpdate);
-            $queryFragment = str_repeat("?", count($refsToUpdate));
+            $queryFragment = str_repeat("?, ", count($refsToUpdate) - 1) . "?";
             $parameterTypes = str_repeat("i", count($refsToUpdate));
 
             $stmt = $mysqli->prepare("UPDATE tests SET referenceState = \"outdated\" WHERE testID IN (" . $queryFragment . ")");
