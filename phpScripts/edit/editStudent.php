@@ -96,51 +96,6 @@ function editStudent(Student $student, array &$data) : bool {
         }
 
     }
-
-    // Dieser Abschnitt muss geaendert werden, denn Verknuepfungen werden nicht aktualisiert
-
-    if(array_key_exists("userName", $data)) {
-
-        if(is_string($data["userName"])) {
-
-            $data["userName"] = strtolower($data["userName"]);
-
-            if($data["userName"] !== strtolower($student->data["userName"])) {
-                
-                $stmt = $mysqli->prepare("SELECT userID FROM users WHERE userName = ? AND userID NOT IN (SELECT userID FROM students WHERE students.classID = ? AND students.userID = users.userID) AND deleteTimestamp IS NULL");
-                $stmt->bind_param("si", $data["userName"], $student->data["classID"]);
-                $stmt->execute();
-
-                $result = $stmt->get_result()->fetch_assoc();
-                $stmt->close();
-                
-                if(is_null($result)) {
-
-                    return false;
-
-                }
-                
-                if($result["userID"] === $student->data["classUserID"]) {
-
-                    return false;
-
-                }
-                
-                $changedProperties["userID"] = $result["userID"];
-
-            }
-
-        } elseif(is_null($data["userName"])) {
-
-            if(!is_null($student->data["userID"])) {
-
-                $changedProperties["userID"] = NULL;
-
-            }
-
-        }
-
-    }
     
     if(count($changedProperties) > 0) {
 
@@ -174,6 +129,184 @@ function editStudent(Student $student, array &$data) : bool {
         $stmt->bind_param($typeString, ...array_values($changedProperties));
         $stmt->execute();
         $stmt->close();
+
+    }
+
+    if(array_key_exists("userName", $data)) {
+
+        $oldUserID = $student->data["userID"];
+        $newUserID = NULL;
+
+        if(is_string($data["userName"])) {
+
+            $data["userName"] = strtolower($data["userName"]);
+
+            if($data["userName"] !== strtolower($student->data["userName"])) {
+                
+                $stmt = $mysqli->prepare("SELECT userID FROM users WHERE userName = ? AND userID NOT IN (SELECT userID FROM students WHERE students.classID = ? AND students.userID = users.userID) AND deleteTimestamp IS NULL");
+                $stmt->bind_param("si", $data["userName"], $student->data["classID"]);
+                $stmt->execute();
+
+                $result = $stmt->get_result()->fetch_assoc();
+                $stmt->close();
+                
+                if(is_null($result)) {
+
+                    return false;
+
+                }
+                
+                if($result["userID"] === $student->data["classUserID"]) {
+
+                    return false;
+
+                }
+                
+                $newUserID = $result["userID"];
+
+            } else {
+
+                $newUserID = $oldUserID;
+
+            }
+
+        } elseif(!is_null($data["userName"])) {
+
+            return false;
+
+        }
+
+        if($newUserID !== $oldUserID) {
+
+            $stmt = $mysqli->prepare("UPDATE students SET userID = ? WHERE studentID = ?");
+            $stmt->bind_param("ii", $newUserID, $student->data["studentID"]);
+            $stmt->execute();
+
+
+            if(!is_null($oldUserID)) {
+
+                // Elemente laden, auf die der Zugriff nun nicht mehr berechtigt ist.
+                
+                $stmt->prepare("SELECT tests.testID, tests.referenceID FROM tests WHERE EXISTS (SELECT 1 FROM semesters WHERE semesters.semesterID = tests.semesterID AND semesters.userID = ?) AND EXISTS (SELECT 1 FROM tests AS tests2 WHERE tests2.testID = tests.referenceID AND EXISTS (SELECT 1 FROM semesters WHERE semesters.semesterID = tests2.semesterID AND semesters.classID = ?)) AND EXISTS (SELECT 1 FROM semesters WHERE semesters.semesterID = tests.semesterID AND semesters.classID IS NULL) AND (tests.referenceState = \"ok\" OR tests.referenceState = \"outdated\")");
+                $stmt->bind_param("ii", $oldUserID, $student->data["classID"]);
+                $stmt->execute();
+
+                $results = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+                $referencedTests = array();
+                $refIDs = array();
+
+                foreach($results as &$refTestData) {
+
+                    $referencedTests[$refTestData["referenceID"]] = false;
+                    $refIDs[] = $refTestData["testID"];
+
+                }
+
+
+
+                // Verknuepfungen als forbidden bezeichnen
+
+                if(!empty($refIDs)) {
+
+                    $parameterTypes = str_repeat("i", count($refIDs));
+                    $queryFragment = str_repeat("?, ", count($refIDs) - 1) . "?";
+
+                    $stmt->prepare("UPDATE tests SET referenceState = \"forbidden\" WHERE testID IN (" . $queryFragment . ")");
+                    $stmt->bind_param($parameterTypes, ...$refIDs);
+                    $stmt->execute();
+
+                }
+
+
+
+                // isReferenced nach moeglicher Aenderung untersuchen und aktualisieren
+
+                if(!empty($arguments)) {
+
+                    $arguments = array_keys($referencedTests);
+                    $parameterTypes = str_repeat("i", count($referencedTests));
+                    $queryFragment = str_repeat("?, ", count($referencedTests) - 1) . "?";
+            
+                    $stmt->prepare("UPDATE tests SET tests.isReferenced = 0 WHERE tests.testID IN (" . $queryFragment . ") AND tests.isReferenced = 1 AND NOT EXISTS (SELECT 1 FROM tests AS tests2 WHERE tests.testID = tests2.referenceID AND (tests2.referenceState = \"ok\" OR tests2.referenceState = \"outdated\"))");
+                    $stmt->bind_param($parameterTypes, ...$arguments);
+                    $stmt->execute();
+            
+                }
+
+            }
+
+            if(!is_null($newUserID)) {
+
+                // Elemente laden, auf die der Zugriff nun berechtigt ist.
+
+                $stmt->prepare("SELECT tests.*, semesters.classID, semesters.userID FROM tests INNER JOIN semesters ON (semesters.semesterID = tests.semesterID AND semesters.userID = ?) WHERE EXISTS (SELECT 1 FROM tests AS tests2 WHERE tests2.testID = tests.referenceID AND EXISTS (SELECT 1 FROM semesters AS semesters2 WHERE semesters2.semesterID = tests2.semesterID AND semesters2.classID = ?)) AND semesters.classID IS NULL AND tests.referenceState = \"forbidden\"");
+                $stmt->bind_param("ii", $newUserID, $student->data["classID"]);
+                $stmt->execute();
+
+                $changedRefs = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+                $referencedTests = array();
+                $refIDs = array();
+
+                foreach($changedRefs as &$refTestData) {
+
+                    $referencedTests[$refTestData["referenceID"]] = true;
+                    $refIDs[] = $refTestData["testID"];
+
+                }
+
+
+
+                // Elemente als zugriffsberechtigt markieren
+
+                if(!empty($refIDs)) {
+
+                    $parameterTypes = str_repeat("i", count($refIDs));
+                    $queryFragment = str_repeat("?, ", count($refIDs) - 1) . "?";
+
+                    $stmt->prepare("UPDATE tests SET referenceState = \"ok\" WHERE testID IN (" . $queryFragment . ")");
+                    $stmt->bind_param($parameterTypes, ...$refIDs);
+                    $stmt->execute();
+
+                }
+
+
+
+                // Neu referenzierte Elemente als referenziert bezeichnen
+
+                if(!empty($referencedTests)) {
+
+                    $arguments = array_keys($referencedTests);
+                    $parameterTypes = str_repeat("i", count($referencedTests));
+                    $queryFragment = str_repeat("?, ", count($referencedTests) - 1) . "?";
+
+                    $stmt->prepare("UPDATE tests SET tests.isReferenced = 1 WHERE tests.testID IN (" . $queryFragment . ") AND tests.isReferenced = 0");
+                    $stmt->bind_param($parameterTypes, ...$arguments);
+                    $stmt->execute();
+
+                }
+
+                // Verknuepfungen neu berechnen lassen
+
+                include_once($_SERVER["DOCUMENT_ROOT"] . "/phpScripts/calculateMarks.php");
+                
+                foreach($changedRefs as &$currentRef) {
+                    
+                    $currentRef["referenceState"] = "ok";
+                    $currentTest = new Test(ERROR_NONE, -1, true, $currentRef);
+                    updateMarks($currentTest);
+
+                }
+
+            }
+
+            $stmt->close();
+
+
+        }
+        
+
 
     }
 

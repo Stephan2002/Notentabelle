@@ -83,15 +83,9 @@ function addPermissions(int $type, int $ID, array &$permissions) {
 
     if(!empty($referencedTests)) {
 
-        $arguments = array();
+        $arguments = array_keys($referencedTests);
         $parameterTypes = str_repeat("i", count($referencedTests));
         $queryFragment = str_repeat("?, ", count($referencedTests) - 1) . "?";
-
-        foreach($referencedTests as $key => &$currentTest) {
-
-            $arguments[] = $key;
-
-        }
 
         $stmt->prepare("UPDATE tests SET tests.isReferenced = 1 WHERE tests.testID IN (" . $queryFragment . ") AND tests.isReferenced = 0");
         $stmt->bind_param($parameterTypes, ...$arguments);
@@ -165,10 +159,6 @@ function deletePermissions(int $type, int $ID, array &$permissions) {
 
                 }
 
-            } else {
-
-                $referencedTests[$refTestData["testID"]] = true;
-
             }
 
         }
@@ -194,27 +184,11 @@ function deletePermissions(int $type, int $ID, array &$permissions) {
     
     // isReferenced nach moeglicher Aenderung untersuchen und aktualisieren
 
-    
-
-    $arguments = array();
-    $parameterTypes = "";
-    $queryFragment = "";
-
-    foreach($referencedTests as $key => $currentTest) {
-
-        if(!$currentTest) {
-
-            $arguments[] = $key;
-            $parameterTypes .= "i";
-            $queryFragment .= "?, ";
-
-        }
-
-    }
-
     if(!empty($arguments)) {
 
-        $queryFragment = substr($queryFragment, 0, -2);
+        $arguments = array_keys($referencedTests);
+        $parameterTypes = str_repeat("i", count($referencedTests));
+        $queryFragment = str_repeat("?, ", count($referencedTests) - 1) . "?";
 
         $stmt->prepare("UPDATE tests SET tests.isReferenced = 0 WHERE tests.testID IN (" . $queryFragment . ") AND tests.isReferenced = 1 AND NOT EXISTS (SELECT 1 FROM tests AS tests2 WHERE tests.testID = tests2.referenceID AND (tests2.referenceState = \"ok\" OR tests2.referenceState = \"outdated\"))");
         $stmt->bind_param($parameterTypes, ...$arguments);

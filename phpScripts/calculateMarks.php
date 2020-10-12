@@ -50,7 +50,7 @@ function roundMark($mark_unrounded, $precision = "0.5") {
 
     $mark_rounded = bcmul($mark_rounded, $precision, 6);
 
-    if(bccomp($mark_rounded, "6") === 1) {
+    if(bccomp($mark_rounded, "6", 6) === 1) {
 
         return "6.000000";
 
@@ -71,7 +71,7 @@ function plusPoints($mark) {
 
     }
 
-    return $mark < 0 ? (2 * ($mark - 4)) : ($mark - 4);
+    return $mark < 4 ? (2 * ($mark - 4)) : ($mark - 4);
 
 }
 
@@ -639,7 +639,7 @@ function calculateMark_Class_Ref(array &$refElement, array &$originalElement, bo
 }
 
 
-function updateCurrentMark(int $testID, string $oldMark, string $oldPoints, string $newMark, string $newPoints) : bool {
+function updateCurrentMark(int $testID, string $oldMark = NULL, string $oldPoints = NULL, string $newMark = NULL, string $newPoints = NULL) : bool {
 
     global $mysqli;
 
@@ -839,8 +839,18 @@ function updateMarks(Test $test, bool $updateCurrent = true, int $recursionLevel
             $stmt->execute();
 
             $result = $stmt->get_result()->fetch_assoc();
-            $test->data["mark"] = $result["mark"];
-            $test->data["points"] = $result["points"];
+
+            if(is_null($result)) {
+
+                $test->data["mark"] = NULL;
+                $test->data["points"] = NULL;
+            
+            } else {
+
+                $test->data["mark"] = $result["mark"];
+                $test->data["points"] = $result["points"];
+
+            }
 
             $stmt->close();
 
@@ -870,7 +880,7 @@ function updateMarks(Test $test, bool $updateCurrent = true, int $recursionLevel
 
         if(!$test->withMarks) {
 
-            $stmt = $mysqli->prepare("SELECT studentID, mark, points FROM marks WHERE testID = ? AND EXISTS (SELECT studentID FROM students WHERE students.studentID = marks.studentID AND students.deleteTimestamp IS NULL)");
+            $stmt = $mysqli->prepare("SELECT studentID, mark, points FROM marks WHERE testID = ?");
             $stmt->bind_param("i", $test->data["testID"]);
             $stmt->execute();
 
@@ -979,7 +989,7 @@ function updateMarks(Test $test, bool $updateCurrent = true, int $recursionLevel
 
         } else {
 
-            $stmt = $mysqli->prepare("SELECT * FROM tests WHERE tests.parentID = ? AND tests.markCounts = 1 AND tests.deleteTimestamp IS NULL");
+            $stmt = $mysqli->prepare("SELECT * FROM tests WHERE tests.parentID = ? AND tests.markCounts = 1");
             $stmt->bind_param("i", $test->data["testID"]);
             $stmt->execute();
 
@@ -1011,8 +1021,8 @@ function updateMarks(Test $test, bool $updateCurrent = true, int $recursionLevel
     if($test->data["isReferenced"]) {
         
         $refsToUpdate = array();
-
-        $stmt = $mysqli->prepare("SELECT tests.testID, tests.parentID, tests.maxPoints, tests.round, tests.formula, tests.isReferenced, marks.points, marks.mark, semesters.classID, semesters.userID FROM tests INNER JOIN semesters ON (tests.semesterID = semesters.semesterID) LEFT JOIN marks ON (marks.testID = tests.testID AND semesters.classID IS NULL) WHERE tests.referenceID = ? AND (tests.referenceState = \"ok\" OR tests.referenceState = \"outdated\") AND tests.deleteTimestamp IS NULL");
+        
+        $stmt = $mysqli->prepare("SELECT tests.testID, tests.parentID, tests.maxPoints, tests.round, tests.formula, tests.isReferenced, marks.points, marks.mark, semesters.classID, semesters.userID FROM tests INNER JOIN semesters ON (tests.semesterID = semesters.semesterID) LEFT JOIN marks ON (marks.testID = tests.testID AND semesters.classID IS NULL) WHERE tests.referenceID = ? AND (tests.referenceState = \"ok\" OR tests.referenceState = \"outdated\")");
         $stmt->bind_param("i", $test->data["testID"]);
         $stmt->execute();
 
@@ -1045,19 +1055,32 @@ function updateMarks(Test $test, bool $updateCurrent = true, int $recursionLevel
                     $stmt_studentID->bind_param("ii", $test->data["classID"], $currentRef["userID"]);
                     $stmt_studentID->execute();
 
-                    $studentID = $stmt->get_result()->fetch_assoc()["studentID"];
+                    $studentID = $stmt_studentID->get_result()->fetch_assoc()["studentID"];
+
+                    $len = count($test->data["students"]);
+
+                    for($i = 0; $i < $len; $i++) {
+
+                        if($test->data["students"][$i]["studentID"] === $studentID) {
+
+                            $studentIndex = $i;
+                            break;
+
+                        }
+
+                    }
 
                 } else {
 
-                    $studentID = NULL;
+                    $studentIndex = NULL;
 
                 }
                 
-                calculateMark_Ref($currentRef, $test->data, $studentID, true);
+                calculateMark_Ref($currentRef, $test->data, $studentIndex, true);
 
                 $newMark = isset($currentRef["mark"]) ? $currentRef["mark"] : NULL;
                 $newPoints = isset($currentRef["points"]) ? $currentRef["points"] : NULL;
-                
+
                 if(is_null($newMark) && is_null($newPoints)) {
 
                     if(!is_null($oldMark) || !is_null($oldPoints)) {
