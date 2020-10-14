@@ -989,7 +989,7 @@ function updateMarks(Test $test, bool $updateCurrent = true, int $recursionLevel
 
         } else {
 
-            $stmt = $mysqli->prepare("SELECT * FROM tests WHERE tests.parentID = ? AND tests.markCounts = 1");
+            $stmt = $mysqli->prepare("SELECT * FROM tests WHERE tests.parentID = ? AND tests.markCounts = 1 AND tests.deleteTimestamp IS NULL");
             $stmt->bind_param("i", $test->data["testID"]);
             $stmt->execute();
 

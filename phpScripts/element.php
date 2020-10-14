@@ -294,7 +294,7 @@ function getSemester(int $semesterID, int $userID, bool $isTeacher, bool $checkO
 
             if($isTeacher) {
 
-                $stmt->prepare("SELECT tests.* FROM tests INNER JOIN teachers ON tests.testID = teachers.testID WHERE tests.semesterID = ? AND teachers.userID = ? AND tests.deleteTimestamp IS NULL");
+                $stmt->prepare("SELECT tests.* FROM tests WHERE tests.semesterID = ? AND EXISTS (SELECT 1 FROM permissions WHERE permissions.testID = tests.testID AND permissions.userID = ?) AND tests.deleteTimestamp IS NULL");
                 $stmt->bind_param("ii", $semesterID, $userID);
                 $stmt->execute();
 
@@ -313,7 +313,7 @@ function getSemester(int $semesterID, int $userID, bool $isTeacher, bool $checkO
 
             }
 
-            $stmt->prepare("SELECT studentID FROM students WHERE userID = ? AND EXISTS (SELECT classID FROM classes WHERE classes.classID = students.classID AND EXISTS (SELECT semesterID FROM semesters WHERE semesterID = ? AND semesters.classID = classes.classID)) AND deleteTimestamp IS NULL");
+            $stmt->prepare("SELECT studentID FROM students WHERE userID = ? AND EXISTS (SELECT 1 FROM classes WHERE classes.classID = students.classID AND EXISTS (SELECT 1 FROM semesters WHERE semesterID = ? AND semesters.classID = classes.classID)) AND deleteTimestamp IS NULL");
             $stmt->bind_param("ii", $userID, $semesterID);
             $stmt->execute();
 
@@ -355,7 +355,7 @@ function getSemester(int $semesterID, int $userID, bool $isTeacher, bool $checkO
 
 }
 
-function getTest(int $testID, int $userID, bool $isTeacher, bool $checkOnlyForTemplate = false, bool $irrelevantWritingPermission = false, bool $skipSharedTest = false) : Test {
+function getTest(int $testID, int $userID, bool $isTeacher, bool $checkOnlyForTemplate = false, bool $irrelevantWritingPermission = false, bool $skipSharedTest = false, bool $skipTeacherTest = false) : Test {
 
     global $mysqli;
 
@@ -410,21 +410,10 @@ function getTest(int $testID, int $userID, bool $isTeacher, bool $checkOnlyForTe
 
         if(isset($data["classID"])) {
 
-            if($isTeacher) {
+            if($isTeacher && !$skipTeacherTest) {
 
-                $stmt->prepare("SELECT writingPermission FROM teachers WHERE userID = ? AND testID = ?");
-
-                if(isset($data["subjectID"])) {
-
-                    $subjectID = $data["subjectID"];
-
-                } else {
-
-                    $subjectID = $testID;
-
-                }
-
-                $stmt->bind_param("ii", $userID, $subjectID);
+                $stmt->prepare("SELECT writingPermission FROM permissions WHERE userID = ? AND testID = ?");
+                $stmt->bind_param("ii", $userID, $data["subjectID"]);
                 $stmt->execute();
 
                 $teacherData = $stmt->get_result()->fetch_assoc();
@@ -445,7 +434,7 @@ function getTest(int $testID, int $userID, bool $isTeacher, bool $checkOnlyForTe
         
             }
 
-            $stmt->prepare("SELECT studentID FROM students WHERE userID = ? AND EXISTS (SELECT classID FROM classes WHERE classes.classID = students.classID AND EXISTS (SELECT semesterID FROM semesters WHERE semesterID = ? AND semesters.classID = classes.classID)) AND deleteTimestamp IS NULL");
+            $stmt->prepare("SELECT studentID FROM students WHERE userID = ? AND EXISTS (SELECT 1 FROM classes WHERE classes.classID = students.classID AND EXISTS (SELECT 1 FROM semesters WHERE semesterID = ? AND semesters.classID = classes.classID)) AND deleteTimestamp IS NULL");
             $stmt->bind_param("ii", $userID, $data["semesterID"]);
             $stmt->execute();
 

@@ -14,7 +14,7 @@ function getForeignClasses(StudentClass $element) : bool {
 
     global $mysqli;
 
-    $stmt = $mysqli->prepare("SELECT classes.*, users.userName FROM classes LEFT JOIN users ON classes.userID = users.userID WHERE EXISTS (SELECT permissions.classID FROM permissions WHERE classes.classID = permissions.classID AND permissions.userID = ?) AND classes.deleteTimestamp IS NULL ORDER BY classes.name");
+    $stmt = $mysqli->prepare("SELECT classes.*, users.userName FROM classes LEFT JOIN users ON classes.userID = users.userID WHERE EXISTS (SELECT 1 FROM permissions WHERE classes.classID = permissions.classID AND permissions.userID = ?) AND classes.deleteTimestamp IS NULL ORDER BY classes.name");
     $stmt->bind_param("i", $_SESSION["userid"]);
     $stmt->execute();
 

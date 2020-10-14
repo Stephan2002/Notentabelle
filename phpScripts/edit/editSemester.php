@@ -165,146 +165,20 @@ function editSemester(Semester $semester, array &$data) : bool {
 
     
     if(array_key_exists("permissions", $data)) {
+
+        if($semester->data["isFolder"] || !is_null($semester->data["referenceID"]) || !is_array($data["permissions"])) {
+
+            return false;
+    
+        }
         
-        if($semester->data["isFolder"] || !is_array($data["permissions"])) {
+        include($_SERVER["DOCUMENT_ROOT"] . "/phpScripts/updatePermissions.php");
+
+        if(!updatePermissions($semester, $data["permissions"])) {
 
             return false;
 
         }
-
-        $stmt = $mysqli->prepare("SELECT permissions.*, users.userName, users.type FROM permissions LEFT JOIN users ON permissions.userID = users.userID WHERE semesterID = ?");
-        $stmt->bind_param("i", $semester->data["semesterID"]);
-        $stmt->execute();
-
-        $result = $stmt->get_result();
-        $oldPermissions = array();
-
-        while($currentRow = $result->fetch_assoc()) {
-
-            $oldPermissions[strtolower($currentRow["userName"])] = array(
-
-                "writingPermission" => (bool)$currentRow["writingPermission"],
-                "userID" => $currentRow["userID"],
-                "isTeacher" => (bool)($currentRow["type"] === "teacher" || $currentRow["type"] === "admin")
-
-            );
-
-        }
-
-        $newPermissions = array();
-
-        $permissionsToAdd = array();
-        $permissionsToChange = array();
-        $permissionsToDelete = array();
-        
-        foreach($data["permissions"] as &$currentPermission) {
-
-            if(!is_array($currentPermission) || !is_string($currentPermission["userName"]) || !array_key_exists("writingPermission", $currentPermission)) {
-
-                return false;
-
-            }
-
-            $currentPermission["userName"] = strtolower($currentPermission["userName"]);
-
-            if(isset($newPermissions[$currentPermission["userName"]])) {
-
-                return false;
-
-            }
-
-            $newPermissions[$currentPermission["userName"]] = true;
-            
-            if(array_key_exists($currentPermission["userName"], $oldPermissions)) {
-                
-                $currentPermission["userID"] = $oldPermissions[$currentPermission["userName"]]["userID"];
-                $currentPermission["isTeacher"] = $oldPermissions[$currentPermission["userName"]]["isTeacher"];
-
-                if(is_null($currentPermission["writingPermission"])) {
-
-                    $permissionsToDelete[] = $currentPermission;
-
-                } else if($currentPermission["writingPermission"] !== $oldPermissions[$currentPermission["userName"]]["writingPermission"]) {
-
-                    $permissionsToChange[] = $currentPermission;
-
-                }
-
-            } else {
-
-                if(!is_null($currentPermission["writingPermission"])) {
-
-                    $permissionsToAdd[] = $currentPermission;
-
-                }
-
-            }
-
-        }
-        
-        if(!empty($permissionsToDelete)) {
-
-            include_once($_SERVER["DOCUMENT_ROOT"] . "/phpScripts/updatePermissions.php");
-
-            deletePermissions(PERMISSION_SEMESTER, $semester->data["semesterID"], $permissionsToDelete);
-
-        }
-
-        if(!empty($permissionsToChange)) {
-
-            $stmt->prepare("UPDATE permissions SET writingPermission = ? WHERE semesterID = ? AND userID = ?");
-
-            foreach($permissionsToChange as &$currentPermission) {
-
-                $stmt->bind_param("iii", $currentPermission["writingPermission"], $semester->data["semesterID"], $currentPermission["userID"]);
-                $stmt->execute();
-
-            }
-
-        }
-
-        if(!empty($permissionsToAdd)) {
-
-            // userID zu entsprechendem userName laden und ueberpruefen, ob Berechtigung ueberhaupt moeglich
-
-            $stmt->prepare("SELECT userID, type FROM users WHERE userName = ? AND deleteTimestamp IS NULL");
-
-            foreach($permissionsToAdd as &$currentPermission) {
-                
-                $stmt->bind_param("s", $currentPermission["userName"]);
-                $stmt->execute();
-
-                $result = $stmt->get_result()->fetch_assoc();
-
-                if(is_null($result)) {
-
-                    return false;
-
-                }
-
-                if(!is_null($semester->data["classID"]) && $result["type"] !== "teacher" && $result["type"] !== "admin") {
-
-                    return false;
-
-                }
-
-                if($result["userID"] === $semester->data["userID"]) {
-
-                    return false;
-
-                }
-
-                $currentPermission["userID"] = $result["userID"];
-
-            }
-
-            include_once($_SERVER["DOCUMENT_ROOT"] . "/phpScripts/updatePermissions.php");
-
-            addPermissions(PERMISSION_SEMESTER, $semester->data["semesterID"], $permissionsToAdd);
-
-        }
-
-        $stmt->close();
 
     }
 
