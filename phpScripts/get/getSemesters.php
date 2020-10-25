@@ -10,13 +10,13 @@ Input als JSON per POST:
 
 */
 
-function getSemesters(Semester $element) : bool {
+function getSemesters(Semester $element) : int {
 
     global $mysqli;
 
     if($element->error !== ERROR_NONE) {
 
-        return false;
+        return $element->error;
 
     }
 
@@ -46,7 +46,7 @@ function getSemesters(Semester $element) : bool {
     $results = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     $element->childrenData = $results;
 
-    return true;
+    return ERROR_NONE;
 
 }
 
@@ -64,9 +64,17 @@ session_write_close();
 
 $data = getData();
 
-if(isset($data["semesterID"]) && is_numeric($data["semesterID"])) {
+if(isset($data["semesterID"])) {
 
-    $semesterID = (int)$data["semesterID"];
+    if(is_int($data["semesterID"])) {
+
+        $semesterID = $data["semesterID"];
+
+    } else {
+
+        throwError(ERROR_BAD_INPUT);
+
+    }
 
 }
 

@@ -6,13 +6,13 @@ Datei, die inkludiert wird, um Zugriffsrechte zu aktualisieren.
 
 */
 
-include_once($_SERVER["DOCUMENT_ROOT"] . "/phpScripts/calculateMarks.php");
+include_once($_SERVER["DOCUMENT_ROOT"] . "/phpScripts/updateMarks.php");
 
 /*define("PERMISSION_SEMESTER", 1);
 define("PERMISSION_SUBJECT", 2);
 define("PERMISSION_TEST", 3);*/
 
-function updatePermissions(Element $element, array &$permissions) : bool {
+function updatePermissions(Element $element, array &$permissions) : int {
 
     global $mysqli;
 
@@ -50,9 +50,21 @@ function updatePermissions(Element $element, array &$permissions) : bool {
     
     foreach($permissions as &$currentPermission) {
 
-        if(!is_array($currentPermission) || !is_string($currentPermission["userName"]) || !array_key_exists("writingPermission", $currentPermission)) {
+        if(!is_array($currentPermission)) {
 
-            return false;
+            return ERROR_BAD_INPUT;
+
+        }
+
+        if(!isset($currentPermission["userName"]) || !array_key_exists("writingPermission", $currentPermission)) {
+
+            return ERROR_MISSING_INPUT;
+
+        }
+
+        if(!is_string($currentPermission["userName"]) || (!is_null($currentPermission["writingPermission"]) && !is_bool($currentPermission["writingPermission"]))) {
+
+            return ERROR_BAD_INPUT;
 
         }
 
@@ -60,7 +72,7 @@ function updatePermissions(Element $element, array &$permissions) : bool {
 
         if(isset($newPermissions[$currentPermission["userName"]])) {
 
-            return false;
+            return ERROR_UNSUITABLE_INPUT;
 
         }
 
@@ -179,7 +191,7 @@ function updatePermissions(Element $element, array &$permissions) : bool {
         
         // isReferenced nach moeglicher Aenderung untersuchen und aktualisieren
 
-        if(!empty($arguments)) {
+        if(!empty($referencedTests)) {
 
             $arguments = array_keys($referencedTests);
             $parameterTypes = str_repeat("i", count($referencedTests));
@@ -221,19 +233,19 @@ function updatePermissions(Element $element, array &$permissions) : bool {
 
             if(is_null($result)) {
 
-                return false;
+                return ERROR_UNSUITABLE_INPUT;
 
             }
 
             if(!is_null($element->data["classID"]) && $result["type"] !== "teacher" && $result["type"] !== "admin") {
 
-                return false;
+                return ERROR_UNSUITABLE_INPUT;
 
             }
 
             if($result["userID"] === $element->data["userID"]) {
 
-                return false;
+                return ERROR_UNSUITABLE_INPUT;
 
             }
 
@@ -341,7 +353,7 @@ function updatePermissions(Element $element, array &$permissions) : bool {
 
     $stmt->close();
 
-    return true;
+    return ERROR_NONE;
 
 }
 

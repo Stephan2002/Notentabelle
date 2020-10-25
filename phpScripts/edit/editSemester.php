@@ -13,15 +13,18 @@ Input als JSON per POST bestehend aus Array, jeweils mit:
         templateType (bei Vorlagen)
         referenceTestID* (wenn referenceID gesetzt)
 
+Bei Fehlern wird nichts geaendert, ausser bei Fehlern bei:
+    permissions
+
 */
 
-function editSemester(Semester $semester, array &$data) : bool {
+function editSemester(Semester $semester, array &$data) : int {
     
     global $mysqli;
 
     if($semester->error !== ERROR_NONE) {
 
-        return false;
+        return $semester->error;
 
     }
 
@@ -31,13 +34,14 @@ function editSemester(Semester $semester, array &$data) : bool {
 
         if(!is_string($data["name"]) || strlen($data["name"]) >= 64) {
 
-            return false;
+            return ERROR_BAD_INPUT;
 
         }
 
         if($data["name"] !== $semester->data["name"]) {
 
             $changedProperties["name"] = $data["name"];
+            $semester->data["name"] = $data["name"];
 
         } 
 
@@ -47,13 +51,14 @@ function editSemester(Semester $semester, array &$data) : bool {
         
         if(!is_bool($data["isHidden"])) {
 
-            return false;
+            return ERROR_BAD_INPUT;
 
         }
         
         if($data["isHidden"] != $semester->data["isHidden"]) {
             
             $changedProperties["isHidden"] = (int)$data["isHidden"];
+            $semester->data["isHidden"] = (int)$data["isHidden"];
 
         }
 
@@ -63,7 +68,7 @@ function editSemester(Semester $semester, array &$data) : bool {
 
         if((!is_string($data["notes"]) && !is_null($data["notes"])) || strlen($data["notes"] >= 256)) {
 
-            return false;
+            return ERROR_BAD_INPUT;
 
         }
 
@@ -76,6 +81,7 @@ function editSemester(Semester $semester, array &$data) : bool {
         if($data["notes"] != $semester->data["notes"]) {
 
             $changedProperties["notes"] = $data["notes"];
+            $semester->data["notes"] = $data["notes"];
 
         }
 
@@ -83,21 +89,22 @@ function editSemester(Semester $semester, array &$data) : bool {
 
     if(array_key_exists("templateType", $data)) {
 
-        if(is_null($semester->data["templateType"])) {
+        if($data["templateType"] !== "semesterTemplate" && $data["templateType"] !== "subjectTemplate") {
 
-            return false;
+            return ERROR_BAD_INPUT;
 
         }
 
-        if($data["templateType"] !== "semesterTemplate" && $data["templateType"] !== "subjectTemplate") {
+        if(is_null($semester->data["templateType"])) {
 
-            return false;
+            return ERROR_FORBIDDEN_FIELD;
 
         }
 
         if($data["templateType"] !== $semester->data["templateType"]) {
 
             $changedProperties["templateType"] = $data["templateType"];
+            $semester->data["tekplateType"] = $data["templateType"];
 
         }
 
@@ -105,33 +112,27 @@ function editSemester(Semester $semester, array &$data) : bool {
 
     if(array_key_exists("referenceTestID", $data)) {
 
-        if(is_null($semester->data["referenceID"]) || !is_numeric($data["referenceTestID"])) {
+        if(!is_null($data["referenceTestID"]) && (!is_int($data["referenceTestID"]) || $data["referenceTestID"] <= 0)) {
 
-            return false;
-
-        }
-
-        $stmt = $mysqli->prepare("SELECT testID FROM tests WHERE testID = ? AND deleteTimestamp IS NULL");
-        $stmt->bind_param("i", $data["referenceTestID"]);
-        $stmt->execute();
-
-        if($stmt->get_result()->num_rows < 0) {
-
-            $stmt->close();
-            return false;
+            return ERROR_BAD_INPUT;
 
         }
 
-        $stmt->close();
+        if(is_null($semester->data["referenceID"])) {
 
-        $changedProperties["referenceTestID"] = (int)$data["referenceTestID"];
+            return ERROR_FORBIDDEN_FIELD;
+
+        }
+
+        $changedProperties["referenceTestID"] = $data["referenceTestID"];
+        $semester->data["referenceTestID"] = $data["referenceTestID"];
 
     }
     
     if(count($changedProperties) > 0) {
 
         $queryString = "UPDATE semesters SET ";
-        $typeString = "";
+        $parameterTypes = "";
 
         foreach($changedProperties as $key => &$value) {
 
@@ -139,11 +140,11 @@ function editSemester(Semester $semester, array &$data) : bool {
             
             if(is_int($value)) {
 
-                $typeString .= "i";
+                $parameterTypes .= "i";
 
             } else {
 
-                $typeString .= "s";
+                $parameterTypes .= "s";
 
             }
 
@@ -151,13 +152,13 @@ function editSemester(Semester $semester, array &$data) : bool {
 
         $queryString = substr($queryString, 0, -2);
         $queryString .= " WHERE semesterID = ?";
-        $typeString .= "i";
+        $parameterTypes .= "i";
 
         $changedProperties[] = $semester->data["semesterID"];
 
         $stmt = $mysqli->prepare($queryString);
 
-        $stmt->bind_param($typeString, ...array_values($changedProperties));
+        $stmt->bind_param($parameterTypes, ...array_values($changedProperties));
         $stmt->execute();
         $stmt->close();
 
@@ -166,23 +167,31 @@ function editSemester(Semester $semester, array &$data) : bool {
     
     if(array_key_exists("permissions", $data)) {
 
-        if($semester->data["isFolder"] || !is_null($semester->data["referenceID"]) || !is_array($data["permissions"])) {
+        if(!is_array($data["permissions"])) {
 
-            return false;
+            return ERROR_BAD_INPUT;
+
+        }
+
+        if($semester->isFolder || !is_null($semester->data["referenceID"])) {
+
+            return ERROR_FORBIDDEN_FIELD;
     
         }
         
         include($_SERVER["DOCUMENT_ROOT"] . "/phpScripts/updatePermissions.php");
 
-        if(!updatePermissions($semester, $data["permissions"])) {
+        $errorCode = updatePermissions($semester, $data["permissions"]);
+        
+        if($errorCode !== ERROR_NONE) {
 
-            return false;
+            return $errorCode;
 
         }
 
     }
 
-    return true;
+    return ERROR_NONE;
 
 }
 
@@ -214,13 +223,19 @@ if(!is_array($data)) {
 
 foreach($data as $key => &$currentSemesterData) {
 
-    if(!isset($currentSemesterData["semesterID"]) || !is_numeric($currentSemesterData["semesterID"])) {
+    if(!isset($currentSemesterData["semesterID"])) { 
 
-        throwError(ERROR_BAD_INPUT, $key);    
+        throwError(ERROR_MISSING_INPUT, $key);
+
+    }
+        
+    if(!is_int($currentSemesterData["semesterID"])) {
+
+        throwError(ERROR_BAD_INPUT, $key);
     
     }
 
-    $semester = getSemester((int)$currentSemesterData["semesterID"], $_SESSION["userid"], $_SESSION["type"] === "admin" || $_SESSION["type"] === "admin");
+    $semester = getSemester($currentSemesterData["semesterID"], $_SESSION["userid"], $_SESSION["type"] === "admin" || $_SESSION["type"] === "admin");
 
     if($semester->error !== ERROR_NONE) {
 
@@ -234,9 +249,11 @@ foreach($data as $key => &$currentSemesterData) {
 
     }
 
-    if(!editSemester($semester, $currentSemesterData)) {
+    $errorCode = editSemester($semester, $currentSemesterData);
 
-        throwError(ERROR_BAD_INPUT, $key);
+    if($errorCode !== ERROR_NONE) {
+
+        throwError($errorCode, $key);
 
     }
 

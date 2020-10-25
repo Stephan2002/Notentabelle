@@ -9,19 +9,19 @@ Input als JSON per POST:
 
 */
 
-function getStudents(StudentClass $element) : bool {
+function getStudents(StudentClass $element) : int {
 
     global $mysqli;
 
     if($element->error !== ERROR_NONE) {
 
-        return false;
+        return $element->error;
 
     }
 
     if(!is_null($element->data["referenceID"])) {
 
-        return false;
+        return ERROR_UNSUITABLE_INPUT;
 
     }
 
@@ -32,7 +32,7 @@ function getStudents(StudentClass $element) : bool {
     $result = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     $element->childrenData = $result;
 
-    return true;
+    return ERROR_NONE;
 
 }
 
@@ -58,7 +58,13 @@ if(!isset($isNotMain)) {
 
     $data = getData();
 
-    if(!isset($data["classID"]) || !is_numeric($data["classID"])) {
+    if(!isset($data["classID"])) {
+        
+        throwError(ERROR_MISSING_INPUT);
+
+    }
+
+    if(!is_int($data["classID"])) {
 
         throwError(ERROR_BAD_INPUT);
 
@@ -80,9 +86,11 @@ if(!isset($isNotMain)) {
 
     }
 
-    if(!getStudents($class)) {
+    $errorCode = getStudents($class);
 
-        throwError(ERROR_BAD_INPUT);
+    if($errorCode !== ERROR_NONE) {
+
+        throwError($errorCode);
 
     }
     

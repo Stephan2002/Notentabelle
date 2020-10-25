@@ -1,13 +1,16 @@
 // Javascript fuer app.php
 // Wird immer hinzugefuegt, auch bei Lehrpersonen
 
-const ERROR_NONE                    = 0;    // kein Fehler
-const ERROR_NOT_LOGGED_IN           = 1;    // Nutzer ist nicht eingeloggt
-const ERROR_BAD_INPUT               = 2;    // Schlechter oder fehlender User-Input
-const ERROR_FORBIDDEN               = 3;    // Element existiert nicht oder Nutzer hat kein Zugriffsrecht
-const ERROR_ONLY_TEACHER            = 4;    // Aktion nur fuer Lehrpersonen verfuegbar
-const ERROR_NO_WRITING_PERMISSION   = 5;    // Benutzer hat nur Leserecht
-const ERROR_UNKNOWN                 = 10;   // Unbekannter / anderer Fehler
+const ERROR_NONE                  = 0;     // kein Fehler
+const ERROR_NOT_LOGGED_IN         = 1;     // Nutzer ist nicht eingeloggt
+const ERROR_BAD_INPUT             = 2;     // Schlechter User-Input
+const ERROR_UNSUITABLE_INPUT      = 3;     // Unpassender (fehlerhafter), aber richtig angegebener User-Input
+const ERROR_MISSING_INPUT         = 4;     // Fehlender User-Input
+const ERROR_FORBIDDEN_FIELD       = 5;     // User-Input, der angegeben, aber (in jenem Fall) nicht unterstuetzt wird
+const ERROR_FORBIDDEN             = 6;     // Element existiert nicht oder Nutzer hat kein Zugriffsrecht
+const ERROR_ONLY_TEACHER          = 7;     // Aktion nur fuer Lehrpersonen verfuegbar
+const ERROR_NO_WRITING_PERMISSION = 8;     // Benutzer hat nur Leserecht
+const ERROR_UNKNOWN               = 10;    // Unbekannter / anderer Fehler
 
 const TYPE_SEMESTER = 0;
 const TYPE_TEST = 1;
@@ -658,7 +661,7 @@ function printElement() {
 
                         colorClass = "red";
 
-                    } else if(currentChildData.mark > user.upperDisplayBound) {
+                    } else if(currentChildData.mark >= user.upperDisplayBound) {
 
                         colorClass = "green";
 
@@ -678,7 +681,7 @@ function printElement() {
                         "<td>" + formatDate(currentChildData.date) + "</td>" +
                         "<td>" + formatNumber(currentChildData.weight) + "</td>" +
                         "<td>" + (currentChildData.formula != null ? (currentChildData.points != null ? formatNumber(currentChildData.points) : "") : "") + "</td>" +
-                        "<td>" + ((currentChildData.round != null && currentChildData.round != 0 && currentChildData.formula == null) ? (currentChildData.mark_unrounded != null ? formatNumber(currentChildData.mark_unrounded) : "") : "") + "</td>" +
+                        "<td>" + ((currentChildData.classID === null && currentChildData.round != null && currentChildData.round != 0 && currentChildData.formula == null) ? (currentChildData.mark_unrounded != null ? formatNumber(currentChildData.mark_unrounded) : "") : "") + "</td>" +
                         "<td class='table_mark'>" + (currentChildData.round != null ? (currentChildData.mark != null ? formatNumber(currentChildData.mark) : "") : (currentChildData.points != null ? formatNumber(currentChildData.points) : "")) + "</td>" +
                         referenceString +
                         buttonString +
@@ -692,7 +695,7 @@ function printElement() {
                             "<td>" + formatDate(currentChildData.date) + "</td>" +
                             "<td>" + formatNumber(currentChildData.weight) + "</td>" +
                             "<td>" + (currentChildData.formula != null ? (currentChildData.points != null ? formatNumber(currentChildData.points) : "") : "") + "</td>" +
-                            "<td>" + ((currentChildData.round != null && currentChildData.round != 0 && currentChildData.formula == null) ? (currentChildData.mark_unrounded != null ? formatNumber(currentChildData.mark_unrounded) : "") : "") + "</td>" +
+                            "<td>" + ((currentElement.data.classID === null && currentChildData.round != null && currentChildData.round != 0 && currentChildData.formula == null) ? (currentChildData.mark_unrounded != null ? formatNumber(currentChildData.mark_unrounded) : "") : "") + "</td>" +
                             "<td class='table_mark'>" + (currentChildData.round != null ? (currentChildData.mark != null ? formatNumber(currentChildData.mark) : "") : (currentChildData.points != null ? formatNumber(currentChildData.points) : "")) + "</td>" +
                             referenceString +
                             buttonString +
@@ -1067,7 +1070,7 @@ function printElement() {
 
                             colorClass = "red";
 
-                        } else if(currentChildData.mark > user.upperDisplayBound) {
+                        } else if(currentChildData.mark >= user.upperDisplayBound) {
 
                             colorClass = "green";
 

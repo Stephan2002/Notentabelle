@@ -10,7 +10,7 @@ Input als JSON per POST:
 
 */
 
-function getForeignClasses(StudentClass $element) : bool {
+function getForeignClasses(StudentClass $element) : int {
 
     global $mysqli;
 
@@ -21,7 +21,7 @@ function getForeignClasses(StudentClass $element) : bool {
     $results = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     $element->childrenData = $results;
 
-    return true;
+    return ERROR_NONE;
 
 }
 

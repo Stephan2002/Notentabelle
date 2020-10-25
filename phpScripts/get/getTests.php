@@ -12,31 +12,31 @@ Input als JSON per POST:
 
 */
 
-function getTests(Element &$test, bool $withMarks = false) : bool {
+function getTests(Element &$test, bool $withMarks = false) : int {
 
     global $mysqli;
     
     if($test->error !== ERROR_NONE) {
 
-        return false;
+        return $test->error;
 
     }
 
-    if(!$test->data["isFolder"] && !$test->isRoot) {
+    if(!$test->isFolder && !$test->isRoot) {
 
-        return false;
+        return ERROR_UNSUITABLE_INPUT;
 
     }
 
     if(!is_null($test->data["referenceID"])) {
 
-        return false;
+        return ERROR_UNSUITABLE_INPUT;
 
     }
 
     if($test->isRoot && $test->accessType === Element::ACCESS_TEACHER) {
 
-        return true;
+        return ERROR_NONE;
 
     }
 
@@ -48,17 +48,17 @@ function getTests(Element &$test, bool $withMarks = false) : bool {
                 
                 if(!is_null($test->data["formula"])) {
 
-                    $stmt = $mysqli->prepare("SELECT students.studentID, students.isHidden, students.firstName, students.lastName, students.gender, marks.mark, marks.points, marks.notes FROM students LEFT JOIN marks ON (marks.studentID = students.studentID AND marks.testID = ?) WHERE students.classID = ? AND students.deleteTimestamp IS NULL ORDER BY students.isHidden, students.lastName");
+                    $stmt = $mysqli->prepare("SELECT students.studentID, students.isHidden, students.firstName, students.lastName, students.gender, marks.mark, marks.points, marks.notes AS studentNotes FROM students LEFT JOIN marks ON (marks.studentID = students.studentID AND marks.testID = ?) WHERE students.classID = ? AND students.deleteTimestamp IS NULL ORDER BY students.isHidden, students.lastName");
                     $stmt->bind_param("ii", $test->data["testID"], $test->data["classID"]);
 
                 } elseif(!is_null($test->data["round"])) {
 
-                    $stmt = $mysqli->prepare("SELECT students.studentID, students.isHidden, students.firstName, students.lastName, students.gender, marks.mark, marks.notes FROM students LEFT JOIN marks ON (marks.studentID = students.studentID AND marks.testID = ?) WHERE students.classID = ? AND students.deleteTimestamp IS NULL ORDER BY students.isHidden, students.lastName");
+                    $stmt = $mysqli->prepare("SELECT students.studentID, students.isHidden, students.firstName, students.lastName, students.gender, marks.mark, marks.notes AS studentNotes FROM students LEFT JOIN marks ON (marks.studentID = students.studentID AND marks.testID = ?) WHERE students.classID = ? AND students.deleteTimestamp IS NULL ORDER BY students.isHidden, students.lastName");
                     $stmt->bind_param("ii", $test->data["testID"], $test->data["classID"]);
 
                 } else {
 
-                    $stmt = $mysqli->prepare("SELECT students.studentID, students.isHidden, students.firstName, students.lastName, students.gender, marks.points, marks.notes FROM students LEFT JOIN marks ON (marks.studentID = students.studentID AND marks.testID = ?) WHERE students.classID = ? AND students.deleteTimestamp IS NULL ORDER BY students.isHidden, students.lastName");
+                    $stmt = $mysqli->prepare("SELECT students.studentID, students.isHidden, students.firstName, students.lastName, students.gender, marks.points, marks.notes AS studentNotes FROM students LEFT JOIN marks ON (marks.studentID = students.studentID AND marks.testID = ?) WHERE students.classID = ? AND students.deleteTimestamp IS NULL ORDER BY students.isHidden, students.lastName");
                     $stmt->bind_param("ii", $test->data["testID"], $test->data["classID"]);
 
                 }
@@ -113,7 +113,7 @@ function getTests(Element &$test, bool $withMarks = false) : bool {
         if(!$withMarks) {
 
             $test->withMarks = false;
-            return true;
+            return ERROR_NONE;
 
         } 
 
@@ -276,7 +276,7 @@ function getTests(Element &$test, bool $withMarks = false) : bool {
 
             } elseif($test->accessType === Element::ACCESS_STUDENT) {
 
-                $stmt = $mysqli->prepare("SELECT tests.*, marks.mark, marks.points FROM tests LEFT JOIN marks ON (tests.testID = marks.testID AND marks.studentID = ?) WHERE tests.parentID = ? AND tests.isHidden = 0 AND tests.deleteTimestamp IS NULL ORDER BY tests.isHidden, NOT tests.isFolder, tests.date, NOT tests.markCounts, tests.name");
+                $stmt = $mysqli->prepare("SELECT tests.*, marks.mark, marks.points, marks.notes AS studentNotes FROM tests LEFT JOIN marks ON (tests.testID = marks.testID AND marks.studentID = ?) WHERE tests.parentID = ? AND tests.isHidden = 0 AND tests.deleteTimestamp IS NULL ORDER BY tests.isHidden, NOT tests.isFolder, tests.date, NOT tests.markCounts, tests.name");
                 $stmt->bind_param("ii", $test->studentID, $test->data["testID"]);
 
             } else {
@@ -300,7 +300,7 @@ function getTests(Element &$test, bool $withMarks = false) : bool {
 
             } elseif($test->accessType === Element::ACCESS_STUDENT) {
 
-                $stmt = $mysqli->prepare("SELECT tests.*, marks.mark, marks.points FROM tests LEFT JOIN marks ON (tests.testID = marks.testID AND marks.studentID = ?) WHERE tests.parentID IS NULL AND tests.semesterID = ? AND tests.isHidden = 0 AND tests.deleteTimestamp IS NULL ORDER BY tests.isHidden, NOT tests.isFolder, tests.date, NOT tests.markCounts, tests.name");
+                $stmt = $mysqli->prepare("SELECT tests.*, marks.mark, marks.points, marks.notes AS studentNotes FROM tests LEFT JOIN marks ON (tests.testID = marks.testID AND marks.studentID = ?) WHERE tests.parentID IS NULL AND tests.semesterID = ? AND tests.isHidden = 0 AND tests.deleteTimestamp IS NULL ORDER BY tests.isHidden, NOT tests.isFolder, tests.date, NOT tests.markCounts, tests.name");
                 $stmt->bind_param("ii", $test->studentID, $test->data["semesterID"]);
 
             } else {
@@ -319,7 +319,7 @@ function getTests(Element &$test, bool $withMarks = false) : bool {
 
         if(!$withMarks) {
 
-            return true;
+            return ERROR_NONE;
 
         }
 
@@ -381,7 +381,7 @@ function getTests(Element &$test, bool $withMarks = false) : bool {
 
     }
 
-    return true;
+    return ERROR_NONE;
 
 }
 
@@ -401,17 +401,33 @@ if(!isset($isNotMain)) {
 
     $data = getData();
 
-    if(isset($data["testID"]) && is_numeric($data["testID"])) {
+    if(isset($data["testID"])) {
+    
+        if(is_int($data["testID"])) {
 
-        $testID = (int)$data["testID"];
+            $testID = $data["testID"];
+
+        } else {
+
+            throwError(ERROR_BAD_INPUT);
+
+        }
 
     }
 
     if(!isset($testID)) {
 
-        if(isset($data["semesterID"]) && is_numeric($data["semesterID"])) {
+        if(isset($data["semesterID"])) {
+            
+            if(is_int($data["semesterID"])) {
 
-            $semesterID = (int)$data["semesterID"];
+                $semesterID = $data["semesterID"];
+
+            } else {
+
+                throwError(ERROR_BAD_INPUT);
+
+            }
 
         }
 
@@ -419,7 +435,7 @@ if(!isset($isNotMain)) {
 
     if(!isset($testID) && !isset($semesterID)) {
 
-        throwError(ERROR_BAD_INPUT);
+        throwError(ERROR_MISSING_INPUT);
 
     }
 
@@ -448,10 +464,11 @@ if(!isset($isNotMain)) {
 
     }
     
+    $errorCode = getTests($test, isset($data["withMarks"]));
 
-    if(!getTests($test, isset($data["withMarks"]))) {
+    if($errorCode !== ERROR_NONE) {
 
-        throwError(ERROR_BAD_INPUT);
+        throwError($errorCode);
 
     }
 

@@ -12,16 +12,18 @@ Input als JSON per POST bestehend aus Array, jeweils mit:
         gender*
         userName*
 
-
+Bei Fehlern wird nichts geaendert, ausser bei Fehlern bei:
+    userName
+        
 */
 
-function editStudent(Student $student, array &$data) : bool {
+function editStudent(Student $student, array &$data) : int {
     
     global $mysqli;
 
     if($student->error !== ERROR_NONE) {
 
-        return false;
+        return $student->error;
 
     }
 
@@ -31,13 +33,14 @@ function editStudent(Student $student, array &$data) : bool {
 
         if(!is_string($data["lastName"]) || strlen($data["lastName"]) >= 64) {
 
-            return false;
+            return ERROR_BAD_INPUT;
 
         }
 
         if($data["lastName"] !== $student->data["lastName"]) {
 
             $changedProperties["lastName"] = $data["lastName"];
+            $student->data["lastName"] = $data["lastName"];
 
         } 
 
@@ -47,7 +50,7 @@ function editStudent(Student $student, array &$data) : bool {
 
         if((!is_string($data["firstName"]) && !is_null($data["firstName"])) || strlen($data["firstName"] >= 64)) {
 
-            return false;
+            return ERROR_BAD_INPUT;
 
         }
 
@@ -60,6 +63,7 @@ function editStudent(Student $student, array &$data) : bool {
         if($data["firstName"] != $student->data["firstName"]) {
 
             $changedProperties["firstName"] = $data["firstName"];
+            $student->data["firstName"] = $data["firstName"];
 
         }
 
@@ -69,13 +73,14 @@ function editStudent(Student $student, array &$data) : bool {
         
         if(!is_bool($data["isHidden"])) {
 
-            return false;
+            return ERROR_BAD_INPUT;
 
         }
         
         if($data["isHidden"] != $student->data["isHidden"]) {
             
             $changedProperties["isHidden"] = (int)$data["isHidden"];
+            $student->data["isHidden"] = (int)$data["ishidden"];
 
         }
 
@@ -85,13 +90,14 @@ function editStudent(Student $student, array &$data) : bool {
         
         if(!is_null($data["gender"]) && $data["gender"] !== "m" && $data["gender"] !== "f" && $data["gender"] !== "d") {
 
-            return false;
+            return ERROR_BAD_INPUT;
 
         }
         
         if($data["gender"] != $student->data["gender"]) {
             
             $changedProperties["gender"] = $data["gender"];
+            $student->data["gender"] = $data["gender"];
 
         }
 
@@ -100,7 +106,7 @@ function editStudent(Student $student, array &$data) : bool {
     if(count($changedProperties) > 0) {
 
         $queryString = "UPDATE students SET ";
-        $typeString = "";
+        $parameterTypes = "";
 
         foreach($changedProperties as $key => &$value) {
 
@@ -108,11 +114,11 @@ function editStudent(Student $student, array &$data) : bool {
             
             if(is_int($value)) {
 
-                $typeString .= "i";
+                $parameterTypes .= "i";
 
             } else {
 
-                $typeString .= "s";
+                $parameterTypes .= "s";
 
             }
 
@@ -120,13 +126,13 @@ function editStudent(Student $student, array &$data) : bool {
 
         $queryString = substr($queryString, 0, -2);
         $queryString .= " WHERE studentID = ?";
-        $typeString .= "i";
+        $parameterTypes .= "i";
 
         $changedProperties[] = $student->data["studentID"];
 
         $stmt = $mysqli->prepare($queryString);
 
-        $stmt->bind_param($typeString, ...array_values($changedProperties));
+        $stmt->bind_param($parameterTypes, ...array_values($changedProperties));
         $stmt->execute();
         $stmt->close();
 
@@ -152,13 +158,13 @@ function editStudent(Student $student, array &$data) : bool {
                 
                 if(is_null($result)) {
 
-                    return false;
+                    return ERROR_UNSUITABLE_INPUT;
 
                 }
                 
                 if($result["userID"] === $student->data["classUserID"]) {
 
-                    return false;
+                    return ERROR_UNSUITABLE_INPUT;
 
                 }
                 
@@ -172,7 +178,7 @@ function editStudent(Student $student, array &$data) : bool {
 
         } elseif(!is_null($data["userName"])) {
 
-            return false;
+            return ERROR_BAD_INPUT;
 
         }
 
@@ -289,7 +295,7 @@ function editStudent(Student $student, array &$data) : bool {
 
                 // Verknuepfungen neu berechnen lassen
 
-                include_once($_SERVER["DOCUMENT_ROOT"] . "/phpScripts/calculateMarks.php");
+                include_once($_SERVER["DOCUMENT_ROOT"] . "/phpScripts/updateMarks.php");
                 
                 foreach($changedRefs as &$currentRef) {
                     
@@ -310,7 +316,7 @@ function editStudent(Student $student, array &$data) : bool {
 
     }
 
-    return true;
+    return ERROR_NONE;
 
 }
 
@@ -348,13 +354,19 @@ if(!is_array($data)) {
 
 foreach($data as $key => &$currentStudentData) {
 
-    if(!isset($currentStudentData["studentID"]) || !is_numeric($currentStudentData["studentID"])) {
+    if(!isset($currentStudentData["studentID"])) {
 
-        throwError(ERROR_BAD_INPUT, $key);    
+        throwError(ERROR_MISSING_INPUT, $key);
+
+    }
+        
+    if(!is_int($currentStudentData["studentID"])) {
+
+        throwError(ERROR_BAD_INPUT, $key);
     
     }
 
-    $student = getStudent((int)$currentStudentData["studentID"], $_SESSION["userid"]);
+    $student = getStudent($currentStudentData["studentID"], $_SESSION["userid"]);
 
     if($student->error !== ERROR_NONE) {
         
@@ -368,9 +380,11 @@ foreach($data as $key => &$currentStudentData) {
 
     }
 
-    if(!editStudent($student, $currentStudentData)) {
+    $errorCode = editStudent($student, $currentStudentData);
 
-        throwError(ERROR_BAD_INPUT, $key);
+    if($errorCode !== ERROR_NONE) {
+
+        throwError($errorCode, $key);
 
     }
 

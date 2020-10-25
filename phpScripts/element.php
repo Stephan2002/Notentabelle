@@ -10,10 +10,13 @@ $DB = json_decode(file_get_contents($_SERVER["DOCUMENT_ROOT"] . "/database.json"
 
 define("ERROR_NONE",                    0);     // kein Fehler
 define("ERROR_NOT_LOGGED_IN",           1);     // Nutzer ist nicht eingeloggt
-define("ERROR_BAD_INPUT",               2);     // Schlechter oder fehlender User-Input
-define("ERROR_FORBIDDEN",               3);     // Element existiert nicht oder Nutzer hat kein Zugriffsrecht
-define("ERROR_ONLY_TEACHER",            4);     // Aktion nur fuer Lehrpersonen verfuegbar
-define("ERROR_NO_WRITING_PERMISSION",   5);     // Benutzer hat nur Leserecht
+define("ERROR_BAD_INPUT",               2);     // Schlechter User-Input
+define("ERROR_UNSUITABLE_INPUT",        3);     // Unpassender (fehlerhafter), aber richtig angegebener User-Input
+define("ERROR_MISSING_INPUT",           4);     // Fehlender User-Input
+define("ERROR_FORBIDDEN_FIELD",         5);     // User-Input, der angegeben, aber (in jenem Fall) nicht unterstuetzt wird
+define("ERROR_FORBIDDEN",               6);     // Element existiert nicht oder Nutzer hat kein Zugriffsrecht
+define("ERROR_ONLY_TEACHER",            7);     // Aktion nur fuer Lehrpersonen verfuegbar
+define("ERROR_NO_WRITING_PERMISSION",   8);     // Benutzer hat nur Leserecht
 define("ERROR_UNKNOWN",                 10);    // Unbekannter / anderer Fehler
 
 function throwError(int $errorCode, int $occuredIn = -1) {
@@ -261,14 +264,14 @@ function getSemester(int $semesterID, int $userID, bool $isTeacher, bool $checkO
 
     }
 
-    if($data["isFolder"] && $data["userID"] != $userID) {
+    if($data["isFolder"] && $data["userID"] !== $userID) {
 
         $stmt->close();
         return new Semester(ERROR_FORBIDDEN);
 
     } 
 
-    if($data["userID"] == $userID) {
+    if($data["userID"] === $userID) {
 
         $stmt->close();
         return new Semester(0, Element::ACCESS_OWNER, true, $data);
@@ -434,20 +437,24 @@ function getTest(int $testID, int $userID, bool $isTeacher, bool $checkOnlyForTe
         
             }
 
-            $stmt->prepare("SELECT studentID FROM students WHERE userID = ? AND EXISTS (SELECT 1 FROM classes WHERE classes.classID = students.classID AND EXISTS (SELECT 1 FROM semesters WHERE semesterID = ? AND semesters.classID = classes.classID)) AND deleteTimestamp IS NULL");
-            $stmt->bind_param("ii", $userID, $data["semesterID"]);
-            $stmt->execute();
+            if(!$data["isHidden"]) {
 
-            $studentData = $stmt->get_result()->fetch_assoc();
+                $stmt->prepare("SELECT studentID FROM students WHERE userID = ? AND EXISTS (SELECT 1 FROM classes WHERE classes.classID = students.classID AND EXISTS (SELECT 1 FROM semesters WHERE semesterID = ? AND semesters.classID = classes.classID)) AND deleteTimestamp IS NULL");
+                $stmt->bind_param("ii", $userID, $data["semesterID"]);
+                $stmt->execute();
 
-            if(!is_null($studentData) && !$data["isHidden"]) {
+                $studentData = $stmt->get_result()->fetch_assoc();
 
-                $stmt->close();
+                if(!is_null($studentData)) {
 
-                $test = new Test(0, Element::ACCESS_STUDENT, false, $data);
-                $test->studentID = $studentData["studentID"];
+                    $stmt->close();
 
-                return $test;
+                    $test = new Test(0, Element::ACCESS_STUDENT, false, $data);
+                    $test->studentID = $studentData["studentID"];
+
+                    return $test;
+
+                }
 
             }
 

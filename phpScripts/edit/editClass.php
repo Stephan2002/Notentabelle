@@ -11,15 +11,18 @@ Input als JSON per POST bestehend aus Array, jeweils mit:
         notes*
         permissions
 
+Bei Fehlern wird nichts geaendert, ausser bei Fehlern bei:
+    permissions
+
 */
 
-function editClass(StudentClass $class, array &$data) : bool {
+function editClass(StudentClass $class, array &$data) : int {
     
     global $mysqli;
 
     if($class->error !== ERROR_NONE) {
 
-        return false;
+        return $class->error;
 
     }
 
@@ -29,13 +32,14 @@ function editClass(StudentClass $class, array &$data) : bool {
 
         if(!is_string($data["name"]) || strlen($data["name"]) >= 64) {
 
-            return false;
+            return ERROR_BAD_INPUT;
 
         }
 
         if($data["name"] !== $class->data["name"]) {
 
             $changedProperties["name"] = $data["name"];
+            $class->data["name"] = $data["name"];
 
         } 
 
@@ -45,13 +49,14 @@ function editClass(StudentClass $class, array &$data) : bool {
         
         if(!is_bool($data["isHidden"])) {
 
-            return false;
+            return ERROR_BAD_INPUT;
 
         }
         
         if($data["isHidden"] != $class->data["isHidden"]) {
             
             $changedProperties["isHidden"] = (int)$data["isHidden"];
+            $class->data["isHidden"] = (int)$data["isHidden"];
 
         }
 
@@ -61,7 +66,7 @@ function editClass(StudentClass $class, array &$data) : bool {
 
         if((!is_string($data["notes"]) && !is_null($data["notes"])) || strlen($data["notes"] >= 256)) {
 
-            return false;
+            return ERROR_BAD_INPUT;
 
         }
 
@@ -74,6 +79,7 @@ function editClass(StudentClass $class, array &$data) : bool {
         if($data["notes"] != $class->data["notes"]) {
 
             $changedProperties["notes"] = $data["notes"];
+            $class->data["notes"] = $data["notes"];
 
         }
 
@@ -83,7 +89,7 @@ function editClass(StudentClass $class, array &$data) : bool {
     if(count($changedProperties) > 0) {
 
         $queryString = "UPDATE classes SET ";
-        $typeString = "";
+        $parameterTypes = "";
 
         foreach($changedProperties as $key => &$value) {
 
@@ -91,11 +97,11 @@ function editClass(StudentClass $class, array &$data) : bool {
             
             if(is_int($value)) {
 
-                $typeString .= "i";
+                $parameterTypes .= "i";
 
             } else {
 
-                $typeString .= "s";
+                $parameterTypes .= "s";
 
             }
 
@@ -103,13 +109,13 @@ function editClass(StudentClass $class, array &$data) : bool {
 
         $queryString = substr($queryString, 0, -2);
         $queryString .= " WHERE classID = ?";
-        $typeString .= "i";
+        $parameterTypes .= "i";
 
         $changedProperties[] = $class->data["classID"];
 
         $stmt = $mysqli->prepare($queryString);
 
-        $stmt->bind_param($typeString, ...array_values($changedProperties));
+        $stmt->bind_param($parameterTypes, ...array_values($changedProperties));
         $stmt->execute();
         $stmt->close();
 
@@ -120,7 +126,7 @@ function editClass(StudentClass $class, array &$data) : bool {
         
         if(!is_array($data["permissions"])) {
 
-            return false;
+            return ERROR_BAD_INPUT;
 
         }
 
@@ -152,7 +158,7 @@ function editClass(StudentClass $class, array &$data) : bool {
 
             if(!is_array($currentPermission) || !is_string($currentPermission["userName"]) || !array_key_exists("writingPermission", $currentPermission)) {
 
-                return false;
+                return ERROR_BAD_INPUT;
 
             }
 
@@ -160,7 +166,7 @@ function editClass(StudentClass $class, array &$data) : bool {
 
             if(isset($newPermissions[$currentPermission["userName"]])) {
 
-                return false;
+                return ERROR_UNSUITABLE_INPUT;
 
             }
 
@@ -236,19 +242,19 @@ function editClass(StudentClass $class, array &$data) : bool {
 
                 if(is_null($result)) {
 
-                    return false;
+                    return ERROR_UNSUITABLE_INPUT;
 
                 }
 
                 if($result["type"] !== "teacher" && $result["type"] !== "admin") {
 
-                    return false;
+                    return ERROR_UNSUITABLE_INPUT;
 
                 }
 
                 if($result["userID"] === $class->data["userID"]) {
 
-                    return false;
+                    return ERROR_UNSUITABLE_INPUT;
 
                 }
 
@@ -276,7 +282,7 @@ function editClass(StudentClass $class, array &$data) : bool {
 
     }
 
-    return true;
+    return ERROR_NONE;
 
 }
 
@@ -314,13 +320,19 @@ if(!is_array($data)) {
 
 foreach($data as $key => &$currentClassData) {
 
-    if(!isset($currentClassData["classID"]) || !is_numeric($currentClassData["classID"])) {
+    if(!isset($currentClassData["classID"])) {
+
+        throwError(ERROR_MISSING_INPUT, $key);
+
+    }
+
+    if(!is_int($currentClassData["classID"])) {
 
         throwError(ERROR_BAD_INPUT, $key);    
     
     }
 
-    $class = getClass((int)$currentClassData["classID"], $_SESSION["userid"]);
+    $class = getClass($currentClassData["classID"], $_SESSION["userid"]);
 
     if($class->error !== ERROR_NONE) {
 
@@ -334,9 +346,11 @@ foreach($data as $key => &$currentClassData) {
 
     }
 
-    if(!editClass($class, $currentClassData)) {
+    $errorCode = editClass($class, $currentClassData);
 
-        throwError(ERROR_BAD_INPUT, $key);
+    if($errorCode !== ERROR_NONE) {
+
+        throwError($errorCode, $key);
 
     }
 

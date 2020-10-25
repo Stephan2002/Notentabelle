@@ -25,15 +25,25 @@ session_write_close();
 
 $data = getData();
 
-if(isset($data["testID"]) && is_numeric($data["testID"])) {
+if(isset($data["testID"])) {
 
-    $testID = (int)$data["testID"];
+    if(is_int($data["testID"])) {
+
+        $testID = $data["testID"];
+
+    } else {
+
+        throwError(ERROR_BAD_INPUT);
+
+    }
 
 } else {
 
-    throwError(ERROR_BAD_INPUT);
+    throwError(ERROR_MISSING_INPUT);
 
 }
+
+
 
 if(!connectToDatabase()) {
 
@@ -49,9 +59,9 @@ if($test->error !== ERROR_NONE) {
 
 }
 
-if($test->data["isFolder"]) {
+if($test->isFolder) {
 
-    throwError(ERROR_BAD_INPUT);
+    throwError(ERROR_UNSUITABLE_INPUT);
 
 }
 
@@ -191,15 +201,15 @@ if(isset($test->data["classID"]) && $test->accessType !== Element::ACCESS_STUDEN
 
         if(!is_null($test->data["formula"])) {
 
-            $stmt = $mysqli->prepare("SELECT mark, points FROM marks WHERE testID = ? AND studentID = ?");
+            $stmt = $mysqli->prepare("SELECT mark, points, notes AS studentNotes FROM marks WHERE testID = ? AND studentID = ?");
 
         } elseif(!is_null($test->data["round"])) {
 
-            $stmt = $mysqli->prepare("SELECT mark FROM marks WHERE testID = ? AND studentID = ?");
+            $stmt = $mysqli->prepare("SELECT mark, notes AS studentNotes FROM marks WHERE testID = ? AND studentID = ?");
 
         } else {
 
-            $stmt = $mysqli->prepare("SELECT points FROM marks WHERE testID = ? AND studentID = ?");
+            $stmt = $mysqli->prepare("SELECT points, notes AS studentNotes FROM marks WHERE testID = ? AND studentID = ?");
 
         }
 
@@ -232,6 +242,12 @@ if(isset($test->data["classID"]) && $test->accessType !== Element::ACCESS_STUDEN
         if(!is_null($test->data["formula"]) || is_null($test->data["round"])) {
 
             $test->data["points"] = $result["points"];
+
+        }
+
+        if(isset($result["studentNotes"])) {
+
+            $test->data["studentNotes"] = $result["studentNotes"];
 
         }
 
