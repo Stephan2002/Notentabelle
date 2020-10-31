@@ -6,7 +6,7 @@ Laedt eine Pruefung.
 
 Input als JSON per POST:
     testID (OrdnerID)
-    isPublicTemplate
+    checkOnlyForTemplate
 
 */
 
@@ -51,7 +51,7 @@ if(!connectToDatabase()) {
 
 }
 
-$test = getTest($testID, $_SESSION["userid"], $_SESSION["type"] === "teacher" || $_SESSION["type"] === "admin", isset($data["isPublicTemplate"]));
+$test = getTest($testID, $_SESSION["userid"], $_SESSION["type"] === "teacher" || $_SESSION["type"] === "admin", isset($data["checkOnlyForTemplate"]));
 
 if($test->error !== ERROR_NONE) {
 

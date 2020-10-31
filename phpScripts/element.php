@@ -19,6 +19,8 @@ define("ERROR_ONLY_TEACHER",            7);     // Aktion nur fuer Lehrpersonen 
 define("ERROR_NO_WRITING_PERMISSION",   8);     // Benutzer hat nur Leserecht
 define("ERROR_UNKNOWN",                 10);    // Unbekannter / anderer Fehler
 
+define("INFO_NO_CHANGE",                11);    // Keine Veraenderungen vorgenommen
+
 function throwError(int $errorCode, int $occuredIn = -1) {
 
     if($occuredIn === -1) {
@@ -38,6 +40,27 @@ function throwError(int $errorCode, int $occuredIn = -1) {
 function finish() {
 
     echo "{\"error\":" . ERROR_NONE . "}";
+    exit;
+
+}
+
+function sendResponse($changes, int $errorCode = ERROR_NONE, int $occuredIn = NULL, int $newID = NULL) {
+
+    $obj = array("error" => $errorCode, "changes" => $changes);
+    
+    if(isset($occuredIn)) {
+
+        $obj["occuredIn"] = $occuredIn;
+
+    }
+
+    if(isset($newID)) {
+
+        $obj["newID"] = $newID;
+
+    }
+
+    echo json_encode($obj);
     exit;
 
 }
@@ -79,9 +102,9 @@ class Element {
     public $data; // array
 
     public $isRoot = false;
-    public $isForeign = false;
-    public $isTemplate = false;
     public $isFolder = false;
+    public $isTemplate = false;
+    public $isForeign = false;
     public $withMarks = false;
     public $withStudents = false;
 
@@ -120,6 +143,22 @@ class Element {
 
             unset($this->data["userID"]);
             unset($this->data["classUserID"]);
+
+            if(isset($this->data["students"])) {
+
+                $len = count($this->data["students"]);
+
+                for($i = 0; $i < $len; $i++) {
+
+                    if(isset($this->data["students"][$i]["deleteTimestamp"])) {
+
+                        unset($this->data["students"][$i]);
+
+                    }
+
+                }
+
+            }
 
         }
 

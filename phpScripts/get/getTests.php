@@ -8,7 +8,7 @@ Input als JSON per POST:
     testID (OrdnerID)
     semesterID (falls testID nicht angeben, weil kein Ordner, sondern Fach)
     withMarks
-    isPublicTemplate
+    checkOnlyForTemplate
 
 */
 
@@ -447,11 +447,11 @@ if(!isset($isNotMain)) {
     
     if(isset($testID)) {
         
-        $test = getTest($testID, $_SESSION["userid"], $_SESSION["type"] === "teacher" || $_SESSION["type"] === "admin", isset($data["isPublicTemplate"]));
+        $test = getTest($testID, $_SESSION["userid"], $_SESSION["type"] === "teacher" || $_SESSION["type"] === "admin", isset($data["checkOnlyForTemplate"]));
 
     } else {
 
-        $test = getSemester($semesterID, $_SESSION["userid"], $_SESSION["type"] === "teacher" || $_SESSION["type"] === "admin", isset($data["isPublicTemplate"]));
+        $test = getSemester($semesterID, $_SESSION["userid"], $_SESSION["type"] === "teacher" || $_SESSION["type"] === "admin", isset($data["checkOnlyForTemplate"]));
         
         $test->type = Element::TYPE_TEST;
         $test->isRoot = true;

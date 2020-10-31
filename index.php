@@ -214,7 +214,7 @@ if(isset($_GET["error"]) && is_numeric($_GET["error"])) {
 			
 			<?php 
 
-			if($logout || $error === 1 || $error === 2 || $error === 3 || $error === 4) {
+			if($logout || ($error !== 2 && $error !== 3 && $error !== 4)) {
 
 				echo "<script>if (typeof (localStorage) !== undefined) localStorage.removeItem('path');</script>";
 

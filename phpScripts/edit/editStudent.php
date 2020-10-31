@@ -17,23 +17,24 @@ Bei Fehlern wird nichts geaendert, ausser bei Fehlern bei:
         
 */
 
-function editStudent(Student $student, array &$data) : int {
+function editStudent(Student $student, array &$data) : array {
     
     global $mysqli;
 
     if($student->error !== ERROR_NONE) {
 
-        return $student->error;
+        return array("error" => $student->error);
 
     }
 
     $changedProperties = array();
+    $changes = false;
 
     if(array_key_exists("lastName", $data)) {
 
-        if(!is_string($data["lastName"]) || strlen($data["lastName"]) >= 64) {
+        if(!is_string($data["lastName"]) || $data["lastName"] === "" || strlen($data["lastName"]) >= 64) {
 
-            return ERROR_BAD_INPUT;
+            return array("error" => ERROR_BAD_INPUT);
 
         }
 
@@ -50,7 +51,7 @@ function editStudent(Student $student, array &$data) : int {
 
         if((!is_string($data["firstName"]) && !is_null($data["firstName"])) || strlen($data["firstName"] >= 64)) {
 
-            return ERROR_BAD_INPUT;
+            return array("error" => ERROR_BAD_INPUT);
 
         }
 
@@ -73,14 +74,14 @@ function editStudent(Student $student, array &$data) : int {
         
         if(!is_bool($data["isHidden"])) {
 
-            return ERROR_BAD_INPUT;
+            return array("error" => ERROR_BAD_INPUT);
 
         }
         
         if($data["isHidden"] != $student->data["isHidden"]) {
             
             $changedProperties["isHidden"] = (int)$data["isHidden"];
-            $student->data["isHidden"] = (int)$data["ishidden"];
+            $student->data["isHidden"] = (int)$data["isHidden"];
 
         }
 
@@ -90,7 +91,7 @@ function editStudent(Student $student, array &$data) : int {
         
         if(!is_null($data["gender"]) && $data["gender"] !== "m" && $data["gender"] !== "f" && $data["gender"] !== "d") {
 
-            return ERROR_BAD_INPUT;
+            return array("error" => ERROR_BAD_INPUT);
 
         }
         
@@ -103,7 +104,7 @@ function editStudent(Student $student, array &$data) : int {
 
     }
     
-    if(count($changedProperties) > 0) {
+    if(!empty($changedProperties)) {
 
         $queryString = "UPDATE students SET ";
         $parameterTypes = "";
@@ -136,6 +137,8 @@ function editStudent(Student $student, array &$data) : int {
         $stmt->execute();
         $stmt->close();
 
+        $changes = true;
+
     }
 
     if(array_key_exists("userName", $data)) {
@@ -158,13 +161,13 @@ function editStudent(Student $student, array &$data) : int {
                 
                 if(is_null($result)) {
 
-                    return ERROR_UNSUITABLE_INPUT;
+                    return array("error" => ERROR_UNSUITABLE_INPUT, "changes" => $changes);
 
                 }
                 
                 if($result["userID"] === $student->data["classUserID"]) {
 
-                    return ERROR_UNSUITABLE_INPUT;
+                    return array("error" => ERROR_UNSUITABLE_INPUT, "changes" => $changes);
 
                 }
                 
@@ -178,7 +181,7 @@ function editStudent(Student $student, array &$data) : int {
 
         } elseif(!is_null($data["userName"])) {
 
-            return ERROR_BAD_INPUT;
+            return array("error" => ERROR_BAD_INPUT, "changes" => $changes);
 
         }
 
@@ -309,6 +312,7 @@ function editStudent(Student $student, array &$data) : int {
 
             $stmt->close();
 
+            $changes = true;
 
         }
         
@@ -316,7 +320,7 @@ function editStudent(Student $student, array &$data) : int {
 
     }
 
-    return ERROR_NONE;
+    return array("error" => ERROR_NONE, "changes" => $changes);
 
 }
 
@@ -366,30 +370,43 @@ foreach($data as $key => &$currentStudentData) {
     
     }
 
+}
+
+$response = array();
+
+foreach($data as $key => &$currentStudentData) {
+
     $student = getStudent($currentStudentData["studentID"], $_SESSION["userid"]);
 
     if($student->error !== ERROR_NONE) {
         
-        throwError(ERROR_FORBIDDEN, $key);
+        sendResponse($response, $student->error, $key);
 
     }
 
     if(!$student->writingPermission) {
 
-        throwError(ERROR_NO_WRITING_PERMISSION, $key);
+        sendResponse($response, ERROR_NO_WRTITING_PERMISSION, $key);
 
     }
 
-    $errorCode = editStudent($student, $currentStudentData);
+    $errorAndChanges = editStudent($student, $currentStudentData);
 
-    if($errorCode !== ERROR_NONE) {
+    if(array_key_exists("changes", $errorAndChanges)) {
 
-        throwError($errorCode, $key);
+        $response[] = $errorAndChanges["changes"];
+
+    }
+
+    if($errorAndChanges["error"] !== ERROR_NONE) {
+
+        sendResponse($response, $errorAndChanges["error"], $key);
+        
 
     }
 
 }
 
-finish();
+sendResponse($response);
 
 ?>

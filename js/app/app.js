@@ -12,6 +12,8 @@ const ERROR_ONLY_TEACHER          = 7;     // Aktion nur fuer Lehrpersonen verfu
 const ERROR_NO_WRITING_PERMISSION = 8;     // Benutzer hat nur Leserecht
 const ERROR_UNKNOWN               = 10;    // Unbekannter / anderer Fehler
 
+const INFO_NO_CHANGE              = 11;    // Keine Veraenderungen vorgenommen
+
 const TYPE_SEMESTER = 0;
 const TYPE_TEST = 1;
 const TYPE_CLASS = 2;
@@ -274,7 +276,7 @@ function printElement() {
 
             }
 
-            if(currentChildData.referenceTestID) {
+            if(currentChildData.referenceTestID !== null) {
 
                 var currentString =
                 "<tr onclick='select(TYPE_TEST, " + currentChildData.referenceTestID + ", false, true)'>" +
@@ -412,10 +414,12 @@ function printElement() {
         if(currentElement.isRoot) {
 
             document.getElementById("tests_addFolderButtons").style.display = "none";
+            document.getElementById("tests_followRefButton").style.display = "none";
             document.getElementById("tests_empty_folders_templateButton").style.display = "none";
             document.getElementById("tests_empty_folders_instruction").style.display = "none";
 
             document.getElementById("tests_testButtons").style.display = "none";
+            document.getElementById("tests_refButtons").style.display = "none";
             document.getElementById("tests_folderButtons").style.display = "none";
             document.getElementById("tests_semesterButtons").style.display = "block";
             
@@ -499,10 +503,13 @@ function printElement() {
 
             document.getElementById("tests_semesterButtons").style.display = "none";
             document.getElementById("averageFooter_plusPoints_big").style.display = "none";
+            document.getElementById("tests_followRefButton").style.display = "none";
 
             if(currentElement.isFolder) {
 
+                document.getElementById("tests_followRefButton").style.display = "none";
                 document.getElementById("tests_testButtons").style.display = "none";
+                document.getElementById("tests_refButtons").style.display = "none";
                 document.getElementById("tests_folderButtons").style.display = "block";
 
                 if(currentElement.writingPermission && currentElement.accessType !== ACCESS_TEACHER) {
@@ -529,19 +536,47 @@ function printElement() {
 
             } else {
 
-                document.getElementById("tests_testButtons").style.display = "block";
                 document.getElementById("tests_folderButtons").style.display = "none";
                 document.getElementById("tests_deletedButton").style.display = "none";
                 document.getElementById("tests_table").style.display = "none";
                 document.getElementById("tests_showHiddenTests").style.display = "none";
+                
+                if(currentElement.data.referenceState === null) {
 
-                if(currentElement.writingPermission && currentElement.accessType !== ACCESS_TEACHER) {
+                    document.getElementById("tests_testButtons").style.display = "block";
+                    document.getElementById("tests_refButtons").style.display = "none";
 
-                    document.getElementById("tests_editTestButtons").style.display = "block";
+                    if(currentElement.writingPermission && currentElement.accessType !== ACCESS_TEACHER) {
+
+                        document.getElementById("tests_editTestButtons").style.display = "block";
+
+                    } else {
+
+                        document.getElementById("tests_editTestButtons").style.display = "none";
+
+                    }
 
                 } else {
 
-                    document.getElementById("tests_editTestButtons").style.display = "none";
+                    if(currentElement.data.referenceState === "ok" || currentElement.data.referenceState === "outdated" || currentElement.data.referenceState === "forbidden") {
+                        
+                        document.getElementById("tests_followRefButton").style.display = "inline-block";
+                        document.getElementById("tests_followRefButton").onclick = function() { select(TYPE_TEST, currentElement.data.referenceID); };
+
+                    }
+
+                    document.getElementById("tests_testButtons").style.display = "none";
+                    document.getElementById("tests_refButtons").style.display = "block";
+
+                    if(currentElement.writingPermission && currentElement.accessType !== ACCESS_TEACHER) {
+
+                        document.getElementById("tests_editRefButtons").style.display = "block";
+
+                    } else {
+
+                        document.getElementById("tests_editRefButtons").style.display = "none";
+
+                    }
 
                 }
 
@@ -649,6 +684,10 @@ function printElement() {
 
                         referenceString = "<td><img src='/img/warning.svg' alt='!' title='Nicht mehr auf aktuellem Stand!'>"
 
+                    } else if(currentChildData.referenceState === "template" && !currentElement.isTemplate) {
+
+                        referenceString = "<td><img src='/img/warning.svg' alt='!' title='Kein zu referenzierendes Element bestimmt!'>"
+
                     }
 
                 }
@@ -673,7 +712,7 @@ function printElement() {
 
                 }
 
-                if(currentChildData.referenceState === "ok" || currentChildData.referenceState === "outdated") {
+                /*if(currentChildData.referenceState === "ok" || currentChildData.referenceState === "outdated") {
 
                     tableString +=
                     "<tr class='" + colorClass + "' onclick='select(TYPE_TEST, " + currentChildData.referenceID + ", false, " + currentChildData.isFolder + ")'>" +
@@ -681,7 +720,7 @@ function printElement() {
                         "<td>" + formatDate(currentChildData.date) + "</td>" +
                         "<td>" + formatNumber(currentChildData.weight) + "</td>" +
                         "<td>" + (currentChildData.formula != null ? (currentChildData.points != null ? formatNumber(currentChildData.points) : "") : "") + "</td>" +
-                        "<td>" + ((currentChildData.classID === null && currentChildData.round != null && currentChildData.round != 0 && currentChildData.formula == null) ? (currentChildData.mark_unrounded != null ? formatNumber(currentChildData.mark_unrounded) : "") : "") + "</td>" +
+                        "<td>" + ((currentElement.data.classID === null && currentChildData.round != null && currentChildData.round != 0 && currentChildData.formula == null) ? (currentChildData.mark_unrounded != null ? formatNumber(currentChildData.mark_unrounded) : "") : "") + "</td>" +
                         "<td class='table_mark'>" + (currentChildData.round != null ? (currentChildData.mark != null ? formatNumber(currentChildData.mark) : "") : (currentChildData.points != null ? formatNumber(currentChildData.points) : "")) + "</td>" +
                         referenceString +
                         buttonString +
@@ -701,7 +740,19 @@ function printElement() {
                             buttonString +
                         "</tr>";
 
-                }
+                }*/
+
+                tableString +=
+                    "<tr class='" + colorClass + "' onclick='select(TYPE_TEST, " + currentChildData.testID + ", false, " + currentChildData.isFolder + ")'>" +
+                        "<td class='table_name'>" + escapeHTML(currentChildData.name) + "</td>" +
+                        "<td>" + formatDate(currentChildData.date) + "</td>" +
+                        "<td>" + formatNumber(currentChildData.weight) + "</td>" +
+                        "<td>" + (currentChildData.formula != null ? (currentChildData.points != null ? formatNumber(currentChildData.points) : "") : "") + "</td>" +
+                        "<td>" + ((currentElement.data.classID === null && currentChildData.round != null && currentChildData.round != 0 && currentChildData.formula == null) ? (currentChildData.mark_unrounded != null ? formatNumber(currentChildData.mark_unrounded) : "") : "") + "</td>" +
+                        "<td class='table_mark'>" + (currentChildData.round != null ? (currentChildData.mark != null ? formatNumber(currentChildData.mark) : "") : (currentChildData.points != null ? formatNumber(currentChildData.points) : "")) + "</td>" +
+                        referenceString +
+                        buttonString +
+                    "</tr>";
 
                 if(!pointsUsed) {
 
@@ -789,13 +840,15 @@ function printElement() {
 
                 document.getElementById("tests_studentButtons").style.display = "block";
 
-                if(currentElement.isFolder) {
-
-                    document.getElementById("tests_editStudentButton").style.display = "none";
+                if(currentElement.isFolder || currentElement.data.referenceState !== null) {
 
                     if(currentElement.data.formula === "manual") {
 
                         document.getElementById("tests_editStudentButton").style.display = "inline-block";
+
+                    } else {
+
+                        document.getElementById("tests_editStudentButton").style.display = "none";
 
                     }
 
@@ -1159,7 +1212,6 @@ function printElement() {
 
         }
 
-        document.getElementById("semesters_editButtons").style.display = "block";
         document.getElementById("title").innerHTML = escapeHTML(currentElement.data.name);
         document.getElementsByTagName("TITLE")[0].innerHTML = "Notentabelle - " + escapeHTML(currentElement.data.name);
 
@@ -1481,14 +1533,9 @@ function loadElementAndPrint() {
 
     }
 
-    var type = path[path.length - 1].type;
-    var ID = path[path.length - 1].ID;
-    var isRoot = path[path.length - 1].isRoot;
-    var isForeign = path[path.length - 1].isForeign;
-    var isFolder = path[path.length - 1].isFolder;
-    var isPublicTemplate = path[path.length - 1].isPublicTemplate;
+    var pathElement = path[path.length - 1];
 
-    if (type === TYPE_SEMESTER && isRoot && !isForeign) {
+    if (pathElement.type === TYPE_SEMESTER && pathElement.isRoot && pathElement.isTemplate && !pathElement.isForeign) {
         // Vorlagenauswahl
 
         if (!cache.rootTemplates) {
@@ -1512,15 +1559,15 @@ function loadElementAndPrint() {
 
         }
 
-    } else if (type === TYPE_SEMESTER && !isForeign) {
+    } else if (pathElement.type === TYPE_SEMESTER && !pathElement.isForeign) {
         // Semester
         
-        if (!cache.semesters[ID]) {
+        if (!cache.semesters[pathElement.ID]) {
             
-            loadData("/phpScripts/get/getSemesters.php", { semesterID: ID }, function (data) {
+            loadData("/phpScripts/get/getSemesters.php", { semesterID: pathElement.ID }, function (data) {
                 
                 currentElement = data;
-                cache.semesters[ID] = data;
+                cache.semesters[pathElement.ID] = data;
 
                 hideLoading();
 
@@ -1530,31 +1577,31 @@ function loadElementAndPrint() {
 
         } else {
 
-            currentElement = cache.semesters[ID];
+            currentElement = cache.semesters[pathElement.ID];
 
             isLoading = false;
 
         }
 
-    } else if (type === TYPE_TEST) {
+    } else if (pathElement.type === TYPE_TEST) {
         // Im Semester
 
-        if(isRoot) {
+        if(pathElement.isRoot) {
 
-            if (!cache.semesters[ID]) {
+            if (!cache.semesters[pathElement.ID]) {
 
-                var requestObject = { semesterID: ID, withMarks: true };
+                var requestObject = { semesterID: pathElement.ID, withMarks: true };
 
-                if(isPublicTemplate) {
+                if(pathElement.checkOnlyForTemplate) {
 
-                    requestObject.isPublicTemplate = true;
+                    requestObject.checkOnlyForTemplate = true;
     
                 }
             
                 loadData("/phpScripts/get/getTests.php", requestObject, function (data) {
                     
                     currentElement = data;
-                    cache.semesters[ID] = data;
+                    cache.semesters[pathElement.ID] = data;
     
                     hideLoading();
     
@@ -1564,7 +1611,7 @@ function loadElementAndPrint() {
     
             } else {
     
-                currentElement = cache.semesters[ID];
+                currentElement = cache.semesters[pathElement.ID];
     
                 isLoading = false;
     
@@ -1572,7 +1619,7 @@ function loadElementAndPrint() {
 
         } else {
 
-            if(isFolder) {
+            if(pathElement.isFolder) {
 
                 var url = "/phpScripts/get/getTests.php";
 
@@ -1582,20 +1629,20 @@ function loadElementAndPrint() {
 
             }
 
-            if (!cache.tests[ID]) {
+            if (!cache.tests[pathElement.ID]) {
 
-                var requestObject = { testID: ID, withMarks: true };
+                var requestObject = { testID: pathElement.ID, withMarks: true };
 
-                if(isPublicTemplate) {
+                if(pathElement.checkOnlyForTemplate) {
 
-                    requestObject.isPublicTemplate = true;
+                    requestObject.checkOnlyForTemplate = true;
     
                 }
                 
                 loadData(url, requestObject, function (data) {
                     
                     currentElement = data;
-                    cache.tests[ID] = data;
+                    cache.tests[pathElement.ID] = data;
     
                     hideLoading();
     
@@ -1605,7 +1652,7 @@ function loadElementAndPrint() {
     
             } else {
     
-                currentElement = cache.tests[ID];
+                currentElement = cache.tests[pathElement.ID];
     
                 isLoading = false;
     
@@ -1614,7 +1661,7 @@ function loadElementAndPrint() {
         }
 
 
-    } else if (type === TYPE_SEMESTER && isForeign) {
+    } else if (pathElement.type === TYPE_SEMESTER && pathElement.isForeign) {
         // Fremde Semester
 
         loadData("/phpScripts/get/getForeignSemesters.php", {}, function (data) {
@@ -1627,7 +1674,7 @@ function loadElementAndPrint() {
 
         isLoading = true;
 
-    } else if (type === TYPE_PUBLIC_TEMPLATES && isForeign) {
+    } else if (pathElement.type === TYPE_PUBLIC_TEMPLATES && pathElement.isForeign) {
         // Oeffenliche Vorlagen
 
         if (!publishInstalled) {
@@ -1638,7 +1685,7 @@ function loadElementAndPrint() {
 
         }
 
-    } else if (type === TYPE_PUBLIC_TEMPLATES) {
+    } else if (pathElement.type === TYPE_PUBLIC_TEMPLATES) {
         // Eigene veroeffentlichte Vorlagen
 
         if (!publishInstalled) {
@@ -1649,7 +1696,7 @@ function loadElementAndPrint() {
 
         }
 
-    } else if (user.isTeacher && type === TYPE_CLASS && isRoot && !isForeign) {
+    } else if (user.isTeacher && pathElement.type === TYPE_CLASS && pathElement.isRoot && !pathElement.isForeign) {
         // Klassenauswahl
 
         if (!cache.rootClasses) {
@@ -1673,7 +1720,7 @@ function loadElementAndPrint() {
 
         }
 
-    } else if (user.isTeacher && type === TYPE_CLASS && isRoot) {
+    } else if (user.isTeacher && pathElement.type === TYPE_CLASS && pathElement.isRoot) {
         // Fremde Klassen
 
         loadData("/phpScripts/get/getForeignClasses.php", {}, function (data) {
@@ -1686,15 +1733,15 @@ function loadElementAndPrint() {
 
         isLoading = true;
 
-    } else if (user.isTeacher && type === TYPE_CLASS) {
+    } else if (user.isTeacher && pathElement.type === TYPE_CLASS) {
         // In Klasse
 
-        if (!cache.classes[ID]) {
+        if (!cache.classes[pathElement.ID]) {
             
-            loadData("/phpScripts/get/getStudents.php", { classID: ID }, function (data) {
+            loadData("/phpScripts/get/getStudents.php", { classID: pathElement.ID }, function (data) {
                 
                 currentElement = data;
-                cache.classes[ID] = data;
+                cache.classes[pathElement.ID] = data;
 
                 hideLoading();
 
@@ -1704,7 +1751,7 @@ function loadElementAndPrint() {
 
         } else {
 
-            currentElement = cache.classes[ID];
+            currentElement = cache.classes[pathElement.ID];
 
             isLoading = false;
 
@@ -1718,7 +1765,7 @@ function loadElementAndPrint() {
 }
 
 // Wird aufgerufen, wenn ein Element ausgewaehlt wurde
-function select(elementType, elementID, isRoot = false, isFolder = true, isForeign = false, isPublicTemplate = false) {
+function select(elementType, elementID, isRoot = false, isFolder = true, checkOnlyForTemplate = false) {
 
     if(isBlocked) {
 
@@ -1726,15 +1773,35 @@ function select(elementType, elementID, isRoot = false, isFolder = true, isForei
 
     }
 
-    if(isPublicTemplate || (path.length > 0 && path[path.length - 1].isPublicTemplate)) {
+    if(checkOnlyForTemplate || (path.length > 0 && path[path.length - 1].checkOnlyForTemplate)) {
 
-        path.push({ type: elementType, ID: elementID, isRoot: isRoot, isFolder: isFolder, isForeign: isForeign, isPublicTemplate: true });
+        path.push({ type: elementType, ID: elementID, isRoot: isRoot, isFolder: isFolder, checkOnlyForTemplate: true });
 
     } else {
 
-        path.push({ type: elementType, ID: elementID, isRoot: isRoot, isFolder: isFolder, isForeign: isForeign });
+        path.push({ type: elementType, ID: elementID, isRoot: isRoot, isFolder: isFolder });
 
     }
+
+    if (typeof (localStorage) !== undefined) localStorage.setItem("path", JSON.stringify(path));
+
+    loadElementAndPrint();
+
+}
+
+function showOwnTemplates() {
+
+    path.push({ type: TYPE_SEMESTER, isRoot: true, isFolder: true, isTemplate: true, isForeign: false });
+
+    if (typeof (localStorage) !== undefined) localStorage.setItem("path", JSON.stringify(path));
+
+    loadElementAndPrint();
+
+}
+
+function showForeignSemesters() {
+
+    path.push({ type: TYPE_SEMESTER, isRoot: true, isFolder: true, isForeign: true });
 
     if (typeof (localStorage) !== undefined) localStorage.setItem("path", JSON.stringify(path));
 
@@ -1780,13 +1847,13 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("returnButton").onclick = returnFolder;
     document.getElementById("error_returnButton").onclick = returnFolder;
 
-    document.getElementById("semesters_templateButton").onclick = function() { select(TYPE_SEMESTER, null, true); };
-    document.getElementById("semesters_foreignSemestersButton").onclick = function() { select(TYPE_SEMESTER, null, true, true, true); };
+    document.getElementById("semesters_templateButton").onclick = showOwnTemplates;
+    document.getElementById("semesters_foreignSemestersButton").onclick = showForeignSemesters;
 
     if(user.isTeacher) {
 
-        document.getElementById("semesters_classButton").onclick = function() { select(TYPE_CLASS, null, true); };
-        document.getElementById("classes_foreignClassesButton").onclick = function() { select(TYPE_CLASS, null, true, true, true); };
+        document.getElementById("semesters_classButton").onclick = showRootClasses;
+        document.getElementById("classes_foreignClassesButton").onclick = showForeignClasses;
 
     }
 

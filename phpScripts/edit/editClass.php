@@ -16,23 +16,24 @@ Bei Fehlern wird nichts geaendert, ausser bei Fehlern bei:
 
 */
 
-function editClass(StudentClass $class, array &$data) : int {
+function editClass(StudentClass $class, array &$data) : array {
     
     global $mysqli;
 
     if($class->error !== ERROR_NONE) {
 
-        return $class->error;
+        return array("error" => $class->error);
 
     }
 
     $changedProperties = array();
+    $changes = false;
 
     if(array_key_exists("name", $data)) {
 
-        if(!is_string($data["name"]) || strlen($data["name"]) >= 64) {
+        if(!is_string($data["name"]) || $data["name"] === "" || strlen($data["name"]) >= 64) {
 
-            return ERROR_BAD_INPUT;
+            return array("error" => ERROR_BAD_INPUT);
 
         }
 
@@ -49,7 +50,7 @@ function editClass(StudentClass $class, array &$data) : int {
         
         if(!is_bool($data["isHidden"])) {
 
-            return ERROR_BAD_INPUT;
+            return array("error" => ERROR_BAD_INPUT);
 
         }
         
@@ -66,7 +67,7 @@ function editClass(StudentClass $class, array &$data) : int {
 
         if((!is_string($data["notes"]) && !is_null($data["notes"])) || strlen($data["notes"] >= 256)) {
 
-            return ERROR_BAD_INPUT;
+            return array("error" => ERROR_BAD_INPUT);
 
         }
 
@@ -86,7 +87,7 @@ function editClass(StudentClass $class, array &$data) : int {
     }
 
     
-    if(count($changedProperties) > 0) {
+    if(!empty($changedProperties)) {
 
         $queryString = "UPDATE classes SET ";
         $parameterTypes = "";
@@ -119,6 +120,8 @@ function editClass(StudentClass $class, array &$data) : int {
         $stmt->execute();
         $stmt->close();
 
+        $changes = true;
+
     }
 
     
@@ -126,7 +129,7 @@ function editClass(StudentClass $class, array &$data) : int {
         
         if(!is_array($data["permissions"])) {
 
-            return ERROR_BAD_INPUT;
+            return array("error" => ERROR_BAD_INPUT, "changes" => $changes);
 
         }
 
@@ -156,17 +159,29 @@ function editClass(StudentClass $class, array &$data) : int {
         
         foreach($data["permissions"] as &$currentPermission) {
 
-            if(!is_array($currentPermission) || !is_string($currentPermission["userName"]) || !array_key_exists("writingPermission", $currentPermission)) {
+            if(!is_array($currentPermission)) {
 
-                return ERROR_BAD_INPUT;
-
+                return array("error" => ERROR_BAD_INPUT, "changes" => $changes);
+    
+            }
+    
+            if(!isset($currentPermission["userName"]) || !array_key_exists("writingPermission", $currentPermission)) {
+    
+                return array("error" => ERROR_MISSING_INPUT, "changes" => $changes);
+    
+            }
+    
+            if(!is_string($currentPermission["userName"]) || (!is_null($currentPermission["writingPermission"]) && !is_bool($currentPermission["writingPermission"]))) {
+    
+                return array("error" => ERROR_BAD_INPUT, "changes" => $changes);
+    
             }
 
             $currentPermission["userName"] = strtolower($currentPermission["userName"]);
 
             if(isset($newPermissions[$currentPermission["userName"]])) {
 
-                return ERROR_UNSUITABLE_INPUT;
+                return array("error" => ERROR_UNSUITABLE_INPUT, "changes" => $changes);
 
             }
 
@@ -195,6 +210,55 @@ function editClass(StudentClass $class, array &$data) : int {
                 }
 
             }
+
+        }
+
+        if(!empty($permissionsToAdd)) {
+            
+            $stmt->prepare("SELECT userID, type FROM users WHERE userName = ? AND deleteTimestamp IS NULL");
+
+            foreach($permissionsToAdd as &$currentPermission) {
+                
+                $stmt->bind_param("s", $currentPermission["userName"]);
+                $stmt->execute();
+
+                $result = $stmt->get_result()->fetch_assoc();
+
+                if(is_null($result)) {
+
+                    return array("error" => ERROR_UNSUITABLE_INPUT, "changes" => $changes);
+
+                }
+
+                if($result["type"] !== "teacher" && $result["type"] !== "admin") {
+
+                    return array("error" => ERROR_UNSUITABLE_INPUT, "changes" => $changes);
+
+                }
+
+                if($result["userID"] === $class->data["userID"]) {
+
+                    return array("error" => ERROR_UNSUITABLE_INPUT, "changes" => $changes);
+
+                }
+
+                $currentPermission["userID"] = $result["userID"];
+
+            }
+
+            $arguments = array();
+            $parameterTypes = str_repeat("i", count($permissionsToAdd) * 3);
+            $queryFragment = str_repeat("(?, ?, ?), ", count($permissionsToAdd) - 1) . "(?, ?, ?)";
+
+            foreach($permissionsToAdd as &$currentPermission) {
+
+                array_push($arguments, $class->data["classID"], $currentPermission["userID"], $currentPermission["writingPermission"]);
+
+            }
+
+            $stmt->prepare("INSERT INTO permissions (classID, userID, writingPermission) VALUES (?, ?, ?)");
+            $stmt->bind_param($parameterTypes, ...$arguments);
+            $stmt->execute();
 
         }
         
@@ -229,60 +293,17 @@ function editClass(StudentClass $class, array &$data) : int {
 
         }
 
-        if(!empty($permissionsToAdd)) {
-            
-            $stmt->prepare("SELECT userID, type FROM users WHERE userName = ? AND deleteTimestamp IS NULL");
-
-            foreach($permissionsToAdd as &$currentPermission) {
-                
-                $stmt->bind_param("s", $currentPermission["userName"]);
-                $stmt->execute();
-
-                $result = $stmt->get_result()->fetch_assoc();
-
-                if(is_null($result)) {
-
-                    return ERROR_UNSUITABLE_INPUT;
-
-                }
-
-                if($result["type"] !== "teacher" && $result["type"] !== "admin") {
-
-                    return ERROR_UNSUITABLE_INPUT;
-
-                }
-
-                if($result["userID"] === $class->data["userID"]) {
-
-                    return ERROR_UNSUITABLE_INPUT;
-
-                }
-
-                $currentPermission["userID"] = $result["userID"];
-
-            }
-
-            $arguments = array();
-            $parameterTypes = str_repeat("i", count($permissionsToAdd) * 3);
-            $queryFragment = str_repeat("(?, ?, ?), ", count($permissionsToAdd) - 1) . "(?, ?, ?)";
-
-            foreach($permissionsToAdd as &$currentPermission) {
-
-                array_push($arguments, $class->data["classID"], $currentPermission["userID"], $currentPermission["writingPermission"]);
-
-            }
-
-            $stmt->prepare("INSERT INTO permissions (classID, userID, writingPermission) VALUES (?, ?, ?)");
-            $stmt->bind_param($parameterTypes, ...$arguments);
-            $stmt->execute();
-
-        }
-
         $stmt->close();
+
+        if(!empty($permissionsToAdd) || !empty($permissionsToChange) || !empty($permissionsToDelete)) {
+
+            $changes = true;
+    
+        }
 
     }
 
-    return ERROR_NONE;
+    return array("error" => ERROR_NONE, "changes" => $changes);
 
 }
 
@@ -322,40 +343,53 @@ foreach($data as $key => &$currentClassData) {
 
     if(!isset($currentClassData["classID"])) {
 
-        throwError(ERROR_MISSING_INPUT, $key);
+        throwError(ERROR_MISSING_INPUT);
 
     }
 
     if(!is_int($currentClassData["classID"])) {
 
-        throwError(ERROR_BAD_INPUT, $key);    
+        throwError(ERROR_BAD_INPUT);    
     
     }
+
+}
+
+$response = array();
+
+foreach($data as $key => &$currentClassData) {
 
     $class = getClass($currentClassData["classID"], $_SESSION["userid"]);
 
     if($class->error !== ERROR_NONE) {
 
-        throwError(ERROR_FORBIDDEN, $key);
+        sendResponse($response, $class->error, $key);
 
     }
 
     if($class->accessType !== Element::ACCESS_OWNER) {
 
-        throwError(ERROR_NO_WRITING_PERMISSION, $key);
+        sendResponse($response, ERROR_NO_WRITING_PERMISSION, $key);
 
     }
 
-    $errorCode = editClass($class, $currentClassData);
+    $errorAndChanges = editClass($class, $currentClassData);
 
-    if($errorCode !== ERROR_NONE) {
+    if(array_key_exists("changes", $errorAndChanges)) {
 
-        throwError($errorCode, $key);
+        $response[] = $errorAndChanges["changes"];
+
+    }
+
+    if($errorAndChanges["error"] !== ERROR_NONE) {
+
+        sendResponse($response, $errorAndChanges["error"], $key);
+        
 
     }
 
 }
 
-finish();
+sendResponse($response);
 
 ?>

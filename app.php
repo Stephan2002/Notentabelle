@@ -138,6 +138,8 @@ include("phpScripts/login.php");
                     </div>
                 </div>
 
+                <button class="button_big positive" id="tests_followRefButton" style="display: none">Zum referenzierten Element</button>
+
                 <div id="tests_empty_subjects">
                     <div class="info gray bigMargin">
                         <p class="blankLine_small">Kein sichtbares Fach vorhanden.</p>
@@ -237,6 +239,15 @@ include("phpScripts/login.php");
                     <div class="buttonGroup noMargin" id="tests_editTestButtons">
                         <button class="button_medium positive doubleLine"><img src="/img/edit.svg" alt="">Prüfung bearbeiten</button>
                         <button class="button_medium negative doubleLine"><img src="/img/delete.svg" alt="">Prüfung löschen</button>
+                    </div>
+                </div>
+
+                <div id="tests_refButtons" style="display: none;">
+                    <button id="tests_refInfoButton" class="button_big neutral withMargin"><img src="/img/info.svg" alt="">Verknüpfungsinfo</button>
+
+                    <div class="buttonGroup noMargin" id="tests_editRefButtons">
+                        <button class="button_medium positive doubleLine"><img src="/img/edit.svg" alt="">Verknüpfung bearbeiten</button>
+                        <button class="button_medium negative doubleLine"><img src="/img/delete.svg" alt="">Verknüpfung löschen</button>
                     </div>
                 </div>
 

@@ -233,7 +233,7 @@ function updateCurrentMark_Class(int $testID, array &$oldMarks, array &$newMarks
 
 
 
-function updateMarks(Test $test, bool $updateCurrent = true, int $recursionLevel = 5, bool $forceRecalc = false) {
+function updateMarks(Test $test, bool $updateCurrent = true, int $recursionLevel = 5, bool $keepOriginal = true, bool $forceRecalc = false) {
 
     global $mysqli;
 
@@ -249,7 +249,7 @@ function updateMarks(Test $test, bool $updateCurrent = true, int $recursionLevel
 
         if(!$test->withStudents) {
 
-            $stmt = $mysqli->prepare("SELECT students.studentID, students.isHidden, students.firstName, students.lastName, students.gender FROM students WHERE classID = ?");
+            $stmt = $mysqli->prepare("SELECT students.studentID, students.deleteTimestamp, students.isHidden, students.firstName, students.lastName, students.gender FROM students WHERE classID = ?");
             $stmt->bind_param("i", $test->data["classID"]);
             $stmt->execute();
 
@@ -744,14 +744,35 @@ function updateMarks(Test $test, bool $updateCurrent = true, int $recursionLevel
 
     if(!is_null($test->data["classID"])) {
 
-        $test->withMarks = false;
+        if($keepOriginal) {
+            
+            $studentsCopy = array();
 
-        foreach($test->data["students"] as &$student) {
+            foreach($test->data["students"] as $student) {
 
-            unset($student["mark"]);
-            unset($student["points"]);
-            unset($student["notes"]);
-            unset($student["hasNotes"]);
+                unset($student["mark"]);
+                unset($student["points"]);
+                unset($student["notes"]);
+                unset($student["hasNotes"]);
+
+                $studentsCopy[] = $student;
+    
+            }
+
+        } else {
+
+            $test->withMarks = false;
+
+            foreach($test->data["students"] as &$student) {
+
+                unset($student["mark"]);
+                unset($student["points"]);
+                unset($student["notes"]);
+                unset($student["hasNotes"]);
+    
+            }
+
+            $studentsCopy = &$test->data["students"];
 
         }
 
@@ -796,7 +817,7 @@ function updateMarks(Test $test, bool $updateCurrent = true, int $recursionLevel
                     foreach($results as &$newReference) {
 
                         $currentTest = new Test(ERROR_NONE, -1, true, $newReference);
-                        updateMarks($currentTest);
+                        updateMarks($currentTest, true, $recursionLevel - 1, false);
 
                     }
 
@@ -828,11 +849,11 @@ function updateMarks(Test $test, bool $updateCurrent = true, int $recursionLevel
                 if(!is_null($currentTest->data["classID"])) {
 
                     $currentTest->withStudents = true;
-                    $currentTest->data["students"] = &$test->data["students"];
+                    $currentTest->data["students"] = &$studentsCopy;
 
                 }
 
-                updateMarks($currentTest, true, $recursionLevel - 1);
+                updateMarks($currentTest, true, $recursionLevel - 1, false);
 
             }
 
@@ -868,11 +889,11 @@ function updateMarks(Test $test, bool $updateCurrent = true, int $recursionLevel
             if(!is_null($parentTest->data["classID"])) {
 
                 $parentTest->withStudents = true;
-                $parentTest->data["students"] = &$test->data["students"];
+                $parentTest->data["students"] = &$studentsCopy;
 
             }
             
-            updateMarks($parentTest, true, $recursionLevel);
+            updateMarks($parentTest, true, $recursionLevel, false);
 
 
         }
