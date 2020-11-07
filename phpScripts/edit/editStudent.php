@@ -28,7 +28,7 @@ function editStudent(Student $student, array &$data) : array {
     }
 
     $changedProperties = array();
-    $changes = false;
+    $changes = NULL;
 
     if(array_key_exists("lastName", $data)) {
 

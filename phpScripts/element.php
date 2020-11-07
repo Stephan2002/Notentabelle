@@ -401,7 +401,7 @@ function getTest(int $testID, int $userID, bool $isTeacher, bool $checkOnlyForTe
 
     global $mysqli;
 
-    $stmt = $mysqli->prepare("SELECT tests.*, semesters.userID, semesters.classID, semesters.templateType FROM tests INNER JOIN semesters ON tests.semesterID = semesters.semesterID WHERE tests.testID = ? AND tests.deleteTimestamp IS NULL");
+    $stmt = $mysqli->prepare("SELECT tests.*, semesters.userID, semesters.classID, semesters.templateType, tests2.semesterID AS referenceSemesterID FROM tests INNER JOIN semesters ON tests.semesterID = semesters.semesterID LEFT JOIN tests AS tests2 ON tests.referenceID = tests2.testID WHERE tests.testID = ? AND tests.deleteTimestamp IS NULL");
     $stmt->bind_param("i", $testID);
     $stmt->execute();
 
@@ -454,8 +454,10 @@ function getTest(int $testID, int $userID, bool $isTeacher, bool $checkOnlyForTe
 
             if($isTeacher && !$skipTeacherTest) {
 
+                $subjectID = isset($data["subjectID"]) ? $data["subjectID"] : $data["testID"];
+
                 $stmt->prepare("SELECT writingPermission FROM permissions WHERE userID = ? AND testID = ?");
-                $stmt->bind_param("ii", $userID, $data["subjectID"]);
+                $stmt->bind_param("ii", $userID, $subjectID);
                 $stmt->execute();
 
                 $teacherData = $stmt->get_result()->fetch_assoc();

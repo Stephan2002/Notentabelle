@@ -55,7 +55,7 @@ function editTest_updateFunc($test, $needsUpdate, $updateMarksIncluded) {
 
 };
 
-function editTest(Test $test, array &$data, bool $onlyMarks = false) : array {
+function editTest(Test $test, array &$data, int $userID, bool $isTeacher, bool $onlyMarks) : array {
     
     global $mysqli;
 
@@ -80,7 +80,7 @@ function editTest(Test $test, array &$data, bool $onlyMarks = false) : array {
         foreach(array_keys($data) as $key) {
 
             if($key !== "students") {
-                
+                echo "test";
                 return array("error" => ERROR_FORBIDDEN_FIELD);
 
             }
@@ -90,7 +90,7 @@ function editTest(Test $test, array &$data, bool $onlyMarks = false) : array {
     }
 
     $changedProperties = array();
-    $changes = false;
+    $changes = NULL;
 
     if(array_key_exists("name", $data)) {
 
@@ -160,13 +160,13 @@ function editTest(Test $test, array &$data, bool $onlyMarks = false) : array {
 
     if(array_key_exists("weight", $data)) {
 
-        if(!is_string($test->data["round"]) || !preg_match(REGEX_OTHER, $data["weight"])) {
+        if(!is_string($data["weight"]) || !preg_match(REGEX_OTHER, $data["weight"])) {
 
             return array("error" => ERROR_BAD_INPUT);
 
         }
 
-        if(is_null($test->data["weight"])) {
+        if($test->data["round"] === NULL) {
 
             return array("error" => ERROR_FORBIDDEN_FIELD);
 
@@ -185,9 +185,15 @@ function editTest(Test $test, array &$data, bool $onlyMarks = false) : array {
 
     if(array_key_exists("round", $data)) {
 
-        if(!is_string($test->data["round"]) || !preg_match(REGEX_OTHER, $data["round"])) {
+        if(!is_string($data["round"]) || !preg_match(REGEX_OTHER, $data["round"])) {
 
             return array("error" => ERROR_BAD_INPUT);
+
+        }
+
+        if($test->data["round"] === NULL) {
+
+            return array("error" => ERROR_FORBIDDEN_FIELD);
 
         }
 
@@ -328,8 +334,10 @@ function editTest(Test $test, array &$data, bool $onlyMarks = false) : array {
 
     }
 
+    $refHasChanged = false;
+    
     if(array_key_exists("referenceID", $data)) {
-
+        
         if(!is_int($data["referenceID"]) && !is_null($data["referenceID"])) {
 
             return array("error" => ERROR_BAD_INPUT);
@@ -342,15 +350,19 @@ function editTest(Test $test, array &$data, bool $onlyMarks = false) : array {
 
         }
 
-        if($data["referenceID"] === $test->data["testID"] || (!$test->isRoot && $data["referenceID"] === $test->data["parentID"])) {
+        if($data["referenceID"] !== NULL) {
 
-            return array("error" => ERROR_UNSUITABLE_INPUT);
+            if($data["referenceID"] === $test->data["testID"] || (!$test->isRoot && $data["referenceID"] === $test->data["parentID"])) {
+                
+                return array("error" => ERROR_UNSUITABLE_INPUT);
+
+            }
 
         }
 
         if(is_int($data["referenceID"])) {
 
-            $reference = getTest($data["referenceID"], $_SESSION["userid"], $_SESSION["type"] === "teacher" || $_SESSION["type"] === "admin", false, true);
+            $reference = getTest($data["referenceID"], $test->data["userID"], $isTeacher, false, true);
 
             if($reference->error !== ERROR_NONE) {
 
@@ -426,23 +438,60 @@ function editTest(Test $test, array &$data, bool $onlyMarks = false) : array {
 
             }
 
-            $changedProperties["referenceID"] = $data["referenceID"];
-            $changedProperties["referenceState"] = "ok";
+            if($test->data["referenceID"] !== $data["referenceID"]) {
 
-            $test->data["referenceID"] = $data["referenceID"];
-            $test->data["referenceState"] = "ok";
+                $changedProperties["referenceID"] = $data["referenceID"];
+                $changedProperties["referenceState"] = "ok";
+                
+                $test->data["referenceSemesterID"] = $reference->data["semesterID"];
+
+                $refHasChanged = true;
+
+            }
 
         } else {
 
-            $changedProperties["referenceID"] = NULL;
-            $changedProperties["referenceState"] = "template";
+            if($test->data["referenceState"] !== "template") {
 
-            $test->data["referenceID"] = NULL;
-            $test->data["referenceState"] = "template";
+                $changedProperties["referenceID"] = NULL;
+                $changedProperties["referenceState"] = "template";
+
+                $test->data["referenceSemesterID"] = NULL;
+
+                $refHasChanged = true;
+
+            }
 
         }
 
-        $needsRecalc = true;
+        if($refHasChanged) {
+
+            if($test->data["referenceState"] === "outdated" || $test->data["referenceState"] === "ok") {
+
+                $stmt = $mysqli->prepare("UPDATE tests SET isReferenced = 0 WHERE tests.testID = ? AND tests.isReferenced = 1 AND NOT EXISTS(SELECT 1 FROM tests AS tests2 WHERE tests2.referenceID = tests.testID AND tests2.testID != ?)");
+                $stmt->bind_param("ii", $test->data["referenceID"], $test->data["testID"]);
+                $stmt->execute();
+
+                $stmt->close();
+
+            }
+
+            $test->data["referenceID"] = $changedProperties["referenceID"];
+            $test->data["referenceState"] = $changedProperties["referenceState"];
+
+            if($test->data["referenceState"] === "ok") {
+
+                $stmt = $mysqli->prepare("UPDATE tests SET isReferenced = 1 WHERE testID = ? AND isReferenced = 0");
+                $stmt->bind_param("i", $test->data["referenceID"]);
+                $stmt->execute();
+
+                $stmt->close();
+
+            }
+
+            $needsRecalc = true;
+
+        }
 
     }
     
@@ -479,7 +528,15 @@ function editTest(Test $test, array &$data, bool $onlyMarks = false) : array {
         $stmt->execute();
         $stmt->close();
 
-        $changes = true;
+        if($needsRecalc || $needsUpdate) {
+
+            $changes = true;
+
+        } else {
+
+            $changes = false;
+
+        }
 
     }
 
@@ -498,43 +555,19 @@ function editTest(Test $test, array &$data, bool $onlyMarks = false) : array {
 
         if(is_null($test->data["classID"])) {
 
-            $stmt = $mysqli->prepare("SELECT mark, points FROM marks WHERE testID = ?");
-            $stmt->bind_param("i", $test->data["testID"]);
-            $stmt->execute();
-    
-            $result = $stmt->get_result()->fetch_assoc();
-            $stmt->close();
-    
-            if(is_null($result)) {
-    
-                $test->data["points"] = NULL;
-                $test->data["mark"] = NULL;
-    
-            } else {
-    
-                $test->data["points"] = $result["points"];
-                $test->data["mark"] = $result["mark"];
-    
-            }
-
             $changes = array("mark" => $test->data["mark"], "points" => $test->data["points"]);
 
         } else {
 
-            $stmt = $mysqli->prepare("SELECT students.studentID, students.deleteTimestamp, students.isHidden, students.firstName, students.lastName, students.gender, marks.points, marks.mark, marks.notes FROM students LEFT JOIN marks ON (marks.studentID = students.studentID AND marks.testID = ?) WHERE students.classID = ?");
-            $stmt->bind_param("ii", $test->data["testID"], $test->data["classID"]);
-            $stmt->execute();
-
-            $test->data["students"] = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-            $test->withStudents = true;
-
-            $stmt->close();
-
-            $changes = array("students" => &$test->data["students"]);
+            $changes = array("students" => $test->data["students"]);
 
         }
 
-        $test->withMarks = true;
+        if($refHasChanged) {
+
+            $changes["referenceSemesterID"] = $test->data["referenceSemesterID"];
+
+        }
 
     }
 
@@ -543,22 +576,24 @@ function editTest(Test $test, array &$data, bool $onlyMarks = false) : array {
         if(!is_null($data["mark"]) && (!is_string($data["mark"]) || !preg_match(REGEX_MARK, $data["mark"]))) {
 
             editTest_updateFunc($test, $needsUpdate, $updateMarksIncluded);
-            return array("error" => ERROR_BAD_INPUT, "changes" => &$changes);
+            return array("error" => ERROR_BAD_INPUT, "changes" => $changes);
 
         }
 
         if(
-            $test->isTemplate ||
-            !is_null($test->data["classID"]) ||
-            is_null($test->data["round"]) ||
-            ((
+            $test->data["formula"] !== "manual" &&
+            (
+                $test->data["classID"] !== NULL ||
+                $test->isTemplate ||
                 $test->isFolder ||
-                !is_null($test->data["referenceState"])
-            ) && $test->data["formula"] !== "manual")
+                $test->data["referenceState"] !== NULL ||
+                $test->data["round"] === NULL ||
+                $test->data["formula"] !== NULL
+            )
         ) {
 
             editTest_updateFunc($test, $needsUpdate, $updateMarksIncluded);
-            return array("error" => ERROR_FORBIDDEN_FIELD, "changes" => &$changes);
+            return array("error" => ERROR_FORBIDDEN_FIELD, "changes" => $changes);
 
         }
 
@@ -569,20 +604,20 @@ function editTest(Test $test, array &$data, bool $onlyMarks = false) : array {
         if(!is_null($data["points"]) && (!is_string($data["points"]) || !preg_match(REGEX_OTHER, $data["points"]))) {
 
             editTest_updateFunc($test, $needsUpdate, $updateMarksIncluded);
-            return array("error" => ERROR_BAD_INPUT, "changes" => &$changes);
+            return array("error" => ERROR_BAD_INPUT, "changes" => $changes);
 
         }
 
         if(
             $test->isTemplate ||
             !is_null($test->data["classID"]) || 
-            !is_null($test->data["round"]) && is_null($test->data["formula"]) ||
+            (!is_null($test->data["round"]) && is_null($test->data["formula"])) ||
             $test->isFolder ||
             !is_null($test->data["referenceState"])
         ) {
 
             editTest_updateFunc($test, $needsUpdate, $updateMarksIncluded);
-            return array("error" => ERROR_FORBIDDEN_FIELD, "changes" => &$changes);
+            return array("error" => ERROR_FORBIDDEN_FIELD, "changes" => $changes);
 
         }
 
@@ -593,7 +628,7 @@ function editTest(Test $test, array &$data, bool $onlyMarks = false) : array {
         if(!is_array($data["students"])) {
 
             editTest_updateFunc($test, $needsUpdate, $updateMarksIncluded);
-            return array("error" => ERROR_BAD_INPUT, "changes" => &$changes);
+            return array("error" => ERROR_BAD_INPUT, "changes" => $changes);
 
         }
 
@@ -604,14 +639,14 @@ function editTest(Test $test, array &$data, bool $onlyMarks = false) : array {
             if(!isset($student["studentID"])) {
 
                 editTest_updateFunc($test, $needsUpdate, $updateMarksIncluded);
-                return array("error" => ERROR_MISSING_INPUT, "changes" => &$changes);
+                return array("error" => ERROR_MISSING_INPUT, "changes" => $changes);
 
             }
 
             if(!is_int($student["studentID"])) {
 
                 editTest_updateFunc($test, $needsUpdate, $updateMarksIncluded);
-                return array("error" => ERROR_BAD_INPUT, "changes" => &$changes);
+                return array("error" => ERROR_BAD_INPUT, "changes" => $changes);
 
             }
 
@@ -620,7 +655,7 @@ function editTest(Test $test, array &$data, bool $onlyMarks = false) : array {
                 if(!is_string($student["points"]) || !preg_match(REGEX_OTHER, $student["points"])) {
 
                     editTest_updateFunc($test, $needsUpdate, $updateMarksIncluded);
-                    return array("error" => ERROR_BAD_INPUT, "changes" => &$changes);
+                    return array("error" => ERROR_BAD_INPUT, "changes" => $changes);
 
                 }
 
@@ -631,7 +666,7 @@ function editTest(Test $test, array &$data, bool $onlyMarks = false) : array {
                 if(!is_string($student["mark"]) || !preg_match(REGEX_MARK, $student["mark"])) {
 
                     editTest_updateFunc($test, $needsUpdate, $updateMarksIncluded);
-                    return array("error" => ERROR_BAD_INPUT, "changes" => &$changes);
+                    return array("error" => ERROR_BAD_INPUT, "changes" => $changes);
 
                 }
 
@@ -644,7 +679,7 @@ function editTest(Test $test, array &$data, bool $onlyMarks = false) : array {
                 if((!is_string($student["notes"]) && !is_null($student["notes"])) || strlen($student["notes"] >= 256)) {
 
                     editTest_updateFunc($test, $needsUpdate, $updateMarksIncluded);
-                    return array("error" => ERROR_BAD_INPUT, "changes" => &$changes);
+                    return array("error" => ERROR_BAD_INPUT, "changes" => $changes);
         
                 }
 
@@ -661,7 +696,7 @@ function editTest(Test $test, array &$data, bool $onlyMarks = false) : array {
         if(is_null($test->data["classID"])) {
 
             editTest_updateFunc($test, $needsUpdate, $updateMarksIncluded);
-            return array("error" => ERROR_FORBIDDEN_FIELD, "changes" => &$changes);
+            return array("error" => ERROR_FORBIDDEN_FIELD, "changes" => $changes);
 
         }
 
@@ -678,7 +713,7 @@ function editTest(Test $test, array &$data, bool $onlyMarks = false) : array {
                 if(array_key_exists("mark", $student)) {
 
                     editTest_updateFunc($test, $needsUpdate, $updateMarksIncluded);
-                    return array("error" => ERROR_FORBIDDEN_FIELD, "changes" => &$changes);
+                    return array("error" => ERROR_FORBIDDEN_FIELD, "changes" => $changes);
 
                 }
     
@@ -697,7 +732,7 @@ function editTest(Test $test, array &$data, bool $onlyMarks = false) : array {
                 if(array_key_exists("points", $student)) {
 
                     editTest_updateFunc($test, $needsUpdate, $updateMarksIncluded);
-                    return array("error" => ERROR_FORBIDDEN_FIELD, "changes" => &$changes);
+                    return array("error" => ERROR_FORBIDDEN_FIELD, "changes" => $changes);
 
                 }
     
@@ -734,14 +769,14 @@ function editTest(Test $test, array &$data, bool $onlyMarks = false) : array {
                 if(!isset($students[$student["studentID"]])) {
 
                     editTest_updateFunc($test, $needsUpdate, $updateMarksIncluded);
-                    return array("error" => ERROR_UNSUITABLE_INPUT, "changes" => &$changes);
+                    return array("error" => ERROR_UNSUITABLE_INPUT, "changes" => $changes);
 
                 }
 
                 if(!is_null($students[$student["studentID"]]["deleteTimestamp"])) {
 
                     editTest_updateFunc($test, $needsUpdate, $updateMarksIncluded);
-                    return array("error" => ERROR_UNSUITABLE_INPUT, "changes" => &$changes);
+                    return array("error" => ERROR_UNSUITABLE_INPUT, "changes" => $changes);
 
                 }
 
@@ -749,6 +784,12 @@ function editTest(Test $test, array &$data, bool $onlyMarks = false) : array {
 
             include_once($_SERVER["DOCUMENT_ROOT"] . "/phpScripts/updateMarks.php");
             $updateMarksIncluded = true;
+
+            if($test->data["formula"] !== NULL && $test->data["formula"] !== "manual") {
+
+                calculateMarkFromPoints_Class($test->data["formula"], $test->data["maxPoints"], $students, true);
+    
+            }
 
             $hasChanged = updateCurrentMark_Class($test->data["testID"], $students, $data["students"]);
             
@@ -764,7 +805,13 @@ function editTest(Test $test, array &$data, bool $onlyMarks = false) : array {
     
                 }
     
-                $changes = array("students" => &$test->data["students"]);
+                $changes = array("students" => $test->data["students"]);
+
+                if($refHasChanged) {
+
+                    $changes["referenceSemesterID"] = $test->data["referenceSemesterID"];
+        
+                }
 
             }
 
@@ -774,7 +821,7 @@ function editTest(Test $test, array &$data, bool $onlyMarks = false) : array {
 
     if(array_key_exists("mark", $data) || array_key_exists("points", $data)) {
 
-        if(!$test->withStudent) {
+        if(!$test->withStudents) {
 
             $stmt = $mysqli->prepare("SELECT mark, points FROM marks WHERE testID = ?");
             $stmt->bind_param("i", $test->data["testID"]);
@@ -799,11 +846,17 @@ function editTest(Test $test, array &$data, bool $onlyMarks = false) : array {
 
         }
 
+        include_once($_SERVER["DOCUMENT_ROOT"] . "/phpScripts/updateMarks.php");
+        $updateMarksIncluded = true;
+
         $newPoints = isset($data["points"]) ? $data["points"] : NULL;
         $newMark = isset($data["mark"]) ? $data["mark"] : NULL;
 
-        include_once($_SERVER["DOCUMENT_ROOT"] . "/phpScripts/updateMarks.php");
-        $updateMarksIncluded = true;
+        if($test->data["formula"] !== NULL && $test->data["formula"] !== "manual") {
+
+            $newMark = calculateMarkFromPoints($test->data["formula"], $test->data["maxPoints"], $newPoints);
+
+        }
 
         $hasChanged = updateCurrentMark($test->data["testID"], $test->data["mark"], $test->data["points"], $newMark, $newPoints);
 
@@ -816,6 +869,12 @@ function editTest(Test $test, array &$data, bool $onlyMarks = false) : array {
 
             $changes = array("mark" => $test->data["mark"], "points" => $test->data["points"]);
 
+            if($refHasChanged) {
+
+                $changes["referenceSemesterID"] = $test->data["referenceSemesterID"];
+    
+            }
+
         }
 
     }
@@ -826,13 +885,13 @@ function editTest(Test $test, array &$data, bool $onlyMarks = false) : array {
         
         if(!is_array($data["permissions"])) {
 
-            return array("error" => ERROR_BAD_INPUT, "changes" => &$changes);
+            return array("error" => ERROR_BAD_INPUT, "changes" => $changes);
 
         }
 
         if(!is_null($test->data["parentID"]) || $test->isTemplate) {
             
-            return array("error" => ERROR_FORBIDDEN_FIELD, "changes" => &$changes);
+            return array("error" => ERROR_FORBIDDEN_FIELD, "changes" => $changes);
     
         }
         
@@ -842,21 +901,21 @@ function editTest(Test $test, array &$data, bool $onlyMarks = false) : array {
         
         if($errorCode === ERROR_NONE) {
 
-            if($changes === false) {
+            if($changes === NULL) {
 
-                $changes = true;
+                $changes = false;
 
             }
 
         } elseif($errorCode !== INFO_NO_CHANGE) {
 
-            return array("error" => $errorCode, "changes" => &$changes);
+            return array("error" => $errorCode, "changes" => $changes);
 
         }
 
     }
 
-    return array("error" => ERROR_NONE, "changes" => &$changes);
+    return array("error" => ERROR_NONE, "changes" => $changes);
 
 }
 
@@ -906,7 +965,7 @@ $response = array();
 
 foreach($data as $key => &$currentTestData) {
 
-    $test = getTest((int)$currentTestData["testID"], $_SESSION["userid"], $_SESSION["type"] === "admin" || $_SESSION["type"] === "admin");
+    $test = getTest((int)$currentTestData["testID"], $_SESSION["userid"], $_SESSION["type"] === "teacher" || $_SESSION["type"] === "admin");
 
     if($test->error !== ERROR_NONE) {
 
@@ -920,7 +979,7 @@ foreach($data as $key => &$currentTestData) {
 
     }
 
-    $errorAndChanges = editTest($test, $currentTestData, is_null($test->data["parentID"]) && $test->accessType === Element::ACCESS_TEACHER);
+    $errorAndChanges = editTest($test, $currentTestData, $_SESSION["userid"], $_SESSION["type"] === "teacher" || $_SESSION["type"] === "admin", is_null($test->data["parentID"]) && $test->accessType === Element::ACCESS_TEACHER);
 
     if(array_key_exists("changes", $errorAndChanges)) {
 

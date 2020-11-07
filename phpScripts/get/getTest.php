@@ -61,7 +61,18 @@ if($test->error !== ERROR_NONE) {
 
 if($test->isFolder) {
 
-    throwError(ERROR_UNSUITABLE_INPUT);
+    $isNotMain = true;
+    include($_SERVER["DOCUMENT_ROOT"] . "/phpScripts/get/getTests.php");
+
+    $errorCode = getTests($test, true);
+
+    if($errorCode !== ERROR_NONE) {
+
+        throwError($errorCode);
+
+    }
+
+    $test->sendResponse();
 
 }
 

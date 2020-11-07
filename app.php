@@ -57,19 +57,16 @@ include("phpScripts/login.php");
 
         <div class="panel" id="semesters_div" style="display: none">
             <div class="container">
-                <div class="buttonGroup">
-                    <button id="semesters_button_newSemester" class="button_medium positive">Neues Semester</button>
+                <button class="button_big positive withMargin">Neues Semester</button>
+
+                <div class="buttonGroup noMargin">
+                    <button class="button_medium positive">Neue Vorlage</button>
                     <button class="button_medium positive">Neuer Ordner</button>
                 </div>
                 
-                <div id="semesters_empty_semesters" class="info gray bigMargin">
-                    <p class="blankLine_small">Kein sichtbares Semester vorhanden.</p>
-                    <p>Fügen Sie ein Semester oder einen Ordner mit den obigen Knöpfen ein.</p>
-                </div>
-
-                <div id="semesters_empty_templates" class="info gray bigMargin">
-                    <p class="blankLine_small">Keine sichtbare Vorlage vorhanden.</p>
-                    <p>Fügen Sie eine Vorlage oder einen Ordner mit den obigen Knöpfen ein.</p>
+                <div id="semesters_empty" class="info gray bigMargin">
+                    <p class="blankLine_small">Kein sichtbares Element vorhanden.</p>
+                    <p>Fügen Sie ein Semester, eine Vorlage oder einen Ordner mit den obigen Knöpfen ein.</p>
                 </div>
             </div>
 
@@ -89,17 +86,20 @@ include("phpScripts/login.php");
                 </table>
             </div>
 
+            <div id="semesters_templates" style="display: none">
+                <h2>Vorlagen</h2>
+                <table>
+                    <tbody id="semesters_templates_tableBody">
+                    </tbody>
+                </table>
+            </div>
+
             <div class="container">
-                <div class="buttonGroup" id="semesters_linkButtons">
-                    <?php 
-                        if($_SESSION["type"] === "teacher" || $_SESSION["type"] === "admin") {
-                            echo "<button id='semesters_templateButton' class='button_medium positive'>Vorlagen</button>";
-                            echo "<button id='semesters_classButton' class='button_medium positive'>Klassen</button>";
-                        } else {
-                            echo "<button id='semesters_templateButton' class='button_big positive'>Vorlagen</button>";
-                        } 
-                    ?>
-                </div>
+                <?php 
+                    if($_SESSION["type"] === "teacher" || $_SESSION["type"] === "admin") {
+                        echo "<button id='semesters_classButton' class='button_big positive withMargin'>Klassen</button>";
+                    }
+                ?>
                 
                 <div class="buttonGroup" id="semesters_templateButtons">
                     <button class="button_big positive">Öffentliche Vorlagen</button>
@@ -205,6 +205,10 @@ include("phpScripts/login.php");
                 <?php if($_SESSION["type"] === "teacher" || $_SESSION["type"] === "admin") { ?>
                     
                 <div id="tests_studentButtons">
+                    <div class="info gray bigMargin" id="tests_noMarks" style="display: none;">
+                        <p class="blankLine_small">Kein/e Schüler/in hat Noten oder Punkte.</p>
+                        <p id="tests_noMarks_instruction">Fügen Sie Noten/Punkte hinzu, indem Sie Knopf unten benutzen.</p>
+                    </div>
                     <button id="tests_editStudentButton" class="button_big positive withMargin">Noten / Punkte bearbeiten</button>
                     <button class="button_big positive withMargin">Versteckte Schüler/innen anzeigen</button>
                     <button class="button_big positive">Schüler/innen ohne Noten anzeigen</button>
@@ -357,7 +361,7 @@ include("phpScripts/login.php");
                 <div id="students_empty">
                     <div class="info gray bigMargin">
                         <p class="blankLine_small">Keine sichtbaren Schüler/innen vorhanden.</p>
-                        <p>Fügen Sie eine Klasse mit dem obigen Knopf ein.</p>
+                        <p id="students_empty_instruction">Fügen Sie eine/n Schüler/in mit dem obigen Knopf ein.</p>
                     </div>
                 </div>
             </div>

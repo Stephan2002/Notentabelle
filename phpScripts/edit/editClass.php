@@ -27,7 +27,7 @@ function editClass(StudentClass $class, array &$data) : array {
     }
 
     $changedProperties = array();
-    $changes = false;
+    $changes = NULL;
 
     if(array_key_exists("name", $data)) {
 
@@ -120,7 +120,7 @@ function editClass(StudentClass $class, array &$data) : array {
         $stmt->execute();
         $stmt->close();
 
-        $changes = true;
+        $changes = false;
 
     }
 
@@ -297,7 +297,7 @@ function editClass(StudentClass $class, array &$data) : array {
 
         if(!empty($permissionsToAdd) || !empty($permissionsToChange) || !empty($permissionsToDelete)) {
 
-            $changes = true;
+            $changes = false;
     
         }
 

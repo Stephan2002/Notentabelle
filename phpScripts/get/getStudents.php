@@ -70,17 +70,15 @@ if(!isset($isNotMain)) {
 
     }
 
-    $classID = (int)$data["classID"];
-
     if(!connectToDatabase()) {
 
         throwError(ERROR_UNKNOWN);
 
     }
 
-    $class = getClass($classID, $_SESSION["userid"]);
+    $class = getClass($data["classID"], $_SESSION["userid"]);
 
-    if($class->error != ERROR_NONE) {
+    if($class->error !== ERROR_NONE) {
 
         throwError($class->error);
 

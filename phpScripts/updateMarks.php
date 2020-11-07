@@ -309,7 +309,7 @@ function updateMarks(Test $test, bool $updateCurrent = true, int $recursionLevel
 
             }
 
-            $students[$student["studentID"]]["hasNotes"] = false;
+            $students[$student["studentID"]]["hasNotes"] = 0;
             unset($students[$student["studentID"]]["notes"]);
 
         }
@@ -747,6 +747,7 @@ function updateMarks(Test $test, bool $updateCurrent = true, int $recursionLevel
         if($keepOriginal) {
             
             $studentsCopy = array();
+            unset($student);
 
             foreach($test->data["students"] as $student) {
 
@@ -836,7 +837,7 @@ function updateMarks(Test $test, bool $updateCurrent = true, int $recursionLevel
             $queryFragment = str_repeat("?, ", count($parentIDs) - 1) . "?";
             $parameterTypes = str_repeat("i", count($parentIDs));
 
-            $stmt->prepare("SELECT tests.*, semesters.userID, semesters.classID, semesters.templateType FROM tests INNER JOIN semesters ON tests.semesterID = semesters.semesterID WHERE tests.testID IN (" . $queryFragment . ")");
+            $stmt->prepare("SELECT tests.*, semesters.userID, semesters.classID FROM tests INNER JOIN semesters ON tests.semesterID = semesters.semesterID WHERE tests.testID IN (" . $queryFragment . ")");
             $stmt->bind_param($parameterTypes, ...$parentIDs);
             $stmt->execute();
 
@@ -879,7 +880,7 @@ function updateMarks(Test $test, bool $updateCurrent = true, int $recursionLevel
 
         if(!is_null($test->data["parentID"])) {
 
-            $stmt = $mysqli->prepare("SELECT tests.*, semesters.userID, semesters.classID, semesters.templateType FROM tests INNER JOIN semesters ON tests.semesterID = semesters.semesterID WHERE tests.testID = ?");
+            $stmt = $mysqli->prepare("SELECT tests.*, semesters.userID, semesters.classID FROM tests INNER JOIN semesters ON tests.semesterID = semesters.semesterID WHERE tests.testID = ?");
             $stmt->bind_param("i", $test->data["parentID"]);
             $stmt->execute();
 

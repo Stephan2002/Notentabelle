@@ -38,7 +38,6 @@ var cache = {
     semesters: [],
     tests: [],
     rootSemesters: undefined,
-    rootTemplates: undefined,
     publishedTemplates: undefined
 
 };
@@ -264,6 +263,7 @@ function printElement() {
         // Semesterauswahl / Vorlagenauswahl
 
         var semesterString = "";
+        var templateString = "";
         var folderString = "";
 
         for (var i = 0; i < currentElement.childrenData.length; i++) {
@@ -306,6 +306,10 @@ function printElement() {
 
                 folderString += currentString;
 
+            } else if(currentChildData.templateType !== null) {
+
+                templateString += currentString;
+
             } else {
 
                 semesterString += currentString;
@@ -325,6 +329,17 @@ function printElement() {
 
         }
 
+        if (templateString === "") {
+
+            document.getElementById("semesters_templates").style.display = "none";
+
+        } else {
+
+            document.getElementById("semesters_templates").style.display = "initial";
+            document.getElementById("semesters_templates_tableBody").innerHTML = templateString;
+
+        }
+
         if (folderString === "") {
 
             document.getElementById("semesters_folders").style.display = "none";
@@ -336,58 +351,22 @@ function printElement() {
 
         }
 
-        if (semesterString === "" && folderString === "") {
+        if (semesterString === "" && templateString === "" && folderString === "") {
 
-            if (currentElement.isTemplate) {
-
-                document.getElementById("semesters_empty_templates").style.display = "inline-block";
-                document.getElementById("semesters_empty_semesters").style.display = "none";
-
-            } else {
-
-                document.getElementById("semesters_empty_templates").style.display = "none";
-                document.getElementById("semesters_empty_semesters").style.display = "inline-block";
-
-            }
+            document.getElementById("semesters_empty").style.display = "inline-block";
 
         } else {
 
-            document.getElementById("semesters_empty_templates").style.display = "none";
-            document.getElementById("semesters_empty_semesters").style.display = "none";
-
-        }
-
-        if (currentElement.isTemplate) {
-
-            document.getElementById("semesters_linkButtons").style.display = "none";
-            document.getElementById("semesters_templateButtons").style.display = "initial";
-            document.getElementById("semesters_button_newSemester").innerHTML = "Neue Vorlage";
-
-        } else {
-
-            document.getElementById("semesters_linkButtons").style.display = "initial";
-            document.getElementById("semesters_templateButtons").style.display = "none";
-            document.getElementById("semesters_button_newSemester").innerHTML = "Neues Semester";
+            document.getElementById("semesters_empty").style.display = "none";
 
         }
 
         if (currentElement.isRoot) {
 
             document.getElementById("semesters_editButtons").style.display = "none";
-
-            if (currentElement.isTemplate) {
-
-                document.getElementById("title").innerHTML = "Vorlagen";
-                document.getElementsByTagName("TITLE")[0].innerHTML = "Notentabelle - Vorlagen";
-
-            } else {
-
-                document.getElementById("title").innerHTML = "Semester";
-                document.getElementsByTagName("TITLE")[0].innerHTML = "Notentabelle - Semester";
-
-                document.getElementById("returnButton").style.display = "none";
-
-            }
+            document.getElementById("title").innerHTML = "Semester";
+            document.getElementsByTagName("TITLE")[0].innerHTML = "Notentabelle - Semester";
+            document.getElementById("returnButton").style.display = "none";
 
         } else {
 
@@ -512,7 +491,7 @@ function printElement() {
                 document.getElementById("tests_refButtons").style.display = "none";
                 document.getElementById("tests_folderButtons").style.display = "block";
 
-                if(currentElement.writingPermission && currentElement.accessType !== ACCESS_TEACHER) {
+                if(currentElement.writingPermission && (currentElement.accessType !== ACCESS_TEACHER || currentElement.data.subjectID !== null)) {
 
                     document.getElementById("tests_editFolderButtons").style.display = "block";
                     document.getElementById("tests_deletedButton").style.display = "inline-block";
@@ -546,7 +525,7 @@ function printElement() {
                     document.getElementById("tests_testButtons").style.display = "block";
                     document.getElementById("tests_refButtons").style.display = "none";
 
-                    if(currentElement.writingPermission && currentElement.accessType !== ACCESS_TEACHER) {
+                    if(currentElement.writingPermission && (currentElement.accessType !== ACCESS_TEACHER || currentElement.data.subjectID !== null)) {
 
                         document.getElementById("tests_editTestButtons").style.display = "block";
 
@@ -568,7 +547,7 @@ function printElement() {
                     document.getElementById("tests_testButtons").style.display = "none";
                     document.getElementById("tests_refButtons").style.display = "block";
 
-                    if(currentElement.writingPermission && currentElement.accessType !== ACCESS_TEACHER) {
+                    if(currentElement.writingPermission && (currentElement.accessType !== ACCESS_TEACHER || currentElement.data.subjectID !== null)) {
 
                         document.getElementById("tests_editRefButtons").style.display = "block";
 
@@ -1150,10 +1129,28 @@ function printElement() {
                 if(studentTableString === "") {
 
                     document.getElementById("tests_studentTable").style.display = "none";
+                    document.getElementById("tests_noMarks").style.display = "inline-block";
+                    
+                    if(
+                        currentElement.writingPermission && 
+                        ((
+                            !currentElement.isFolder &&
+                            currentElement.data.referenceState === null
+                        ) || currentElement.data.formula === "manual")
+                    ) {
+
+                        document.getElementById("tests_noMarks_instruction").style.display = "block";
+
+                    } else {
+
+                        document.getElementById("tests_noMarks_instruction").style.display = "none";
+
+                    }
 
                 } else {
 
                     document.getElementById("tests_studentTable").style.display = "table";
+                    document.getElementById("tests_noMarks").style.display = "none";
 
                 }
 
@@ -1472,6 +1469,16 @@ function printElement() {
             document.getElementById("students_empty").style.display = "inline-block";
             document.getElementById("students_table").style.display = "none";
 
+            if(currentElement.writingPermission) {
+
+                document.getElementById("students_empty_instruction").style.display = "block";
+
+            } else {
+
+                document.getElementById("students_empty_instruction").style.display = "none";
+
+            }
+
         } else {
 
             document.getElementById("students_empty").style.display = "none";
@@ -1535,31 +1542,7 @@ function loadElementAndPrint() {
 
     var pathElement = path[path.length - 1];
 
-    if (pathElement.type === TYPE_SEMESTER && pathElement.isRoot && pathElement.isTemplate && !pathElement.isForeign) {
-        // Vorlagenauswahl
-
-        if (!cache.rootTemplates) {
-
-            loadData("/phpScripts/get/getSemesters.php", { isTemplate: true }, function (data) {
-
-                currentElement = data;
-                cache.rootTemplates = data;
-
-                hideLoading();
-
-            }, loadingError);
-
-            isLoading = true;
-
-        } else {
-
-            currentElement = cache.rootTemplates;
-
-            isLoading = false;
-
-        }
-
-    } else if (pathElement.type === TYPE_SEMESTER && !pathElement.isForeign) {
+    if (pathElement.type === TYPE_SEMESTER && !pathElement.isForeign) {
         // Semester
         
         if (!cache.semesters[pathElement.ID]) {
@@ -1765,7 +1748,7 @@ function loadElementAndPrint() {
 }
 
 // Wird aufgerufen, wenn ein Element ausgewaehlt wurde
-function select(elementType, elementID, isRoot = false, isFolder = true, checkOnlyForTemplate = false) {
+function select(elementType, elementID, isRoot = false, isFolder = false, checkOnlyForTemplate = false) {
 
     if(isBlocked) {
 
@@ -1789,15 +1772,6 @@ function select(elementType, elementID, isRoot = false, isFolder = true, checkOn
 
 }
 
-function showOwnTemplates() {
-
-    path.push({ type: TYPE_SEMESTER, isRoot: true, isFolder: true, isTemplate: true, isForeign: false });
-
-    if (typeof (localStorage) !== undefined) localStorage.setItem("path", JSON.stringify(path));
-
-    loadElementAndPrint();
-
-}
 
 function showForeignSemesters() {
 
@@ -1847,7 +1821,6 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("returnButton").onclick = returnFolder;
     document.getElementById("error_returnButton").onclick = returnFolder;
 
-    document.getElementById("semesters_templateButton").onclick = showOwnTemplates;
     document.getElementById("semesters_foreignSemestersButton").onclick = showForeignSemesters;
 
     if(user.isTeacher) {

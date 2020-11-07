@@ -5,11 +5,10 @@
 Semester oder Semesterordner erstellen
 
 Input als JSON per POST bestehend aus Objekt (nur ein neues Element kann erstellt werden):
-    parentID (falls nicht angegeben: In Hauptordner)
-    isTemplate (falls Vorlage im Vorlagenhauptordner erstellt werden sollte)
+    parentID (falls nicht angegeben: In Hauptordner; muss ein Ordner sein)
     Alle Daten, die es fuer die Erstellung eines Semesters/Semesterordners braucht (*: Darf NULL sein | ?: muss nicht angegeben werden):
         isFolder
-        templateType?* (darf nur gesetzt werden, falls isFolder false; falls in Vorlagenordner)
+        templateType?* (darf nur gesetzt werden, falls isFolder false)
         classID?* (darf nur gesetzt werden, falls kein isFolder false und templateType NULL / unset)
         isHidden? (default: false)
         name
@@ -34,6 +33,12 @@ function createSemester(Semester $semesterFolder, array &$data, int $userID, boo
     if($semesterFolder->error !== ERROR_NONE) {
 
         return array("error" => $semesterFolder->error);
+
+    }
+
+    if(!$semesterFolder->isFolder && !$semesterFolder->isRoot) {
+
+        return array("error" => ERROR_UNSUITABLE_INPUT);
 
     }
 
@@ -65,29 +70,17 @@ function createSemester(Semester $semesterFolder, array &$data, int $userID, boo
 
         }
 
-        if(!$semesterFolder->isTemplate) {
+        if($properties["isFolder"]) {
 
             return array("error" => ERROR_FORBIDDEN_FIELD);
 
-        } else {
-
-            $properties["templateType"] = $data["templateType"];
-
         }
-        
+
         $properties["templateType"] = $data["templateType"];
 
     } else {
 
-        if($semesterFolder->isTemplate) {
-            
-            return array("error" => ERROR_MISSING_INPUT);
-
-        } else {
-
-            $properties["templateType"] = NULL;
-
-        }
+        $properties["templateType"] = NULL;
 
     }
 
@@ -165,10 +158,6 @@ function createSemester(Semester $semesterFolder, array &$data, int $userID, boo
 
         $properties["notes"] = $data["notes"];
 
-    } else {
-
-        $properties["notes"] = NULL;
-
     }
 
 
@@ -223,12 +212,6 @@ function createSemester(Semester $semesterFolder, array &$data, int $userID, boo
         if(!is_int($data["templateID"])) {
 
             return array("error" => ERROR_BAD_INPUT);
-
-        }
-
-        if($properties["templateType"] !== NULL) {
-
-            return array("error" => ERROR_FORBIDDEN_FIELD);
 
         }
 
@@ -366,7 +349,7 @@ function createSemester(Semester $semesterFolder, array &$data, int $userID, boo
 
     if(isset($data["templateID"])) {
 
-        $templateSemester = getSemester($properties["templateID"], $userID, $isTeacher);
+        $templateSemester = getSemester($data["templateID"], $userID, $isTeacher);
 
         if($templateSemester->error !== ERROR_NONE || !$templateSemester->isTemplate) {
 
@@ -378,7 +361,7 @@ function createSemester(Semester $semesterFolder, array &$data, int $userID, boo
 
     if(isset($data["copyTeachersID"])) {
 
-        $copyTeacherSemester = getSemester($properties["copyTeachersID"], $userID, $isTeacher);
+        $copyTeacherSemester = getSemester($data["copyTeachersID"], $userID, $isTeacher);
 
         if(
             $copyTeacherSemester->error !== ERROR_NONE || 
@@ -491,18 +474,12 @@ if(isset($data["parentID"])) {
     
     }
 
-    $semesterFolder = getSemester($data["parentID"], $_SESSION["userid"], $_SESSION["type"] === "admin" || $_SESSION["type"] === "admin");
+    $semesterFolder = getSemester($data["parentID"], $_SESSION["userid"], $_SESSION["type"] === "teacher" || $_SESSION["type"] === "admin");
 
 } else {
 
     $semesterFolder = new Semester(ERROR_NONE, Element::ACCESS_OWNER, true);
     $semesterFolder->isRoot = true;
-
-    if(isset($data["isTemplate"])) { 
-
-        $semesterFolder->isTemplate = true;
-
-    }
 
 }
 

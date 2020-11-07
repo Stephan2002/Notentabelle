@@ -29,7 +29,7 @@ function editSemester(Semester $semester, array &$data) : array {
     }
 
     $changedProperties = array();
-    $changes = false;
+    $changes = NULL;
 
     if(array_key_exists("name", $data)) {
 
@@ -179,7 +179,7 @@ function editSemester(Semester $semester, array &$data) : array {
         $stmt->execute();
         $stmt->close();
 
-        $changes = true;
+        $changes = false;
 
     }
 
@@ -204,11 +204,7 @@ function editSemester(Semester $semester, array &$data) : array {
         
         if($errorCode === ERROR_NONE) {
 
-            if($changes === false) {
-
-                $changes = true;
-
-            }
+            $changes = false;
 
         } elseif($errorCode !== INFO_NO_CHANGE) {
 
@@ -268,7 +264,7 @@ $response = array();
 
 foreach($data as $key => &$currentSemesterData) {
 
-    $semester = getSemester($currentSemesterData["semesterID"], $_SESSION["userid"], $_SESSION["type"] === "admin" || $_SESSION["type"] === "admin");
+    $semester = getSemester($currentSemesterData["semesterID"], $_SESSION["userid"], $_SESSION["type"] === "teacher" || $_SESSION["type"] === "admin");
 
     if($semester->error !== ERROR_NONE) {
 

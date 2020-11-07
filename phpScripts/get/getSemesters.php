@@ -6,7 +6,6 @@ Laedt Semester/Ordner, falls Zugriff erlaubt
 
 Input als JSON per POST:
     semesterID (Ordner ID) (Falls nicht vorhanden: Hauptordner des Benutzers)
-    isTemplate (Falls Vorlagen im Hauptordner angefordert wurden)
 
 */
 
@@ -22,16 +21,7 @@ function getSemesters(Semester $element) : int {
 
     if($element->isRoot) {
 
-        if($element->isTemplate) {
-
-            $stmt = $mysqli->prepare("SELECT * FROM semesters WHERE userID = ? AND parentID IS NULL AND templateType IS NOT NULL AND deleteTimestamp IS NULL ORDER BY isHidden, referenceID IS NOT NULL, classID, name");
-            
-        } else {
-    
-            $stmt = $mysqli->prepare("SELECT * FROM semesters WHERE userID = ? AND parentID IS NULL AND templateType IS NULL AND deleteTimestamp IS NULL ORDER BY isHidden, referenceID IS NOT NULL, classID, name");
-    
-        }
-    
+        $stmt = $mysqli->prepare("SELECT * FROM semesters WHERE userID = ? AND parentID IS NULL AND deleteTimestamp IS NULL ORDER BY isHidden, referenceID IS NOT NULL, classID, name");
         $stmt->bind_param("i", $_SESSION["userid"]);
 
     } else {
@@ -78,8 +68,6 @@ if(isset($data["semesterID"])) {
 
 }
 
-$isTemplate = isset($data["isTemplate"]);
-
 if(!connectToDatabase()) {
 
     throwError(ERROR_UNKNOWN);
@@ -94,12 +82,6 @@ if(isset($semesterID)) {
 
     $semesterFolder = new Semester(ERROR_NONE, Element::ACCESS_OWNER, true);
     $semesterFolder->isRoot = true;
-
-    if($isTemplate) {
-
-        $semesterFolder->isTemplate = true;
-
-    }
 
 }
 

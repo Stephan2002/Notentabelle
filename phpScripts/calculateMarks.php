@@ -86,6 +86,48 @@ function plusPoints($mark) {
 
 }
 
+function calculateMarkFromPoints(string $formula, string $maxPoints, string $points = NULL) {
+
+    if($formula === "linear") {
+
+        if($points !== NULL) {
+
+            // $element["mark"] = $element["points"] / $element["maxPoints"] * 5 + 1;
+            return bcadd(bcmul(bcdiv_round($points, $maxPoints, 6), "5", 6), "1", 6);
+
+        }
+
+        return NULL;
+
+    }
+
+}
+
+function calculateMarkFromPoints_Class(string $formula, string $maxPoints, array &$students, bool $nullSetVars = true) {
+
+    if($formula === "linear") {
+
+        foreach($students as &$student) {
+
+            if(isset($student["points"])) {
+
+                //$student["mark"] = $student["points"] / $element["maxPoints"] * 5 + 1;
+                $student["mark"] = bcadd(bcmul(bcdiv_round($student["points"], $maxPoints, 6), "5", 6), "1", 6);
+
+            } else {
+
+                if(!$nullSetVars) unset($student["mark"]);
+                else $student["mark"] = NULL;
+                
+
+            }
+
+        }
+
+    }
+
+}
+
 function calculateMark(array &$element, array &$subElements, bool $isTest = true, bool $nullSetVars = false) {
 
     // Wenn nullSetVars true: Variablen sind nur auf Null gesetzt, wenn Wert moeglich, aber nicht vorhanden
@@ -167,21 +209,16 @@ function calculateMark(array &$element, array &$subElements, bool $isTest = true
 
     }
 
-    if($isTest && (!is_null($element["round"]) && !is_null($element["formula"]))) {
+    if($isTest && $element["formula"] !== NULL && $element["formula"] !== "manual") {
 
-        if($element["formula"] === "linear") {
+        if(isset($element["points"])) {
+            
+            $element["mark"] = calculateMarkFromPoints($element["formula"], $element["maxPoints"], $element["points"]);
+            
+        } else {
 
-            if(isset($element["points"])) {
-
-                // $element["mark"] = $element["points"] / $element["maxPoints"] * 5 + 1;
-                $element["mark"] = bcadd(bcmul(bcdiv_round($element["points"], $element["maxPoints"], 6), "5", 6), "1", 6);
-
-            } else {
-
-                if(!$nullSetVars) unset($element["mark"]);
-                else $element["mark"] = NULL;
-
-            }
+            if(!$nullSetVars) unset($element["mark"]);
+            else $element["mark"] = NULL;
 
         }
 
@@ -190,7 +227,7 @@ function calculateMark(array &$element, array &$subElements, bool $isTest = true
 }
 
 function calculateMark_Class(array &$element, array &$subElements, bool $isTest = true, bool $classAverage = false, bool $withPlusPoints = false, bool $nullSetVars = false) {
-
+    
     // Wenn nullSetVars true: Variablen sind nur auf Null gesetzt, wenn Wert moeglich, aber nicht vorhanden
 
     if(!$element["isFolder"] && $isTest) {
@@ -453,28 +490,9 @@ function calculateMark_Class(array &$element, array &$subElements, bool $isTest 
 
     }
 
-    if($isTest && (!is_null($element["round"]) && !is_null($element["formula"]))) {
+    if($isTest && $element["formula"] !== NULL && $element["formula"] !== "manual") {
 
-        if($element["formula"] === "linear") {
-
-            foreach($element["students"] as &$student) {
-
-                if(isset($student["points"])) {
-
-                    //$student["mark"] = $student["points"] / $element["maxPoints"] * 5 + 1;
-                    $student["mark"] = bcadd(bcmul(bcdiv_round($student["points"], $element["maxPoints"], 6), "5", 6), "1", 6);
-    
-                } else {
-    
-                    if(!$nullSetVars) unset($student["mark"]);
-                    else $student["mark"] = NULL;
-                    
-    
-                }
-
-            }
-
-        }
+        calculateMarkFromPoints_Class($element["formula"], $element["maxPoints"], $element["students"], $nullSetVars);
 
     }
 
@@ -532,21 +550,16 @@ function calculateMark_Ref(array &$refElement, array &$originalElement, int $stu
 
     }
 
-    if(!is_null($refElement["formula"])) {
+    if($refElement["formula"] !== NULL && $refElement["formula"] !== "manual") {
+        
+        if(isset($refElement["points"])) {
+            
+            $refElement["mark"] = calculateMarkFromPoints($refElement["formula"], $refElement["maxPoints"], $refElement["points"]);
+            
+        } else {
 
-        if($refElement["formula"] === "linear") {
-
-            if(isset($refElement["points"])) {
-
-                // $element["mark"] = $element["points"] / $element["maxPoints"] * 5 + 1;
-                $refElement["mark"] = bcadd(bcmul(bcdiv_round($refElement["points"], $refElement["maxPoints"], 6), "5", 6), "1", 6);
-
-            } else {
-
-                if(!$nullSetVars) unset($refElement["mark"]);
-                else $refElement["mark"] = NULL;
-
-            }
+            if(!$nullSetVars) unset($refElement["mark"]);
+            else $refElement["mark"] = NULL;
 
         }
 
@@ -555,13 +568,13 @@ function calculateMark_Ref(array &$refElement, array &$originalElement, int $stu
 }
 
 function calculateMark_Class_Ref(array &$refElement, array &$originalElement, bool $nullSetVars = false) {
-
+    
     // Wenn nullSetVars true: Variablen sind nur auf Null gesetzt, wenn Wert moeglich, aber nicht vorhanden
 
     $students = array();
 
     if(!is_null($refElement["round"]) && is_null($refElement["formula"])) {
-
+        
         foreach($originalElement["students"] as &$student) {
 
             if(isset($student["mark"])) {
@@ -581,7 +594,7 @@ function calculateMark_Class_Ref(array &$refElement, array &$originalElement, bo
         }
 
     } else {
-
+        
         foreach($originalElement["students"] as &$student) {
 
             if(isset($student["points"])) {
@@ -594,22 +607,9 @@ function calculateMark_Class_Ref(array &$refElement, array &$originalElement, bo
 
     }
 
-    if(!is_null($refElement["formula"])) {
-
-        if($refElement["formula"] === "linear") {
-
-            foreach($refElement["students"] as &$student) {
-
-                if(isset($student["points"])) {
-
-                    //$student["mark"] = $student["points"] / $element["maxPoints"] * 5 + 1;
-                    $student["mark"] = bcadd(bcmul(bcdiv_round($student["points"], $refElement["maxPoints"], 6), "5", 6), "1", 6);
-    
-                }
-
-            }
-
-        }
+    if($refElement["formula"] !== NULL && $refElement["formula"] !== "manual") {
+        
+        calculateMarkFromPoints_Class($refElement["formula"], $refElement["maxPoints"], $students, $nullSetVars);
 
     }
 
