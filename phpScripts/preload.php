@@ -70,7 +70,7 @@
 
     <h1>Laden...</h1>
 
-    <svg height="200" width="200" viewbox="-100 -100 200 200">
+    <svg height="200" width="200" viewBox="-100 -100 200 200">
         <line x1="0" y1="-90" x2="0" y2="-50" transform="rotate(0, 0, 0)"   stroke-opacity="0.4"/>
         <line x1="0" y1="-90" x2="0" y2="-50" transform="rotate(36, 0, 0)"  stroke-opacity="0.4"/>
         <line x1="0" y1="-90" x2="0" y2="-50" transform="rotate(72, 0, 0)"  stroke-opacity="0.4"/>

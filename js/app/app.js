@@ -383,12 +383,20 @@ function printElement() {
 
         panelName = "tests_div";
 
-        document.getElementById("averageFooter_points").style.display = "none";
-        document.getElementById("averageFooter_average").style.display = "none";
-        document.getElementById("averageFooter_points_big").style.display = "none";
-        document.getElementById("averageFooter_mark_big").style.display = "none";
+        if(currentElement.isTemplate) {
 
-        document.getElementById("averageFooter").style.display = "block";
+            document.getElementById("averageFooter").style.display = "none";
+
+        } else {
+
+            document.getElementById("averageFooter_points").style.display = "none";
+            document.getElementById("averageFooter_average").style.display = "none";
+            document.getElementById("averageFooter_points_big").style.display = "none";
+            document.getElementById("averageFooter_mark_big").style.display = "none";
+
+            document.getElementById("averageFooter").style.display = "block";
+
+        }
 
         if(currentElement.isRoot) {
 
@@ -430,12 +438,9 @@ function printElement() {
 
             }
 
-            if(currentElement.accessType === ACCESS_TEACHER) {
+            if(currentElement.accessType === ACCESS_TEACHER || currentElement.isTemplate) {
 
                 document.getElementById("averageFooter").style.display = "none";
-
-                document.getElementById("averageFooter_plusPoints_big").style.display = "none";
-
                 document.getElementById("averageFooter_plusPoints_big").innerHTML = "";
                 
 
@@ -565,35 +570,39 @@ function printElement() {
 
             // Noten einfuellen
 
-            if(currentElement.data.formula !== null) {
+            if(!currentElement.isTemplate) {
 
-                document.getElementById("averageFooter_points").style.display = "block";
-                document.getElementById("averageFooter_mark_big").style.display = "block";
+                if(currentElement.data.formula !== null) {
 
-                document.getElementById("averageFooter_points").innerHTML = "Punkte: " + formatNumber(currentElement.data.points, "-");
-                document.getElementById("averageFooter_mark_big").innerHTML = "Note: " + formatNumber(currentElement.data.mark, "-");
+                    document.getElementById("averageFooter_points").style.display = "block";
+                    document.getElementById("averageFooter_mark_big").style.display = "block";
 
-            } else if(currentElement.data.round === null) {
+                    document.getElementById("averageFooter_points").innerHTML = "Punkte: " + formatNumber(currentElement.data.points, "-");
+                    document.getElementById("averageFooter_mark_big").innerHTML = "Note: " + formatNumber(currentElement.data.mark, "-");
 
-                document.getElementById("averageFooter_points_big").style.display = "block";
+                } else if(currentElement.data.round === null) {
 
-                document.getElementById("averageFooter_points_big").innerHTML = "Punkte: " + formatNumber(currentElement.data.points, "-");
+                    document.getElementById("averageFooter_points_big").style.display = "block";
 
-            } else if(currentElement.data.round == 0 || (currentElement.data.classID !== null && currentElement.accessType !== ACCESS_STUDENT)) {
+                    document.getElementById("averageFooter_points_big").innerHTML = "Punkte: " + formatNumber(currentElement.data.points, "-");
 
-                document.getElementById("averageFooter_mark_big").style.display = "block";
+                } else if(currentElement.data.round == 0 || (currentElement.data.classID !== null && currentElement.accessType !== ACCESS_STUDENT)) {
 
-                document.getElementById("averageFooter_mark_big").innerHTML = "Note: " + formatNumber(currentElement.data.mark, "-");
+                    document.getElementById("averageFooter_mark_big").style.display = "block";
+
+                    document.getElementById("averageFooter_mark_big").innerHTML = "Note: " + formatNumber(currentElement.data.mark, "-");
 
 
-            } else {
+                } else {
 
-                document.getElementById("averageFooter_average").style.display = "block";
-                document.getElementById("averageFooter_mark_big").style.display = "block";
+                    document.getElementById("averageFooter_average").style.display = "block";
+                    document.getElementById("averageFooter_mark_big").style.display = "block";
 
-                document.getElementById("averageFooter_average").innerHTML = "Schnitt: " + formatNumber(currentElement.data.mark_unrounded, "-");
-                document.getElementById("averageFooter_mark_big").innerHTML = "Note: " + formatNumber(currentElement.data.mark, "-");
+                    document.getElementById("averageFooter_average").innerHTML = "Schnitt: " + formatNumber(currentElement.data.mark_unrounded, "-");
+                    document.getElementById("averageFooter_mark_big").innerHTML = "Note: " + formatNumber(currentElement.data.mark, "-");
 
+
+                }
 
             }
 
