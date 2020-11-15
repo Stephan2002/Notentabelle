@@ -32,18 +32,20 @@ h1 {
 
 
 
-table {
+.panel table {
 	
 	border-collapse: collapse;
 	box-sizing: content-box;
 	width: 100%;
-	margin: 0px;
+	margin-bottom: 0px;
+	margin-left: 0px;
+	margin-right: 0px;
 	font-size: 18px;
 	
 	
 }
 
-tr {
+.panel tr {
 
 	background-color: rgb(240, 240, 240);
 	border-color: black;
@@ -52,51 +54,51 @@ tr {
 
 }
 
-tr:hover:not(.noSelect) {
+.panel tr:hover:not(.noSelect) {
 
 	background-color: rgb(230, 230, 230);
 	cursor: pointer;
 
 }
 
-tr.red {
+.panel tr.red {
 
 	background-color: rgb(255,199,206);
 
 }
 
-tr.yellow {
+.panel tr.yellow {
 
 	background-color: rgb(255, 235, 156);
 
 }
 
-tr.green {
+.panel tr.green {
 
 	background-color: rgb(198, 239, 206);
 
 }
 
-tr.red:hover:not(.noSelect) {
+.panel tr.red:hover:not(.noSelect) {
 
 	background-color: rgb(255, 179, 187);
 
 }
 
-tr.yellow:hover:not(.noSelect) {
+.panel tr.yellow:hover:not(.noSelect) {
 
 	background-color: rgb(255, 227, 115);
 
 }
 
-tr.green:hover:not(.noSelect) {
+.panel tr.green:hover:not(.noSelect) {
 
 	background-color: rgb(160, 235, 174);
 
 }
 
 
-td, th {
+.panel td, .panel th {
 
 	border-top: 1px solid black;
 	border-bottom: 1px solid black;
@@ -107,7 +109,7 @@ td, th {
 	
 }
 
-th {
+.panel th {
 	
 	font-size: 18px;
 	background-color: hsl(0,0%,85%);
@@ -116,7 +118,7 @@ th {
 	
 }
 
-.table_name {
+.panel .table_name {
 	
 	word-break: break-all;
 	font-size: 18px;
@@ -124,51 +126,51 @@ th {
 	
 }
 
-.table_mark {
+.panel .table_mark {
 	
 	font-weight: bold;
 	font-size: 20px;
 	
 }
 
-.table_buttons {
+.panel .table_buttons {
 
 	width: 108px;
 
 }
 
-.studentTable_buttons {
+.panel .studentTable_buttons {
 
 	width: 72px;
 
 }
 
-.table_buttons.noWritingPermission {
+.panel .table_buttons.noWritingPermission {
 	
 	width: 36px;
 
 }
 
-.table_big {
+.panel .table_big {
 
 	display: initial;
 
 }
 
-.table_small {
+.panel .table_small {
 
 	display: none;
 
 }
 
-.studentTable_input {
+.panel .studentTable_input {
 
 	padding: 0px;
 	vertical-align: center;
 
 }
 
-.studentTable_input input {
+.panel .studentTable_input input {
 
 	font-size: inherit;
 	background-color: white;
@@ -187,7 +189,7 @@ th {
 
 }
 
-.studentTable_input input:read-only {
+.panel .studentTable_input input:read-only {
 
 	background-color: transparent;
 	color: black;
@@ -195,7 +197,7 @@ th {
 
 }
 
-.studentTable_input.table_mark input {
+.panel .studentTable_input.table_mark input {
 
 	width: 72px;
 	padding: 0px 10px;
@@ -203,7 +205,7 @@ th {
 
 }
 
-td > img {
+.panel td > img {
 
 	height: 32.5px;
 
@@ -212,56 +214,56 @@ td > img {
 
 @media (max-width: 400px) {
 	
-	td {
+	.panel td {
 		
 		font-size: 14px;
 		
 	}
 	
-	th {
+	.panel th {
 		
 		font-size: 16px;
 	
 	}
 	
-	.table_mark {
+	.panel .table_mark {
 		
 		font-size: 18px;
 		
 	}
 	
-	.table_name {
+	.panel .table_name {
 		
 		font-size: 16px;
 		
 	}
 
-	.table_big {
+	.panel .table_big {
 
 		display: none;
 	
 	}
 
-	.table_buttons, .studentTable_buttons {
+	.panel .table_buttons, .panel .studentTable_buttons {
 
 		width: 36px;
 	
 	}
 	
-	.table_small {
+	.panel .table_small {
 	
 		display: initial;
 	
 	}
 
-	.studentTable_input input {
+	.panel .studentTable_input input {
 
 		width: 50px;
 		padding: 0px 5px;
 
 	}
 
-	.studentTable_input.table_mark input {
+	.panel .studentTable_input.table_mark input {
 
 		width: 60px;
 		padding: 0px 5px;
@@ -493,6 +495,12 @@ table .button_square {
 
 }
 
+.mediumMargin {
+
+	margin-top: 25px;
+
+}
+
 
 button img {
 
@@ -515,5 +523,99 @@ button.doubleLine img {
 .panel {
 
 	transition: opacity 0.2s;
+
+}
+
+
+.infoDialog {
+
+	font-size: 17px;
+
+}
+
+
+.infoDialog table {
+
+	width: 100%;
+	text-align: left;
+	vertical-align: middle;
+	border-spacing: 0px;
+
+}
+
+.infoDialog td {
+
+	padding: 0px;
+
+}
+
+.infoDialog td:nth-last-child(1) {
+
+	text-align: right;
+
+}
+
+.infoDialog img {
+
+	height: 20px;
+	width: 20px;
+
+}
+
+.infoDialog .leftAlign {
+
+	text-align: left;
+
+}
+
+.infoDialog .notes div {
+
+	font-size: 14px;
+
+}
+
+.infoDialog .inputGroup {
+
+	margin-right: -15px;
+	
+
+}
+
+.infoDialog .inputGroup > div {
+
+	margin-right: 15px;
+
+}
+
+
+
+/*.parentType_semesterRoot,
+.parentType_semesterFolder,
+.parentType_classRoot,
+.parentType_class */
+.parentType_semester,
+.parentType_template,
+
+.type_root,
+.type_subject,
+.type_folder,
+.type_test,
+.type_ref,
+
+.dialogType_semesterFolder,
+.dialogType_semester,
+.dialogType_template,
+.dialogType_semesterRef,
+.dialogType_templateRef,
+.dialogType_subject,
+.dialogType_folder,
+.dialogType_test,
+.dialogType_ref,
+
+.classFlag_private,
+.classFlag_class
+{
+
+	display: none;
 
 }

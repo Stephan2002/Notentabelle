@@ -42,7 +42,14 @@ include("phpScripts/login.php");
         </script>
 
         <noscript><meta http-equiv="refresh" content="0; error?error=1&origin=app"></noscript>
-        
+
+        <link rel="preload" href="/img/loading.svg" as="image">
+        <link rel="prefetch" href="/img/loading.svg">
+
+        <style id="parentTypeStyles"></style>
+        <style id="typeStyles"></style>
+        <style id="dialogTypeStyles"></style>
+        <style id="classFlagStyles"></style>
     </head>
     
     <body>
@@ -112,7 +119,7 @@ include("phpScripts/login.php");
                 <button class="button_big positive">Gelöschte Elemente</button>
 
                 <div class="buttonGroup" id="semesters_editButtons">
-                    <button class="button_medium positive doubleLine"><img src="/img/edit.svg" alt="">Ordner bearbeiten</button>
+                    <button class="button_medium positive doubleLine"><img src="/img/edit.svg" alt="">Ordner umbenennen</button>
                     <button class="button_medium negative doubleLine"><img src="/img/delete.svg" alt="">Ordner löschen</button>
                 </div>
             </div>
@@ -140,20 +147,12 @@ include("phpScripts/login.php");
 
                 <button class="button_big positive" id="tests_followRefButton" style="display: none">Zum referenzierten Element</button>
 
-                <div id="tests_empty_subjects">
-                    <div class="info gray bigMargin">
-                        <p class="blankLine_small">Kein sichtbares Fach vorhanden.</p>
-                        <p id="tests_empty_subjects_instruction">Fügen Sie ein Fach, eine Prüfung oder eine Verknüpfung mit den obigen Knöpfen ein oder benutzen Sie eine Vorlage.</p>
-                    </div>
-                    <button id="tests_empty_subjects_templateButton" class="button_big positive withMargin">Vorlage verwenden</button>
-                </div>
-
-                <div id="tests_empty_folders">
+                <div id="tests_empty">
                     <div class="info gray bigMargin">
                         <p class="blankLine_small">Kein sichtbares Element vorhanden.</p>
-                        <p id="tests_empty_folders_instruction">Fügen Sie einen Ordner, eine Prüfung oder eine Verknüpfung mit den obigen Knöpfen ein oder benutzen Sie eine Vorlage.</p>
+                        <p id="tests_empty_instruction">Fügen Sie <span class="type_root">ein Fach</span><span class="type_folder type_subject">einen Ordner</span>, eine Prüfung oder eine Verknüpfung mit den obigen Knöpfen ein oder benutzen Sie eine Vorlage.</p>
                     </div>
-                    <button id="tests_empty_folders_templateButton" class="button_big positive withMargin">Vorlage verwenden</button>
+                    <button id="tests_empty_templateButton" class="button_big positive withMargin">Vorlage verwenden</button>
                 </div>
             </div>
 
@@ -220,38 +219,20 @@ include("phpScripts/login.php");
                 <button id="tests_deletedButton" class="button_big positive">Gelöschte Elemente</button>
 
                 <div id="tests_semesterButtons" style="display: block;">
-                    <button class="button_big neutral withMargin"><img src="/img/info.svg" alt="">Semesterinfo</button>
+                    <button class="button_big neutral withMargin" id="tests_semesterInfoButton"><img src="/img/info.svg" alt=""><span class="parentType_semester">Semester</span><span class="parentType_template">Vorlage</span>-Eigenschaften</button>
 
-                    <div class="buttonGroup noMargin" id="tests_editSemesterButtons">
-                        <button class="button_medium positive doubleLine"><img src="/img/edit.svg" alt="">Semester bearbeiten</button>
-                        <button class="button_medium negative doubleLine"><img src="/img/delete.svg" alt="">Semester löschen</button>
+                    <div class="buttonGroup noMargin" id="tests_semesterControlButtons">
+                        <button class="button_medium positive doubleLine" id="tests_editSemesterButton"><img src="/img/edit.svg" alt=""><span class="parentType_semester">Semester</span><span class="parentType_template">Vorlage</span> bearbeiten</button>
+                        <button class="button_medium negative doubleLine" id="tests_deleteSemesterButton"><img src="/img/delete.svg" alt=""><span class="parentType_semester">Semester</span><span class="parentType_template">Vorlage</span> löschen</button>
                     </div>
                 </div>
 
-                <div id="tests_folderButtons" style="display: none;">
-                    <button class="button_big neutral withMargin"><img src="/img/info.svg" alt="">Fach- / Ordnerinfo</button>
+                <div id="tests_elementButtons" style="display: none;">
+                    <button class="button_big neutral withMargin" id="tests_elementInfoButton"><img src="/img/info.svg" alt=""><span class="type_subject">Fach</span><span class="type_folder">Ordner</span><span class="type_test">Prüfungs</span><span class="type_ref">Verknüpfungs</span>-Eigenschaften</button>
 
-                    <div class="buttonGroup noMargin" id="tests_editFolderButtons">
-                        <button class="button_medium positive doubleLine"><img src="/img/edit.svg" alt="">Fach/Ordner bearbeiten</button>
-                        <button class="button_medium negative doubleLine"><img src="/img/delete.svg" alt="">Fach/Ordner löschen</button>
-                    </div>
-                </div>
-
-                <div id="tests_testButtons" style="display: none;">
-                    <button id="tests_testInfoButton" class="button_big neutral withMargin"><img src="/img/info.svg" alt="">Prüfungsinfo</button>
-
-                    <div class="buttonGroup noMargin" id="tests_editTestButtons">
-                        <button class="button_medium positive doubleLine"><img src="/img/edit.svg" alt="">Prüfung bearbeiten</button>
-                        <button class="button_medium negative doubleLine"><img src="/img/delete.svg" alt="">Prüfung löschen</button>
-                    </div>
-                </div>
-
-                <div id="tests_refButtons" style="display: none;">
-                    <button id="tests_refInfoButton" class="button_big neutral withMargin"><img src="/img/info.svg" alt="">Verknüpfungsinfo</button>
-
-                    <div class="buttonGroup noMargin" id="tests_editRefButtons">
-                        <button class="button_medium positive doubleLine"><img src="/img/edit.svg" alt="">Verknüpfung bearbeiten</button>
-                        <button class="button_medium negative doubleLine"><img src="/img/delete.svg" alt="">Verknüpfung löschen</button>
+                    <div class="buttonGroup noMargin" id="tests_elementControlButtons">
+                        <button class="button_medium positive doubleLine" id="tests_editElementButton"><img src="/img/edit.svg" alt=""><span class="type_subject">Fach</span><span class="type_folder">Ordner</span><span class="type_test">Prüfung</span><span class="type_ref">Verknüpfung</span> bearbeiten</button>
+                        <button class="button_medium negative doubleLine" id="tests_deleteElementButton"><img src="/img/delete.svg" alt=""><span class="type_subject">Fach<br></span><span class="type_folder">Ordner</span><span class="type_test">Prüfung</span><span class="type_ref">Verknüpfung</span> löschen</button>
                     </div>
                 </div>
 
@@ -383,11 +364,11 @@ include("phpScripts/login.php");
                 <button class="button_big positive">Versteckte Schüler/innen anzeigen</button>
                 <button class="button_big positive">Gelöschte Schüler/innen</button>
 
-                <button class="button_big neutral withMargin"><img src="/img/info.svg" alt="">Klasseninfo</button>
+                <button class="button_big neutral withMargin" id="students_classInfoButton"><img src="/img/info.svg" alt="">Klasseninfo</button>
 
-                <div class="buttonGroup noMargin" id="students_editButtons">
-                    <button class="button_medium positive doubleLine"><img src="/img/edit.svg" alt="">Klasse bearbeiten</button>
-                    <button class="button_medium negative doubleLine"><img src="/img/delete.svg" alt="">Klasse löschen</button>
+                <div class="buttonGroup noMargin" id="students_classControlButtons">
+                    <button class="button_medium positive doubleLine" id="students_editClassButton"><img src="/img/edit.svg" alt="">Klasse bearbeiten</button>
+                    <button class="button_medium negative doubleLine" id="students_deleteClassButton"><img src="/img/delete.svg" alt="">Klasse löschen</button>
                 </div>
             </div>
         </div>
@@ -470,5 +451,359 @@ include("phpScripts/login.php");
 
             <button class="button_small positive bigMargin" id="error_returnButton">Zurück</button>
         </div>
+
+        <div id="semesterInfoDialog" class="dialog infoDialog" style="display: none;">
+            <div class="dialogBlocker"></div>
+            <div class="dialogContent" tabindex="0">
+                <h2><span class="dialogType_semesterFolder">Ordner</span><span class="dialogType_semester">Semester</span><span class="dialogType_template">Vorlage</span><span class="dialogType_semesterRef dialogType_templateRef">Verknüpfungs</span>-Eigenschaften</h3>
+
+                <h3 id="semesterInfoDialog_name">Name</h3>
+
+                <table id="semesterInfoDialog_typeContainer">
+                    <tr>
+                        <td>Typ:</td>
+                        <td><i id="semesterInfoDialog_type"></i></td>
+                    </tr>
+                </table>
+
+                <table id="semesterInfoDialog_classNameContainer" class="smallMargin">
+                    <tr>
+                        <td>Klasse:</td>
+                        <td id="semesterInfoDialog_className"></td>
+                    </tr>
+                </table>
+
+                <table id="semesterInfoDialog_refContainer" class="mediumMargin">
+                    <tr>
+                        <td>Referenziertes Element:</td>
+                        <td id="semesterInfoDialog_refName"></td>
+                    </tr>
+                    <tr id="semesterInfoDialog_refSemesterNameContainer">
+                        <td><span class="dialogType_semesterRef">Semester</span><span class="dialogType_templateRef">Vorlage</span> des ref. Elements:</td>
+                        <td id="semesterInfoDialog_refSemesterName"></td>
+                    </tr>
+                    <tr id="semesterInfoDialog_refUserNameContainer">
+                        <td>Besitzer des ref. Elements:</td>
+                        <td id="semesterInfoDialog_refUserName"></td>
+                    </tr>
+                </table>
+
+                <table class="mediumMargin">
+                    <tr>
+                        <td>Ausgeblendet:</td>
+                        <td><img id="semesterInfoDialog_isHiddenIcon" src="/img/checked.svg"></td>
+                    </tr>
+                </table>
+
+                <div id="semesterInfoDialog_notesContainer" class="mediumMargin notes leftAlign">
+                    <p>Notizen:</p>
+                    <div style="white-space: pre;" id="semesterInfoDialog_notes"></div>
+                </div>
+
+                <div id="semesterInfoDialog_permissionsContainer" class="mediumMargin leftAlign">
+                    <p>Zugriffsberechtigungen:</p>
+                    <p id="semesterInfoDialog_noPermissions" class="smallMargin"><i>Keine weiteren Zugriffsberechtigungen erteilt.</i></p>
+                    <table id="semesterInfoDialog_permissions" class="smallMargin"></table>
+                </div>
+
+                <table class="mediumMargin" id="semesterInfoDialog_markAndPointsContainer">
+                    <tr>
+                        <td>Notenschnitt:</td>
+                        <td id="semesterInfoDialog_mark"></td>
+                    </tr>
+                    <tr>
+                        <td>Hochpunkte:</td>
+                        <td id="semesterInfoDialog_plusPoints"></td>
+                    </tr>
+                </table>
+
+                <div class="buttonGroup mediumMargin">
+                    <button id="semesterInfoDialog_loadMoreButton" class="button_medium neutral"><img src="/img/info.svg">Mehr laden</button>
+                    <button id="semesterInfoDialog_visibilityButton" class="button_medium positive">Ausblenden</button>
+                </div>
+                <div class="buttonGroup noMargin">
+                    <button id="semesterInfoDialog_actionButton" class="button_medium positive">Verschieben</button>
+                    <button id="semesterInfoDialog_otherButton" class="button_medium positive">Anderes</button>
+                </div>
+                <div id="semesterInfoDialog_controlButtons" class="buttonGroup noMargin">
+                    <button id="semesterInfoDialog_editButton" class="button_medium positive"><img src="/img/edit.svg">Bearbeiten</button>
+                    <button id="semesterInfoDialog_deleteButton" class="button_medium negative"><img src="/img/delete.svg">Löschen</button>
+                </div>
+
+                <button id="semesterInfoDialog_closeButton" class="button_big negative smallMargin">Schliessen</button>
+            </div>
+        </div>
+
+        <div id="testInfoDialog" class="dialog infoDialog" style="display: none;">
+            <div class="dialogBlocker"></div>
+            <div class="dialogContent" tabindex="0">
+                <h2><span class="dialogType_subject">Fach</span><span class="dialogType_folder">Ordner</span><span class="dialogType_test">Prüfungs</span><span class="dialogType_ref">Verknüpfungs</span>-Eigenschaften</h3>
+
+                <h3 id="testInfoDialog_name">Name</h3>
+
+                <table>
+                    <tr>
+                        <td>Typ:</td>
+                        <td><i id="testInfoDialog_type"></i></td>
+                    </tr>
+                </table>
+
+                <table id="testInfoDialog_generalInfoContainer" class="smallMargin">
+                    <tr id="testInfoDialog_subjectNameContainer">
+                        <td>Fach:</td>
+                        <td id="testInfoDialog_subjectName"></td>
+                    </tr>
+                    <tr id="testInfoDialog_semesterNameContainer">
+                        <td>Semester:</td>
+                        <td id="testInfoDialog_semesterName"></td>
+                    </tr>
+                    <tr id="testInfoDialog_classNameContainer">
+                        <td>Klasse:</td>
+                        <td id="testInfoDialog_className"></td>
+                    </tr>
+                    <tr id="testInfoDialog_dateContainer">
+                        <td>Datum:</td>
+                        <td id="testInfoDialog_date"></td>
+                    </tr>
+                </table>
+
+                <table id="testInfoDialog_refContainer" class="mediumMargin">
+                    <tr>
+                        <td>Verknüpfungsstatus:</td>
+                        <td id="testInfoDialog_referenceState"></td>
+                    </tr>
+                    <tr id="testInfoDialog_refTestNameContainer">
+                        <td>Referenziertes Element:</td>
+                        <td id="testInfoDialog_refTestName"></td>
+                    </tr>
+                    <tr id="testInfoDialog_refUserNameContainer">
+                        <td>Besitzer des ref. Elements:</td>
+                        <td id="testInfoDialog_refUserName"></td>
+                    </tr>
+                </table>
+
+                <div class="inputGroup mediumMargin">
+                    <div>
+                        <table>
+                            <tr>
+                                <td>Ausgeblendet:</td>
+                                <td><img id="testInfoDialog_isHiddenIcon" src="/img/checked.svg"></td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div>
+                        <table>
+                            <tr>
+                                <td>Zählt:</td>
+                                <td><img id="testInfoDialog_markCountsIcon" src="/img/checked.svg"></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="inputGroup mediumMargin">
+                    <div id="testInfoDialog_markSettingsContainer">
+                        <table>
+                            <tr id="testInfoDialog_weightContainer">
+                                <td>Gewichtung:</td>
+                                <td id="testInfoDialog_weight"></td>
+                            </tr>
+                            <tr>
+                                <td>Rundung:</td>
+                                <td id="testInfoDialog_round"></td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div id="testInfoDialog_pointsSettingsContainer">
+                        <table>
+                            <tr id="testInfoDialog_formulaContainer">
+                                <td>Formel:</td>
+                                <td id="testInfoDialog_formula"></td>
+                            </tr>
+                            <tr id="testInfoDialog_maxPointsContainer">
+                                <td>Maximalpkte.:</td>
+                                <td id="testInfoDialog_maxPoints"></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="testInfoDialog_notesContainer" class="mediumMargin notes leftAlign">
+                    <p>Notizen:</p>
+                    <div style="white-space: pre;" id="testInfoDialog_notes"></div>
+                </div>
+
+                <div id="testInfoDialog_studentNotesContainer" class="mediumMargin notes leftAlign">
+                    <p>Persönliche Anmerkungen:</p>
+                    <div style="white-space: pre;" id="testInfoDialog_studentNotes"></div>
+                </div>
+
+                <div id="testInfoDialog_permissionsContainer" class="mediumMargin leftAlign">
+                    <p>Lehrpersonen / Zugriffsberechtigungen:</p>
+                    <p id="testInfoDialog_noPermissions" class="smallMargin"><i>Keine Lehrpersonen angegeben.</i></p>
+                    <table id="testInfoDialog_permissions" class="smallMargin"></table>
+                </div>
+
+                <table class="mediumMargin" id="testInfoDialog_markAndPointsContainer">
+                    <tr id="testInfoDialog_pointsContainer">
+                        <td><span class="classFlag_private">Punkte:</span><span class="classFlag_class">Durchschnittspunktzahl:</span></td>
+                        <td id="testInfoDialog_points"></td>
+                    </tr>
+                    <tr id="testInfoDialog_averageContainer">
+                        <td><span class="dialogType_subject dialogType_folder">Notenschnitt:</span><span class="dialogType_test dialogType_ref">Ungerundete Note:</span></td>
+                        <td id="testInfoDialog_average"></td>
+                    </tr>
+                    <tr id="testInfoDialog_markContainer">
+                        <td><span class="classFlag_private">Note:</span><span class="classFlag_class">Klassenschnitt:</span></td>
+                        <td id="testInfoDialog_mark"></td>
+                    </tr>
+                </table>
+
+                <div class="buttonGroup mediumMargin">
+                    <button id="testInfoDialog_loadMoreButton" class="button_medium neutral"><img src="/img/info.svg">Mehr laden</button>
+                    <button id="testInfoDialog_visibilityButton" class="button_medium positive">Ausblenden</button>
+                </div>
+                <div class="buttonGroup noMargin">
+                    <button id="testInfoDialog_actionButton" class="button_medium positive">Verschieben</button>
+                    <button id="testInfoDialog_otherButton" class="button_medium positive">Anderes</button>
+                </div>
+                <div id="testInfoDialog_controlButtons" class="buttonGroup noMargin">
+                    <button id="testInfoDialog_editButton" class="button_medium positive"><img src="/img/edit.svg">Bearbeiten</button>
+                    <button id="testInfoDialog_deleteButton" class="button_medium negative"><img src="/img/delete.svg">Löschen</button>
+                </div>
+                
+                <button id="testInfoDialog_closeButton" class="button_big negative smallMargin">Schliessen</button>
+            </div>
+        </div>
+
+        <?php if($_SESSION["type"] === "teacher" || $_SESSION["type"] === "admin") { ?>
+
+        <div id="classInfoDialog" class="dialog infoDialog" style="display: none;">
+            <div class="dialogBlocker"></div>
+            <div class="dialogContent" tabindex="0">
+                <h2>Klassen-Eigenschaften</h3>
+
+                <h3 id="classInfoDialog_name">Name</h3>
+
+                <table id="classInfoDialog_refContainer" class="mediumMargin">
+                    <tr>
+                        <td>Referenzierte Klasse:</td>
+                        <td id="classInfoDialog_refClassName">Originalname</td>
+                    </tr>
+                    <tr id="classInfoDialog_refUserNameContainer">
+                        <td>Besitzer der referenzierten Klasse:</td>
+                        <td id="classInfoDialog_refUserName">Besitzer</td>
+                    </tr>
+                </table>
+
+                <table class="mediumMargin">
+                    <tr>
+                        <td>Ausgeblendet:</td>
+                        <td><img id="classInfoDialog_isHiddenIcon" src="/img/checked.svg"></td>
+                    </tr>
+                </table>
+
+                <div id="classInfoDialog_notesContainer" class="mediumMargin notes leftAlign">
+                    <p>Notizen:</p>
+                    <div style="white-space: pre;" id="classInfoDialog_notes"></div>
+                </div>
+
+                <div id="classInfoDialog_permissionsContainer" class="mediumMargin leftAlign">
+                    <p>Zugriffsberechtigungen:</p>
+                    <p id="classInfoDialog_noPermissions" class="smallMargin"><i>Keine weiteren Zugriffsberechtigungen erteilt.</i></p>
+                    <table id="classInfoDialog_permissions" class="smallMargin"></table>
+                </div>
+
+                <div class="buttonGroup mediumMargin">
+                    <button id="classInfoDialog_loadMoreButton" class="button_medium neutral"><img src="/img/info.svg">Mehr laden</button>
+                    <button id="classInfoDialog_visibilityButton" class="button_medium positive">Ausblenden</button>
+                </div>
+                <div class="buttonGroup noMargin">
+                    <button id="classInfoDialog_actionButton" class="button_medium positive">Kopieren</button>
+                    <button id="classInfoDialog_action2Button" class="button_medium positive">Übertragen</button>
+                </div>
+                <div id="classInfoDialog_controlButtons" class="buttonGroup noMargin">
+                    <button id="classInfoDialog_editButton" class="button_medium positive"><img src="/img/edit.svg">Bearbeiten</button>
+                    <button id="classInfoDialog_deleteButton" class="button_medium negative"><img src="/img/delete.svg">Löschen</button>
+                </div>
+
+               <button id="classInfoDialog_closeButton" class="button_big negative smallMargin">Schliessen</button>
+            </div>
+        </div>
+
+        <div id="studentInfoDialog" class="dialog infoDialog" style="display: none;">
+            <div class="dialogBlocker"></div>
+            <div class="dialogContent" tabindex="0">
+                <h2 id="studentInfoDialog_header">Schüler-Eigenschaften</h3>
+
+                <h3 id="studentInfoDialog_name">Name</h3>
+
+                <table class="mediumMargin">
+                    <tr id="studentInfoDialog_firstNameContainer">
+                        <td>Vorname:</td>
+                        <td id="studentInfoDialog_firstName"></td>
+                    </tr>
+                    <tr>
+                        <td>Nachname:</td>
+                        <td id="studentInfoDialog_lastName"></td>
+                    </tr>
+                    <tr id="studentInfoDialog_genderContainer">
+                        <td>Geschlecht:</td>
+                        <td id="studentInfoDialog_gender"></td>
+                    </tr>
+                </table>
+
+                <table class="mediumMargin" id="studentInfoDialog_userNameContainer">
+                    <tr>
+                        <td>Verknüpftes Konto:</td>
+                        <td id="studentInfoDialog_userName"></td>
+                    </tr>
+                </table>
+
+                <table class="mediumMargin">
+                    <tr>
+                        <td>Ausgeblendet:</td>
+                        <td><img id="studentInfoDialog_isHiddenIcon" src="/img/checked.svg"></td>
+                    </tr>
+                </table>
+
+                <table class="mediumMargin" id="studentInfoDialog_markAndPointsContainer">
+                    <tr id="studentInfoDialog_pointsContainer">
+                        <td>Punkte:</td>
+                        <td id="studentInfoDialog_points"></td>
+                    </tr>
+                    <tr id="studentInfoDialog_averageContainer">
+                        <td><span class="type_subject type_folder type_root">Notenschnitt:</span><span class="type_test type_ref">Ungerundete Note:</span></td>
+                        <td id="studentInfoDialog_average"></td>
+                    </tr>
+                    <tr id="studentInfoDialog_markContainer">
+                        <td>Note:</td>
+                        <td id="studentInfoDialog_mark"></td>
+                    </tr>
+                    <tr id="studentInfoDialog_plusPointsContainer">
+                        <td>Hochpunkte:</td>
+                        <td id="studentInfoDialog_plusPoints"></td>
+                    </tr>
+                </table>
+
+                <div id="studentInfoDialog_notesContainer" class="mediumMargin notes leftAlign">
+                    <p>Anmerkungen:</p>
+                    <div style="white-space: pre;" id="studentInfoDialog_notes"></div>
+                </div>
+
+                <div class="buttonGroup mediumMargin">
+                    <button id="studentInfoDialog_visibilityButton" class="button_big positive">Ausblenden</button>
+                </div>
+
+                <div id="studentInfoDialog_controlButtons" class="buttonGroup noMargin">
+                    <button id="studentInfoDialog_editButton" class="button_medium positive"><img src="/img/edit.svg">Bearbeiten</button>
+                    <button id="studentInfoDialog_deleteButton" class="button_medium negative"><img src="/img/delete.svg">Löschen</button>
+                </div>
+
+               <button id="studentInfoDialog_closeButton" class="button_big negative smallMargin">Schliessen</button>
+            </div>
+        </div>
+
+        <?php } ?>
     </body>
 </html>

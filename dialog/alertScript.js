@@ -31,23 +31,23 @@ class Alert extends Dialog {
 
 		document.body.appendChild(this.dialogElement);
 
-		this.initialize(this.dialogElement, this.enterAsOK, this.escAsCancel, data.OKAction, data.cancelAction);
+		this.initialize(this.dialogElement, false, false);
 
-		if (data.type == "info") {
+		if (data.type === "info") {
 
-			if (data.title === undefined) {
+			if (data.title == undefined) {
 
 				data.title = "Aktion ausgeführt!";
 
 			}
 
-			if (data.description === undefined) {
+			if (data.description == undefined) {
 
 				data.description = "Aktion erfolgreich ausgeführt.";
 
 			}
 
-			if (data.icon === undefined) {
+			if (data.icon == undefined) {
 
 				data.icon = "info";
 
@@ -62,8 +62,9 @@ class Alert extends Dialog {
 			title.appendChild(document.createTextNode(data.title));
 			this.contentElement.appendChild(title);
 
-			var description = document.createElement("P");
-			description.appendChild(document.createTextNode(data.description));
+			var description = document.createElement("DIV");
+			description.classList.add("description");
+			description.innerHTML = "<p class='blankLine'>" + data.description.replace("\n", "</p><p class='blankLine'>") + "</p>";
 			this.contentElement.appendChild(description);
 
 			var button = document.createElement("BUTTON");
@@ -72,18 +73,23 @@ class Alert extends Dialog {
 			button.classList.add("lastDialogElement");
 			button.appendChild(document.createTextNode("OK"));
 
-			if (data.OKAction != undefined) {
+			if (typeof(data.OKAction) === "function") {
 
 				button.addEventListener("click", data.OKAction);
 
 			}
 
-			this.cancelAction = this.OKAction;
+			button.addEventListener("click", Dialog.prototype.hide.bind(this));
 
-			button.addEventListener("click", Alert.close);
+			this.hideOnEnter = data.enterAsOK === undefined ? true : data.enterAsOK;
+			this.hideOnEsc = data.escAsCancel === undefined ? true : data.escAsCancel;
+
+			if(this.hideOnEnter) this.OKAction = data.OKAction;
+			if(this.hideOnEsc) this.cancelAction = data.OKAction;
+
 			this.contentElement.appendChild(button);
 
-		} else if (data.type == "confirm") {
+		} else if (data.type === "confirm") {
 
 			if (data.title == undefined) {
 
@@ -112,8 +118,9 @@ class Alert extends Dialog {
 			title.appendChild(document.createTextNode(data.title));
 			this.contentElement.appendChild(title);
 
-			var description = document.createElement("P");
-			description.appendChild(document.createTextNode(data.description));
+			var description = document.createElement("DIV");
+			description.classList.add("description");
+			description.innerHTML = "<p class='blankLine'>" + data.description.replace("\n", "</p><p class='blankLine'>") + "</p>";
 			this.contentElement.appendChild(description);
 
 			var buttonGroup = document.createElement("DIV");
@@ -124,13 +131,14 @@ class Alert extends Dialog {
 			button.classList.add("secondLastDialogElement");
 			button.appendChild(document.createTextNode("Abbrechen"));
 
-			if (data.cancelAction != undefined) {
+			if (typeof(data.cancelAction) === "function") {
 
 				button.addEventListener("click", data.cancelAction);
 
 			}
 
-			button.addEventListener("click", Alert.close);
+			button.addEventListener("click", Dialog.prototype.hide.bind(this));
+
 			buttonGroup.appendChild(button);
 
 			button = document.createElement("BUTTON");
@@ -139,18 +147,24 @@ class Alert extends Dialog {
 			button.classList.add("lastDialogElement");
 			button.appendChild(document.createTextNode("OK"));
 
-			if (data.OKAction != undefined) {
+			if (typeof(data.OKAction) === "function") {
 
 				button.addEventListener("click", data.OKAction);
 
 			}
 
-			button.addEventListener("click", Alert.close);
+			button.addEventListener("click", Dialog.prototype.hide.bind(this));
 			buttonGroup.appendChild(button);
+
+			this.hideOnEnter = data.enterAsOK === undefined ? true : data.enterAsOK;
+			this.hideOnEsc = data.escAsCancel === undefined ? true : data.escAsCancel;
+
+			if(this.hideOnEnter) this.OKAction = data.OKAction;
+			if(this.hideOnEsc) this.cancelAction = data.cancelAction;
 
 			this.contentElement.appendChild(buttonGroup);
 
-		} else if (data.type == "options") {
+		} else if (data.type === "options") {
 
 			if (data.title == undefined) {
 
@@ -179,8 +193,9 @@ class Alert extends Dialog {
 			title.appendChild(document.createTextNode(data.title));
 			this.contentElement.appendChild(title);
 
-			var description = document.createElement("P");
-			description.appendChild(document.createTextNode(data.description));
+			var description = document.createElement("DIV");
+			description.classList.add("description");
+			description.innerHTML = "<p class='blankLine'>" + data.description.replace("\n", "</p><p class='blankLine'>") + "</p>";
 			this.contentElement.appendChild(description);
 
 			var button;
@@ -194,10 +209,10 @@ class Alert extends Dialog {
 				button.innerHTML = currentButton.name;
 
 				if (
-					currentButton.color == "positive" || 
-					currentButton.color == "negative" || 
-					currentButton.color == "neutral" || 
-					currentButton.color == "option"
+					currentButton.color === "positive" || 
+					currentButton.color === "negative" || 
+					currentButton.color === "neutral" || 
+					currentButton.color === "option"
 				) {
 
 					button.classList.add(currentButton.color);
@@ -222,9 +237,7 @@ class Alert extends Dialog {
 				}
 
 				button.addEventListener("click", currentButton.action);
-				button.addEventListener("click", Alert.close);
-
-
+				button.addEventListener("click", Dialog.prototype.hide.bind(this));
 
 				this.contentElement.appendChild(button);
 
@@ -239,48 +252,35 @@ class Alert extends Dialog {
 				button.style.marginTop = "8px";
 				button.appendChild(document.createTextNode("Abbrechen"));
 
-				if (data.cancelAction != undefined) {
+				if (typeof(data.cancelAction) === "function") {
 
 					button.addEventListener("click", data.cancelAction);
 
 				}
 
-				
-				if(data.cancelAction !== undefined) {
-
-					button.addEventListener("click", this.cancelAction);
-
-				}
-
-				button.addEventListener("click", Alert.close);
+				button.addEventListener("click", Dialog.prototype.hide.bind(this));
 
 				this.contentElement.appendChild(button);
 
-			} else {
-
-				if(data.escAsCancel === undefined) {
-
-					this.escAsCancel = false;
-	
-				}
-
-				button.classList.add("lastDialogElement");
+				this.hideOnEsc = data.escAsCancel === undefined ? true : data.escAsCancel;
 
 			}
 
-			if(data.enterAsOK === undefined) {
-
-				this.enterAsOK = false;
-
-			}
+			if(this.hideOnEsc) this.cancelAction = data.cancelAction;
 
 			button.classList.add("lastDialogElement");
 
-		} else if (data.type == "html") {
+		} else if (data.type === "html") {
 
 			this.contentElement.innerHTML = data.html;
 
-		} else if (data.type == "input") {
+			this.hideOnEnter = data.enterAsOK === undefined ? false : data.enterAsOK;
+			this.hideOnEsc = data.escAsCancel === undefined ? false : data.escAsCancel;
+
+			if(this.hideOnEnter) this.OKAction = data.OKAction;
+			if(this.hideOnEsc) this.cancelAction = data.cancelAction;
+
+		} else if (data.type === "input") {
 
 			if (data.title == undefined) {
 
@@ -327,8 +327,9 @@ class Alert extends Dialog {
 			title.appendChild(document.createTextNode(data.title));
 			this.contentElement.appendChild(title);
 
-			var description = document.createElement("P");
-			description.appendChild(document.createTextNode(data.description));
+			var description = document.createElement("DIV");
+			description.classList.add("description");
+			description.innerHTML = "<p class='blankLine'>" + data.description.replace("\n", "</p><p class='blankLine'>") + "</p>";
 			this.contentElement.appendChild(description);
 
 			var input = document.createElement("INPUT");
@@ -349,7 +350,7 @@ class Alert extends Dialog {
 				button.classList.add("secondLastDialogElement");
 				button.appendChild(document.createTextNode("Abbrechen"));
 
-				if (data.cancelAction != undefined) {
+				if (typeof(data.cancelAction) === "function") {
 
 					button.addEventListener("click", function (event) {
 
@@ -359,16 +360,10 @@ class Alert extends Dialog {
 
 				}
 
-				button.addEventListener("click", Alert.close);
+				button.addEventListener("click", Dialog.prototype.hide.bind(this));
 				buttonGroup.appendChild(button);
 
-			} else {
-
-				if(data.escAsCancel === undefined) {
-	
-					this.escAsCancel = false;
-		
-				}
+				this.hideOnEsc = data.escAsCancel === undefined ? true : data.escAsCancel;
 
 			}
 
@@ -388,7 +383,7 @@ class Alert extends Dialog {
 			button.classList.add("lastDialogElement");
 			button.appendChild(document.createTextNode("OK"));
 
-			if (data.OKAction != undefined) {
+			if (typeof(data.OKAction) === "function") {
 
 				button.addEventListener("click", function (event) {
 
@@ -398,7 +393,7 @@ class Alert extends Dialog {
 
 			}
 
-			button.addEventListener("click", Alert.close);
+			button.addEventListener("click", Dialog.prototype.hide.bind(this));
 			
 			if(data.hasCancelButton) {
 
@@ -412,11 +407,31 @@ class Alert extends Dialog {
 
 			}
 
+			if(this.hideOnEnter) {
+
+				this.OKAction = function (event) {
+
+					data.OKAction(event.target.parentNode.getElementsByTagName("INPUT")[0].value, event);
+
+				};
+
+			}
+
+			if(this.hideOnEsc) {
+
+				this.cancelAction = function (event) {
+
+					data.cancelAction(event.target.parentNode.getElementsByTagName("INPUT")[0].value, event);
+
+				};
+
+			}
+
 		}
 
 		Dialog.show(this);
 
-		if(data.type == "input") {
+		if(data.type === "input") {
 
 			input.focus();
 

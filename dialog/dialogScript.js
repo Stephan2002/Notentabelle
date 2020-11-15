@@ -1,7 +1,7 @@
 
 class Dialog {
 
-    constructor(dialogElement, enterAsOK = true, escAsCancel = true, OKAction, cancelAction) {
+    constructor(dialogElement, hideOnEnter = true, hideOnEsc = true, OKAction = undefined, cancelAction = undefined) {
 
         if(dialogElement === undefined) {
 
@@ -9,13 +9,13 @@ class Dialog {
 
         } else {
 
-            this.initialize(dialogElement, enterAsOK, escAsCancel, OKAction, cancelAction);
+            this.initialize(dialogElement, hideOnEnter, hideOnEsc, OKAction, cancelAction);
 
         }
 
     }
 
-    initialize(dialogElement, enterAsOK = true, escAsCancel = true, OKAction, cancelAction) {
+    initialize(dialogElement, hideOnEnter = true, hideOnEsc = true, OKAction = undefined, cancelAction = undefined) {
 
         this.dialogElement = dialogElement;
         this.contentElement = dialogElement.getElementsByClassName("dialogContent")[0];
@@ -34,8 +34,8 @@ class Dialog {
 
         this.OKAction = OKAction;
         this.cancelAction = cancelAction;
-        this.enterAsOK = enterAsOK;
-        this.escAsCancel = escAsCancel;
+        this.hideOnEnter = hideOnEnter;
+        this.hideOnEsc = hideOnEsc;
 
         if(this.id === undefined) {
 
@@ -51,6 +51,12 @@ class Dialog {
         this.anchorElement.tabIndex = "0";
         this.dialogElement.setAttribute("data-id", this.id);
 
+        if(this.destroyOnHide) {
+
+            this.dialogElement.classList.add("destroyOnHide");
+
+        }
+
         var copy = this;
         
         this.contentElement.addEventListener("keydown", function (event) {
@@ -59,34 +65,34 @@ class Dialog {
 
                 var activeElement = document.activeElement;
 
-                if(copy.enterAsOK) {
+                if(copy.OKAction !== undefined || copy.hideOnEnter) {
                 
                     if(
-                        activeElement.tagName != "TEXTAREA" &&
-                        activeElement.tagName != "BUTTON" &&
-                        activeElement.tagName != "SELECT" &&
-                        (activeElement.tagName != "INPUT" || (
-                            activeElement.type != "color" &&
-                            activeElement.type != "file" &&
-                            activeElement.type != "date" &&
-                            activeElement.type != "datetime-local" &&
-                            activeElement.type != "week" &&
-                            activeElement.type != "month" &&
-                            activeElement.type != "time" &&
-                            activeElement.type != "submit" &&
-                            activeElement.type != "reset" &&
-                            activeElement.type != "button" &&
-                            activeElement.type != "image"
+                        activeElement.tagName !== "TEXTAREA" &&
+                        activeElement.tagName !== "BUTTON" &&
+                        activeElement.tagName !== "SELECT" &&
+                        (activeElement.tagName !== "INPUT" || (
+                            activeElement.type !== "color" &&
+                            activeElement.type !== "file" &&
+                            activeElement.type !== "date" &&
+                            activeElement.type !== "datetime-local" &&
+                            activeElement.type !== "week" &&
+                            activeElement.type !== "month" &&
+                            activeElement.type !== "time" &&
+                            activeElement.type !== "submit" &&
+                            activeElement.type !== "reset" &&
+                            activeElement.type !== "button" &&
+                            activeElement.type !== "image"
                         ))    
                     ) {
                     
-                        if(typeof(copy.OKAction) == "function") {
+                        if(typeof(copy.OKAction) === "function") {
 
                             copy.OKAction();
 
                         }
 
-                        if(!copy.preventHidingOnEnter) {
+                        if(copy.hideOnEnter) {
 
                             Dialog.hide(copy);
 
@@ -100,15 +106,15 @@ class Dialog {
 
 			} else if(event.key === "Escape") {
 
-                if(copy.escAsCancel) {
+                if(copy.cancelAction !== undefined || copy.hideOnEsc) {
 
-                    if(typeof(copy.cancelAction) == "function") {
+                    if(typeof(copy.cancelAction) === "function") {
 
                         copy.cancelAction();
 
                     }
 
-                    if(!copy.preventHidingOnEnter) {
+                    if(copy.hideOnEsc) {
 
                         Dialog.hide(copy);
 
@@ -264,11 +270,12 @@ class Dialog {
     }
 
     static hide(parameter, callback) {
-
+        
         var dialogElement;
         var blockerElement;
         var contentElement;
         var anchorElement;
+        var destroyOnHide;
 
         if(parameter instanceof Dialog) {
 
@@ -276,6 +283,7 @@ class Dialog {
             blockerElement = parameter.blockerElement;
             contentElement = parameter.contentElement;
             anchorElement = parameter.anchorElement;
+            destroyOnHide = parameter.destroyOnHide;
 
         } else {
 
@@ -283,6 +291,7 @@ class Dialog {
             blockerElement = dialogElement.getElementsByClassName("dialogBlocker")[0];
             contentElement = dialogElement.getElementsByClassName("dialogContent")[0];
             anchorElement = document.getElementById("dialogAnchor_" + dialogElement.getAttribute("data-id"));
+            destroyOnHide = dialogElement.classList.contains("destroyOnHide");
 
         }
 
@@ -309,9 +318,12 @@ class Dialog {
 
             }
 
-            if(this.destroyOnHide) {
+            if(destroyOnHide) {
 
-                document.removeChild(dialogElement);
+                var parentElement = dialogElement.parentNode;
+
+                parentElement.removeChild(dialogElement);
+                parentElement.removeChild(anchorElement);
 
             }
 

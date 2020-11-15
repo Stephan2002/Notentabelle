@@ -37,10 +37,16 @@ var cache = {
 
     semesters: [],
     tests: [],
-    rootSemesters: undefined,
-    publishedTemplates: undefined
+    rootSemesters: undefined
 
 };
+
+var additionalInfo = {
+
+    semesters: [],
+    tests: []
+
+}
 
 var showHidden = {
 
@@ -55,6 +61,10 @@ var editStudents = false;
 var showStudentsWithoutMark = false;
 
 var currentElement;
+
+
+var semesterInfoDialog;
+var testInfoDialog;
 
 // Maskiert die speziellen HTML-Zeichen
 function escapeHTML(text) {
@@ -204,6 +214,8 @@ function loadData(url, data, success, error) {
 
     xhttp.send(dataString);
 
+    return xhttp;
+
 }
 
 function loadingError(errorCode) {
@@ -276,31 +288,15 @@ function printElement() {
 
             }
 
-            if(currentChildData.referenceTestID !== null) {
-
-                var currentString =
-                "<tr onclick='select(TYPE_TEST, " + currentChildData.referenceTestID + ", false, true)'>" +
+            var currentString =
+                "<tr onclick='select(" + (currentChildData.isFolder ? TYPE_SEMESTER : TYPE_TEST) + ", " + (currentChildData.referenceTestID ? (currentChildData.referenceTestID + ", false, true") : ((currentChildData.referenceID ? currentChildData.referenceID : currentChildData.semesterID) + ", " + !currentChildData.isFolder + ", " + currentChildData.isFolder)) + ")'>" +
                     "<td class='table_name'>" + escapeHTML(currentChildData.name) + "</td>" +
                     "<td class='table_buttons'>" +
                         "<button class='button_square negative table_big'><img src='/img/delete.svg' alt='X'></button>" +
                         "<button class='button_square positive table_big'><img src='/img/edit.svg' alt='.'></button>" +
-                        "<button class='button_square neutral'><img src='/img/info.svg' alt='i'></button>" +
+                        "<button class='button_square neutral' onclick='event.stopPropagation(); semesterInfoDialog.open(" + currentChildData.semesterID + ")'><img src='/img/info.svg' alt='i'></button>" + 
                     "</td>" +
                 "</tr>";
-
-            } else {
-
-                var currentString =
-                    "<tr onclick='select(" + (currentChildData.isFolder ? TYPE_SEMESTER : TYPE_TEST) + ", " + (currentChildData.referenceID ? currentChildData.referenceID : currentChildData.semesterID) + ", " + !currentChildData.isFolder + ", " + currentChildData.isFolder + ")'>" +
-                        "<td class='table_name'>" + escapeHTML(currentChildData.name) + "</td>" +
-                        "<td class='table_buttons'>" +
-                            "<button class='button_square negative table_big'><img src='/img/delete.svg' alt='X'></button>" +
-                            "<button class='button_square positive table_big'><img src='/img/edit.svg' alt='.'></button>" +
-                            "<button class='button_square neutral'><img src='/img/info.svg' alt='i'></button>" +
-                        "</td>" +
-                    "</tr>";
-
-            }
 
             if (currentChildData.isFolder) {
 
@@ -387,6 +383,8 @@ function printElement() {
 
             document.getElementById("averageFooter").style.display = "none";
 
+            document.getElementById("parentTypeStyles").innerHTML = ".parentType_template { display: inline; }";
+
         } else {
 
             document.getElementById("averageFooter_points").style.display = "none";
@@ -396,19 +394,19 @@ function printElement() {
 
             document.getElementById("averageFooter").style.display = "block";
 
+            document.getElementById("parentTypeStyles").innerHTML = ".parentType_semester { display: inline; }";
+
         }
 
         if(currentElement.isRoot) {
 
             document.getElementById("tests_addFolderButtons").style.display = "none";
             document.getElementById("tests_followRefButton").style.display = "none";
-            document.getElementById("tests_empty_folders_templateButton").style.display = "none";
-            document.getElementById("tests_empty_folders_instruction").style.display = "none";
 
-            document.getElementById("tests_testButtons").style.display = "none";
-            document.getElementById("tests_refButtons").style.display = "none";
-            document.getElementById("tests_folderButtons").style.display = "none";
+            document.getElementById("tests_elementButtons").style.display = "none";
             document.getElementById("tests_semesterButtons").style.display = "block";
+
+            document.getElementById("typeStyles").innerHTML = ".type_root { display: inline; }";
             
             if(currentElement.accessType !== ACCESS_STUDENT) {
 
@@ -425,85 +423,92 @@ function printElement() {
                 document.getElementById("tests_addSubjectButtons").style.display = "block";
                 document.getElementById("tests_deletedButton").style.display = "inline-block";
 
-                document.getElementById("tests_empty_subjects_templateButton").style.display = "inline-block";
-                document.getElementById("tests_empty_subjects_instruction").style.display = "block";
+                document.getElementById("tests_empty_templateButton").style.display = "inline-block";
+                document.getElementById("tests_empty_instruction").style.display = "block";
 
             } else {
 
                 document.getElementById("tests_addSubjectButtons").style.display = "none";
                 document.getElementById("tests_deletedButton").style.display = "none";
 
-                document.getElementById("tests_empty_subjects_templateButton").style.display = "none";
-                document.getElementById("tests_empty_subjects_instruction").style.display = "none";
+                document.getElementById("tests_empty_templateButton").style.display = "none";
+                document.getElementById("tests_empty_instruction").style.display = "none";
 
             }
+
+            var isClass = currentElement.data.classID !== null && currentElement.accessType !== ACCESS_STUDENT;
 
             if(currentElement.accessType === ACCESS_TEACHER || currentElement.isTemplate) {
 
                 document.getElementById("averageFooter").style.display = "none";
-                document.getElementById("averageFooter_plusPoints_big").innerHTML = "";
-                
 
             } else {
 
                 document.getElementById("averageFooter_plusPoints_big").style.display = "block";
                 document.getElementById("averageFooter_average").style.display = "block";
 
-                document.getElementById("averageFooter_plusPoints_big").innerHTML = "Hochpunkte: " + formatNumber(currentElement.data.plusPoints, "-");
-                document.getElementById("averageFooter_average").innerHTML = "Schnitt: " + formatNumber(currentElement.data.mark_unrounded, "-");
+                document.getElementById("averageFooter_plusPoints_big").innerHTML = (isClass ? "Durchschnitt. Hochpunktzahl: " : "Hochpunkte: ") + formatNumber(currentElement.data.plusPoints, "-");
+                document.getElementById("averageFooter_average").innerHTML = (isClass ? "Klassenschnitt: " : "Notenschnitt: ") + formatNumber(currentElement.data.mark_unrounded, "-");
                 
 
             }
 
             if(currentElement.accessType === ACCESS_OWNER) {
 
-                document.getElementById("tests_editSemesterButtons").style.display = "block";
+                document.getElementById("tests_semesterControlButtons").style.display = "block";
 
             } else {
 
-                document.getElementById("tests_editSemesterButtons").style.display = "none";
+                document.getElementById("tests_semesterControlButtons").style.display = "none";
 
             }
 
         } else {
 
             document.getElementById("tests_addSubjectButtons").style.display = "none";
-            document.getElementById("tests_empty_subjects_templateButton").style.display = "none";
-            document.getElementById("tests_empty_subjects_instruction").style.display = "none";
+
+            document.getElementById("tests_elementButtons").style.display = "block";
+            document.getElementById("tests_semesterButtons").style.display = "none";
 
             if(currentElement.writingPermission && currentElement.isFolder) {
 
                 document.getElementById("tests_addFolderButtons").style.display = "block";
-                document.getElementById("tests_empty_folders_templateButton").style.display = "inline-block";
-                document.getElementById("tests_empty_folders_instruction").style.display = "block";
+                document.getElementById("tests_empty_templateButton").style.display = "inline-block";
+                document.getElementById("tests_empty_instruction").style.display = "block";
 
             } else {
 
                 document.getElementById("tests_addFolderButtons").style.display = "none";
-                document.getElementById("tests_empty_folders_templateButton").style.display = "none";
-                document.getElementById("tests_empty_folders_instruction").style.display = "none";
+                document.getElementById("tests_empty_templateButton").style.display = "none";
+                document.getElementById("tests_empty_instruction").style.display = "none";
 
             }
 
-            document.getElementById("tests_semesterButtons").style.display = "none";
             document.getElementById("averageFooter_plusPoints_big").style.display = "none";
             document.getElementById("tests_followRefButton").style.display = "none";
+
+            document.getElementById("typeStyles").innerHTML = ".type_subject { display: inline; }";
 
             if(currentElement.isFolder) {
 
                 document.getElementById("tests_followRefButton").style.display = "none";
-                document.getElementById("tests_testButtons").style.display = "none";
-                document.getElementById("tests_refButtons").style.display = "none";
-                document.getElementById("tests_folderButtons").style.display = "block";
+
+                if(currentElement.data.parentID === null) {
+
+                    document.getElementById("typeStyles").innerHTML = ".type_subject { display: inline; }";
+
+                } else {
+
+                    document.getElementById("typeStyles").innerHTML = ".type_folder { display: inline; }";
+
+                }
 
                 if(currentElement.writingPermission && (currentElement.accessType !== ACCESS_TEACHER || currentElement.data.subjectID !== null)) {
 
-                    document.getElementById("tests_editFolderButtons").style.display = "block";
                     document.getElementById("tests_deletedButton").style.display = "inline-block";
 
                 } else {
 
-                    document.getElementById("tests_editFolderButtons").style.display = "none";
                     document.getElementById("tests_deletedButton").style.display = "none";
 
                 }
@@ -520,27 +525,17 @@ function printElement() {
 
             } else {
 
-                document.getElementById("tests_folderButtons").style.display = "none";
                 document.getElementById("tests_deletedButton").style.display = "none";
                 document.getElementById("tests_table").style.display = "none";
                 document.getElementById("tests_showHiddenTests").style.display = "none";
                 
                 if(currentElement.data.referenceState === null) {
 
-                    document.getElementById("tests_testButtons").style.display = "block";
-                    document.getElementById("tests_refButtons").style.display = "none";
-
-                    if(currentElement.writingPermission && (currentElement.accessType !== ACCESS_TEACHER || currentElement.data.subjectID !== null)) {
-
-                        document.getElementById("tests_editTestButtons").style.display = "block";
-
-                    } else {
-
-                        document.getElementById("tests_editTestButtons").style.display = "none";
-
-                    }
+                    document.getElementById("typeStyles").innerHTML = ".type_test { display: inline; }";
 
                 } else {
+
+                    document.getElementById("typeStyles").innerHTML = ".type_ref { display: inline; }";
 
                     if(currentElement.data.referenceState === "ok" || currentElement.data.referenceState === "outdated" || currentElement.data.referenceState === "forbidden") {
                         
@@ -549,20 +544,17 @@ function printElement() {
 
                     }
 
-                    document.getElementById("tests_testButtons").style.display = "none";
-                    document.getElementById("tests_refButtons").style.display = "block";
-
-                    if(currentElement.writingPermission && (currentElement.accessType !== ACCESS_TEACHER || currentElement.data.subjectID !== null)) {
-
-                        document.getElementById("tests_editRefButtons").style.display = "block";
-
-                    } else {
-
-                        document.getElementById("tests_editRefButtons").style.display = "none";
-
-                    }
-
                 }
+
+            }
+
+            if(currentElement.writingPermission && (currentElement.accessType !== ACCESS_TEACHER || currentElement.data.subjectID !== null)) {
+
+                document.getElementById("tests_elementControlButtons").style.display = "block";
+
+            } else {
+
+                document.getElementById("tests_elementControlButtons").style.display = "none";
 
             }
 
@@ -572,25 +564,27 @@ function printElement() {
 
             if(!currentElement.isTemplate) {
 
+                var isClass = currentElement.data.classID !== null && currentElement.accessType !== ACCESS_STUDENT;
+
                 if(currentElement.data.formula !== null) {
 
                     document.getElementById("averageFooter_points").style.display = "block";
                     document.getElementById("averageFooter_mark_big").style.display = "block";
 
-                    document.getElementById("averageFooter_points").innerHTML = "Punkte: " + formatNumber(currentElement.data.points, "-");
-                    document.getElementById("averageFooter_mark_big").innerHTML = "Note: " + formatNumber(currentElement.data.mark, "-");
+                    document.getElementById("averageFooter_points").innerHTML = (isClass ? "Durchschnittspunktzahl: " : "Punkte: ") + formatNumber(currentElement.data.points, "-");
+                    document.getElementById("averageFooter_mark_big").innerHTML = (isClass ? "Klassenschnitt: " : "Note: ") + formatNumber(currentElement.data.mark, "-");
 
                 } else if(currentElement.data.round === null) {
 
                     document.getElementById("averageFooter_points_big").style.display = "block";
 
-                    document.getElementById("averageFooter_points_big").innerHTML = "Punkte: " + formatNumber(currentElement.data.points, "-");
+                    document.getElementById("averageFooter_points_big").innerHTML = (isClass ? "Durchschnittspunktzahl: " : "Punkte: ") + formatNumber(currentElement.data.points, "-");
 
                 } else if(currentElement.data.round == 0 || (currentElement.data.classID !== null && currentElement.accessType !== ACCESS_STUDENT)) {
 
                     document.getElementById("averageFooter_mark_big").style.display = "block";
 
-                    document.getElementById("averageFooter_mark_big").innerHTML = "Note: " + formatNumber(currentElement.data.mark, "-");
+                    document.getElementById("averageFooter_mark_big").innerHTML = (isClass ? "Klassenschnitt: " : "Note: ") + formatNumber(currentElement.data.mark, "-");
 
 
                 } else {
@@ -598,7 +592,7 @@ function printElement() {
                     document.getElementById("averageFooter_average").style.display = "block";
                     document.getElementById("averageFooter_mark_big").style.display = "block";
 
-                    document.getElementById("averageFooter_average").innerHTML = "Schnitt: " + formatNumber(currentElement.data.mark_unrounded, "-");
+                    document.getElementById("averageFooter_average").innerHTML = (currentElement.isFolder ? "Notenschnitt: " : "ungerundete Note: ") + formatNumber(currentElement.data.mark_unrounded, "-");
                     document.getElementById("averageFooter_mark_big").innerHTML = "Note: " + formatNumber(currentElement.data.mark, "-");
 
 
@@ -613,25 +607,6 @@ function printElement() {
             // Tabelle mit Tests fuellen
 
             var tableString = "";
-
-            if(currentElement.writingPermission) {
-
-                var buttonString = 
-                    "<td class='table_buttons'>" +
-                        "<button class='button_square negative table_big'><img src='/img/delete.svg' alt='X'></button>" +
-                        "<button class='button_square positive table_big'><img src='/img/edit.svg' alt='.'></button>" +
-                        "<button class='button_square neutral'><img src='/img/info.svg' alt='i'></button>" +
-                    "</td>";
-
-            } else {
-
-                var buttonString = 
-                    "<td class='table_buttons noWritingPermission'>" +
-                        "<button class='button_square neutral'><img src='/img/info.svg' alt='i'></button>" +
-                    "</td>";
-
-            }
-
             var pointsUsed = false;
             
             if(currentElement.isRoot || (currentElement.data.round != null && currentElement.data.formula == null)) {
@@ -700,36 +675,6 @@ function printElement() {
 
                 }
 
-                /*if(currentChildData.referenceState === "ok" || currentChildData.referenceState === "outdated") {
-
-                    tableString +=
-                    "<tr class='" + colorClass + "' onclick='select(TYPE_TEST, " + currentChildData.referenceID + ", false, " + currentChildData.isFolder + ")'>" +
-                        "<td class='table_name'>" + escapeHTML(currentChildData.name) + "</td>" +
-                        "<td>" + formatDate(currentChildData.date) + "</td>" +
-                        "<td>" + formatNumber(currentChildData.weight) + "</td>" +
-                        "<td>" + (currentChildData.formula != null ? (currentChildData.points != null ? formatNumber(currentChildData.points) : "") : "") + "</td>" +
-                        "<td>" + ((currentElement.data.classID === null && currentChildData.round != null && currentChildData.round != 0 && currentChildData.formula == null) ? (currentChildData.mark_unrounded != null ? formatNumber(currentChildData.mark_unrounded) : "") : "") + "</td>" +
-                        "<td class='table_mark'>" + (currentChildData.round != null ? (currentChildData.mark != null ? formatNumber(currentChildData.mark) : "") : (currentChildData.points != null ? formatNumber(currentChildData.points) : "")) + "</td>" +
-                        referenceString +
-                        buttonString +
-                    "</tr>";
-
-                } else {
-
-                    tableString +=
-                        "<tr class='" + colorClass + (currentChildData.referenceState ? " noSelect'" : "' onclick='select(TYPE_TEST, " + currentChildData.testID + ", false, " + currentChildData.isFolder + ")'") + ">" +
-                            "<td class='table_name'>" + escapeHTML(currentChildData.name) + "</td>" +
-                            "<td>" + formatDate(currentChildData.date) + "</td>" +
-                            "<td>" + formatNumber(currentChildData.weight) + "</td>" +
-                            "<td>" + (currentChildData.formula != null ? (currentChildData.points != null ? formatNumber(currentChildData.points) : "") : "") + "</td>" +
-                            "<td>" + ((currentElement.data.classID === null && currentChildData.round != null && currentChildData.round != 0 && currentChildData.formula == null) ? (currentChildData.mark_unrounded != null ? formatNumber(currentChildData.mark_unrounded) : "") : "") + "</td>" +
-                            "<td class='table_mark'>" + (currentChildData.round != null ? (currentChildData.mark != null ? formatNumber(currentChildData.mark) : "") : (currentChildData.points != null ? formatNumber(currentChildData.points) : "")) + "</td>" +
-                            referenceString +
-                            buttonString +
-                        "</tr>";
-
-                }*/
-
                 tableString +=
                     "<tr class='" + colorClass + "' onclick='select(TYPE_TEST, " + currentChildData.testID + ", false, " + currentChildData.isFolder + ")'>" +
                         "<td class='table_name'>" + escapeHTML(currentChildData.name) + "</td>" +
@@ -739,7 +684,13 @@ function printElement() {
                         "<td>" + ((currentElement.data.classID === null && currentChildData.round != null && currentChildData.round != 0 && currentChildData.formula == null) ? (currentChildData.mark_unrounded != null ? formatNumber(currentChildData.mark_unrounded) : "") : "") + "</td>" +
                         "<td class='table_mark'>" + (currentChildData.round != null ? (currentChildData.mark != null ? formatNumber(currentChildData.mark) : "") : (currentChildData.points != null ? formatNumber(currentChildData.points) : "")) + "</td>" +
                         referenceString +
-                        buttonString +
+                        "<td class='table_buttons'>" +
+                            (currentElement.writingPermission ? (
+                            "<button class='button_square negative table_big'><img src='/img/delete.svg' alt='X'></button>" +
+                            "<button class='button_square positive table_big'><img src='/img/edit.svg' alt='.'></button>"
+                            ) : "") +
+                            "<button class='button_square neutral' onclick='event.stopPropagation(); testInfoDialog.open(" + currentChildData.testID + ")'><img src='/img/info.svg' alt='i'></button>" +
+                        "</td>" +
                     "</tr>";
 
                 if(!pointsUsed) {
@@ -760,36 +711,33 @@ function printElement() {
 
             }
 
+            if(currentElement.isTemplate || (currentElement.isRoot && currentElement.accessType === ACCESS_TEACHER)) {
+
+                document.getElementById("tests_table_mark").innerHTML = "";
+
+            } else {
+
+                document.getElementById("tests_table_mark").innerHTML = "Note";
+
+            }
+
             document.getElementById("tests_tableBody").innerHTML = tableString;
 
             if(tableString === "") {
 
-                if(currentElement.isRoot) {
-
-                    document.getElementById("tests_empty_subjects").style.display = "block";
-                    document.getElementById("tests_empty_folders").style.display = "none";
-
-                } else {
-
-                    document.getElementById("tests_empty_subjects").style.display = "none";
-                    document.getElementById("tests_empty_folders").style.display = "block";
-
-                }
-
+                document.getElementById("tests_empty").style.display = "block";
                 document.getElementById("tests_table").style.display = "none";
 
             } else {
 
-                document.getElementById("tests_empty_subjects").style.display = "none";
-                document.getElementById("tests_empty_folders").style.display = "none";
+                document.getElementById("tests_empty").style.display = "none";
                 document.getElementById("tests_table").style.display = "table";
 
             }
 
         } else {
 
-            document.getElementById("tests_empty_subjects").style.display = "none";
-            document.getElementById("tests_empty_folders").style.display = "none";
+            document.getElementById("tests_empty").style.display = "none";
 
         }
 
@@ -797,6 +745,8 @@ function printElement() {
 
             document.getElementById("tests_testInfo_div").style.display = "none";
             document.getElementById("tests_calculatorButton").style.display = "none";
+
+            document.getElementById("tests_elementInfoButton").style.display = "inline-block";
 
             if(currentElement.isRoot) {
 
@@ -842,7 +792,6 @@ function printElement() {
 
                 } else {
 
-                    document.getElementById("tests_testInfoButton").style.display = "inline-block";
                     document.getElementById("tests_editStudentButton").style.display = "inline-block";
 
                 }
@@ -865,18 +814,28 @@ function printElement() {
 
                 if(currentElement.writingPermission) {
 
-                    var buttonString = 
-                        "<td class='studentTable_buttons'>" +
-                            "<button class='button_square positive table_big'><img src='/img/edit.svg' alt='.'></button>" +
-                            "<button class='button_square neutral'><img src='/img/info.svg' alt='i'></button>" +
-                        "</td>";
+                    var getButtonString = function(studentID) {
+
+                        return (
+                            "<td class='studentTable_buttons'>" +
+                                "<button class='button_square positive table_big'><img src='/img/edit.svg' alt='.'></button>" +
+                                "<button class='button_square neutral' onclick='event.stopPropagation(); studentInfoDialog.open(" + studentID + ", true)'><img src='/img/info.svg' alt='i'></button>" +
+                            "</td>"
+                        );
+
+                    }
 
                 } else {
 
-                    var buttonString = 
-                        "<td class='studentTable_buttons'>" +
-                            "<button class='button_square neutral'><img src='/img/info.svg' alt='i'></button>" +
-                        "</td>";
+                    var getButtonString = function(studentID) {
+
+                        return (
+                            "<td class='studentTable_buttons'>" +
+                                "<button class='button_square neutral' onclick='event.stopPropagation(); studentInfoDialog.open(" + studentID + ", true)'><img src='/img/info.svg' alt='i'></button>" +
+                            "</td>"
+                        );
+
+                    }
 
                 }
                 
@@ -942,7 +901,7 @@ function printElement() {
                                 "<td></td>" +
                                 "<td>" + (currentStudentData.mark_unrounded != null ? formatNumber(currentStudentData.mark_unrounded) : "") + "</td>" +
                                 "<td class='table_mark'>" + (currentStudentData.plusPoints != null ? formatNumber(currentStudentData.plusPoints) : "") + "</td>" +
-                                buttonString +
+                                getButtonString(currentStudentData.studentID) +
                             "</tr>";
 
                     }
@@ -964,7 +923,7 @@ function printElement() {
                                 "<td></td>" + 
                                 "<td></td>" +
                                 "<td class='table_mark studentTable_input'><input type='text' readonly value='" + (currentStudentData.points != null ? formatNumber(currentStudentData.points) : "") + "'></td>" +
-                                buttonString +
+                                getButtonString(currentStudentData.studentID) +
                             "</tr>";
 
                     }
@@ -988,7 +947,7 @@ function printElement() {
                                     "<td></td>" +
                                     "<td></td>" +
                                     "<td class='table_mark studentTable_input'><input type='text' readonly value='" + (currentStudentData.mark != null ? formatNumber(currentStudentData.mark) : "") + "'></td>" +
-                                    buttonString +
+                                    getButtonString(currentStudentData.studentID) +
                                 "</tr>";
     
                         }
@@ -1010,7 +969,7 @@ function printElement() {
                                     "<td></td>" +
                                     "<td class='studentTable_input'><input type='text' readonly value='" + (currentStudentData.mark_unrounded != null ? formatNumber(currentStudentData.mark_unrounded) : "") + "'></td>" +
                                     "<td class='table_mark'>" + (currentStudentData.mark != null ? formatNumber(currentStudentData.mark) : "") + "</td>" +
-                                    buttonString +
+                                    getButtonString(currentStudentData.studentID) +
                                 "</tr>";
     
                         }
@@ -1038,7 +997,7 @@ function printElement() {
                                         "<td>" + (currentStudentData.points != null ? formatNumber(currentStudentData.points) : "") + "</td>" +
                                         "<td></td>" +
                                         "<td class='table_mark studentTable_input'><input type='text' readonly value='" +  (currentStudentData.mark != null ? formatNumber(currentStudentData.mark) : "") + "'></td>" +
-                                        buttonString +
+                                        getButtonString(currentStudentData.studentID) +
                                     "</tr>";
         
                             }
@@ -1060,7 +1019,7 @@ function printElement() {
                                         "<td class='studentTable_input'><input type='text' readonly value='" + (currentStudentData.points != null ? formatNumber(currentStudentData.points) : "") + "'></td>" +
                                         "<td></td>" +
                                         "<td class='table_mark studentTable_input'><input type='text' readonly value='" +  (currentStudentData.mark != null ? formatNumber(currentStudentData.mark) : "") + "'></td>" +
-                                        buttonString +
+                                        getButtonString(currentStudentData.studentID) +
                                     "</tr>";
         
                             }
@@ -1084,7 +1043,7 @@ function printElement() {
                                     "<td class='studentTable_input'><input type='text' readonly value='" + (currentStudentData.points != null ? formatNumber(currentStudentData.points) : "") + "'></td>" +
                                     "<td></td>" +
                                     "<td class='table_mark'>" + (currentStudentData.mark != null ? formatNumber(currentStudentData.mark) : "") + "</td>" +
-                                    buttonString +
+                                    getButtonString(currentStudentData.studentID) +
                                 "</tr>";
     
                         }
@@ -1187,12 +1146,14 @@ function printElement() {
             if(currentElement.isRoot) {
 
                 document.getElementById("tests_testInfo_div").style.display = "none";
+                document.getElementById("tests_elementInfoButton").style.display = "inline-block";
                 
             } else {
 
                 if(currentElement.isFolder) {
 
                     document.getElementById("tests_testInfo_div").style.display = "none";
+                    document.getElementById("tests_elementInfoButton").style.display = "inline-block";
                     
                     if(tableString !== "") {
                     
@@ -1207,7 +1168,7 @@ function printElement() {
                 } else {
 
                     document.getElementById("tests_calculatorButton").style.display = "none";
-                    document.getElementById("tests_testInfoButton").style.display = "none";
+                    document.getElementById("tests_elementInfoButton").style.display = "none";
                     
                     // Testinformationen einfuellen
                     document.getElementById("tests_testInfo_div").style.display = "block";
@@ -1222,13 +1183,7 @@ function printElement() {
         document.getElementsByTagName("TITLE")[0].innerHTML = "Notentabelle - " + escapeHTML(currentElement.data.name);
 
     } else if (currentElement.type === TYPE_SEMESTER && currentElement.isForeign) {
-        // Fremde Semester
-
-        var buttonString = 
-            "<td class='table_buttons'>" +
-                "<button class='button_square positive table_big'><img src='/img/save.svg' alt='S'></button>" +
-                "<button class='button_square neutral'><img src='/img/info.svg' alt='i'></button>" +
-            "</td>";
+        // Fremde Semester  
 
         var sharedString = "";
         var teacherString = "";
@@ -1242,7 +1197,10 @@ function printElement() {
                 "<tr onclick='select(TYPE_TEST, " + currentChildData.semesterID + ", true, true)'>" +
                     "<td class='table_name'>" + escapeHTML(currentChildData.name) + "</td>" +
                     "<td>" + escapeHTML(currentChildData.userName) + "</td>" +
-                    buttonString +
+                    "<td class='table_buttons'>" +
+                        "<button class='button_square positive table_big'><img src='/img/save.svg' alt='S'></button>" +
+                        "<button class='button_square neutral' onclick='event.stopPropagation(); classInfoDialog.open(" + currentChildData.semesterID + ")'><img src='/img/info.svg' alt='i'></button>" +
+                    "</td>" +
                 "</tr>";
 
             if(currentChildData.category === ACCESS_SHARED) {
@@ -1346,7 +1304,7 @@ function printElement() {
                     "<td class='table_buttons'>" +
                         "<button class='button_square negative table_big'><img src='/img/delete.svg' alt='X'></button>" +
                         "<button class='button_square positive table_big'><img src='/img/edit.svg' alt='.'></button>" +
-                        "<button class='button_square neutral'><img src='/img/info.svg' alt='i'></button>" +
+                        "<button class='button_square neutral' onclick='event.stopPropagation(); classInfoDialog.open(" + currentChildData.classID + ")'><img src='/img/info.svg' alt='i'></button>" +
                     "</td>" +
                 "</tr>";
 
@@ -1374,12 +1332,6 @@ function printElement() {
     } else if (user.isTeacher && currentElement.type === TYPE_CLASS && currentElement.isRoot) {
         // Fremde Klassen
 
-        var buttonString = 
-            "<td class='table_buttons'>" +
-                "<button class='button_square positive table_big'><img src='/img/save.svg' alt='S'></button>" +
-                "<button class='button_square neutral'><img src='/img/info.svg' alt='i'></button>" +
-            "</td>";
-
         var tableString = "";
 
         for(var i = 0; i < currentElement.childrenData.length; i++) {
@@ -1390,7 +1342,10 @@ function printElement() {
                 "<tr onclick='select(TYPE_CLASS, " + currentChildData.classID + ", false, true)'>" +
                     "<td class='table_name'>" + escapeHTML(currentChildData.name) + "</td>" +
                     "<td>" + escapeHTML(currentChildData.userName) + "</td>" +
-                    buttonString +
+                    "<td class='table_buttons'>" +
+                        "<button class='button_square positive table_big'><img src='/img/save.svg' alt='S'></button>" +
+                        "<button class='button_square neutral' onclick='event.stopPropagation(); classInfoDialog.open(" + currentChildData.classID + ")'><img src='/img/info.svg' alt='i'></button>" +
+                    "</td>" +
                 "</tr>";
 
         }
@@ -1419,33 +1374,21 @@ function printElement() {
 
         if(currentElement.writingPermission) {
 
-            document.getElementById("students_addStudentButton").style.display = "inline-block";
-
-            var buttonString = 
-                "<td class='table_buttons'>" +
-                    "<button class='button_square negative table_big'><img src='/img/delete.svg' alt='X'></button>" +
-                    "<button class='button_square positive table_big'><img src='/img/edit.svg' alt='.'></button>" +
-                    "<button class='button_square neutral'><img src='/img/info.svg' alt='i'></button>" +
-                "</td>";
+            document.getElementById("students_addStudentButton").style.display = "inline-block";               
 
         } else {
 
-            document.getElementById("students_addStudentButton").style.display = "none";
-
-            var buttonString = 
-                "<td class='table_buttons noWritingPermission'>" +
-                    "<button class='button_square neutral'><img src='/img/info.svg' alt='i'></button>" +
-                "</td>";
+            document.getElementById("students_addStudentButton").style.display = "none";              
 
         }
 
         if(currentElement.accessType === ACCESS_OWNER) {
 
-            document.getElementById("students_editButtons").style.display = "block";
+            document.getElementById("students_classControlButtons").style.display = "block";
 
         } else {
 
-            document.getElementById("students_editButtons").style.display = "none";
+            document.getElementById("students_classControlButtons").style.display = "none";
 
         }
 
@@ -1466,7 +1409,13 @@ function printElement() {
                     "<td class='table_name'>" + escapeHTML(currentChildData.lastName) + "</td>" +
                     "<td>" + escapeHTML(currentChildData.firstName) + "</td>" +
                     "<td>" + escapeHTML(currentChildData.userName) + "</td>" +
-                    buttonString +
+                    "<td class='table_buttons'>" +
+                        (currentElement.writingPermission ? (
+                            "<button class='button_square negative table_big'><img src='/img/delete.svg' alt='X'></button>" +
+                            "<button class='button_square positive table_big'><img src='/img/edit.svg' alt='.'></button>"
+                        ) : "") +
+                        "<button class='button_square neutral' onclick='event.stopPropagation(); studentInfoDialog.open(" + currentChildData.studentID + ")'><img src='/img/info.svg' alt='i'></button>" +
+                    "</td>" +
                 "</tr>";
 
         }
@@ -1838,6 +1787,856 @@ document.addEventListener("DOMContentLoaded", function () {
         document.getElementById("classes_foreignClassesButton").onclick = showForeignClasses;
 
     }
+
+
+    semesterInfoDialog      = new Dialog(document.getElementById("semesterInfoDialog"), false, false, undefined, function() { semesterInfoDialog.close(); });
+    testInfoDialog          = new Dialog(document.getElementById("testInfoDialog"),     false, false, undefined, function() { testInfoDialog.close(); });
+
+    semesterInfoDialog.open = function(arg) {
+
+        if(typeof(arg) === "number") {
+
+            var len = currentElement.childrenData.length;
+            var found = false;
+
+            for(var i = 0; i < len; i++) {
+
+                if(currentElement.childrenData[i].semesterID === arg) {
+
+                    this.semesterData = currentElement.childrenData[i];
+                    found = true;
+                    break;
+
+                }
+
+            }
+
+            if(!found) return;
+
+        } else {
+
+            this.semesterData = currentElement.data;
+
+        }
+
+        var type;
+
+        if(this.semesterData.isFolder) {
+
+            type = "Ordner";
+            document.getElementById("dialogTypeStyles").innerHTML = ".dialogType_semesterFolder { display: inline; }";
+
+        } else if(this.semesterData.templateType === null) {
+
+            if(this.semesterData.classID === null) {
+
+                type = "Privates Semester";
+
+            } else {
+
+                type = "Klassensemester";
+
+            }
+
+            if(this.semesterData.referenceID === null) {
+
+                document.getElementById("dialogTypeStyles").innerHTML = ".dialogType_semester { display: inline; }";
+
+            } else {
+
+                document.getElementById("dialogTypeStyles").innerHTML = ".dialogType_semesterRef { display: inline; }";
+
+            }
+
+        } else {
+
+            if(this.semesterData.templateType === "semesterTemplate") {
+
+                type = "Semestervorlage";
+
+            } else {
+
+                type = "Fachvorlage";
+
+            }
+
+            if(this.semesterData.referenceID === null) {
+
+                document.getElementById("dialogTypeStyles").innerHTML = ".dialogType_template { display: inline; }";
+
+            } else {
+
+                document.getElementById("dialogTypeStyles").innerHTML = ".dialogType_templateRef { display: inline; }";
+
+            }
+
+        }
+
+        document.getElementById("semesterInfoDialog_name").innerHTML = escapeHTML(this.semesterData.name);
+
+        if(this.semesterData.referenceID === null) {
+
+            document.getElementById("semesterInfoDialog_type").innerHTML = type;
+            document.getElementById("semesterInfoDialog_typeContainer").style.display = "table";
+
+        } else {
+
+            document.getElementById("semesterInfoDialog_typeContainer").style.display = "none";
+
+        }
+
+        document.getElementById("semesterInfoDialog_isHiddenIcon").src = "/img/" + (this.semesterData.isHidden ? "checked.svg" : "cross.svg");
+
+        if(this.semesterData.notes === null) {
+
+            document.getElementById("semesterInfoDialog_notesContainer").style.display = "none";
+
+        } else {
+
+            document.getElementById("semesterInfoDialog_notesContainer").style.display = "block";
+            document.getElementById("semesterInfoDialog_notes").innerHTML = escapeHTML(this.semesterData.notes);
+
+        }
+
+        if(this.semesterData.plusPoints == undefined) {
+
+            document.getElementById("semesterInfoDialog_markAndPointsContainer").style.display = "none";
+
+        } else {
+
+            document.getElementById("semesterInfoDialog_plusPoints").innerHTML = formatNumber(this.semesterData.plusPoints);
+            document.getElementById("semesterInfoDialog_mark").innerHTML = formatNumber(this.semesterData.mark_unrounded);            
+
+            document.getElementById("semesterInfoDialog_markAndPointsContainer").style.display = "table";
+
+        }
+
+        this.printAdditionalInfo();
+
+        var loadMoreButton = document.getElementById("semesterInfoDialog_loadMoreButton");
+        var visibilityButton = document.getElementById("semesterInfoDialog_visibilityButton");
+        var otherButton = document.getElementById("semesterInfoDialog_otherButton");
+        var actionButton = document.getElementById("semesterInfoDialog_actionButton");
+        
+        if(this.semesterData.isFolder) {
+
+            loadMoreButton.style.display = "none";
+            visibilityButton.style.display = "inline-block";
+            otherButton.style.display = "none";
+
+            actionButton.classList.remove("button_medium");
+            actionButton.classList.add("button_big");
+
+            visibilityButton.classList.remove("button_medium");
+            visibilityButton.classList.add("button_big");
+
+            document.getElementById("semesterInfoDialog_controlButtons").style.display = "block";
+
+        } else {
+
+            otherButton.style.display = "inline-block";
+            
+            actionButton.classList.remove("button_big");
+            actionButton.classList.add("button_medium");
+        
+            if(currentElement.accessType === ACCESS_OWNER) {
+
+                loadMoreButton.classList.remove("button_big");
+                loadMoreButton.classList.add("button_medium");
+
+                visibilityButton.style.display = "inline-block";
+
+                document.getElementById("semesterInfoDialog_controlButtons").style.display = "block";
+
+            } else {
+
+                loadMoreButton.classList.remove("button_medium");
+                loadMoreButton.classList.add("button_big");
+
+                visibilityButton.style.display = "none";
+
+                document.getElementById("semesterInfoDialog_controlButtons").style.display = "none";
+
+                if(this.semesterData.classID === null) {
+
+                    loadMoreButton.style.display = "none";
+
+                }
+
+            }
+
+        }
+
+        this.show();
+
+    };
+
+    semesterInfoDialog.close = function() {
+
+        this.semesterData = undefined;
+
+        if(this.additionalInfoRequest !== undefined) {
+
+            this.additionalInfoRequest.abort();
+            this.additionalInfoRequest = undefined;
+
+        }
+
+        this.hide();
+
+    };
+
+    semesterInfoDialog.printAdditionalInfo = function() {
+
+        var permissionsContainer = document.getElementById("semesterInfoDialog_permissionsContainer");
+        var refContainer = document.getElementById("semesterInfoDialog_refContainer");
+        var classNameContainer = document.getElementById("semesterInfoDialog_classNameContainer");
+
+        var loadMoreButton = document.getElementById("semesterInfoDialog_loadMoreButton");
+        var visibilityButton = document.getElementById("semesterInfoDialog_visibilityButton");
+        
+        if(!this.semesterData.isFolder && additionalInfo.semesters[this.semesterData.semesterID] !== undefined) {
+
+            var currentInfo = additionalInfo.semesters[this.semesterData.semesterID];
+
+            if(this.semesterData.referenceID === null) {
+
+                refContainer.style.display = "none";
+
+            } else {
+
+                if(currentInfo.refError === undefined) {
+
+                    document.getElementById("semesterInfoDialog_refUserNameContainer").style.display = "table-row";
+                    document.getElementById("semesterInfoDialog_refUserName").innerHTML = escapeHTML(currentInfo.refUserName);
+
+                    if(currentInfo.refTestName === undefined) {
+
+                        document.getElementById("semesterInfoDialog_refSemesterNameContainer").style.display = "none";
+                        document.getElementById("semesterInfoDialog_refName").innerHTML = escapeHTML(currentInfo.refSemesterName);
+
+                    } else {
+
+                        document.getElementById("semesterInfoDialog_refSemesterNameContainer").style.display = "table-row";
+                        document.getElementById("semesterInfoDialog_refName").innerHTML = escapeHTML(currentInfo.refTestName);
+                        document.getElementById("semesterInfoDialog_refSemesterName").innerHTML = escapeHTML(currentInfo.refSemesterName);
+
+                    }
+
+                } else {
+
+                    document.getElementById("semesterInfoDialog_refName").innerHTML = "<i>ungültig</i>";
+
+                    document.getElementById("semesterInfoDialog_refSemesterNameContainer").style.display = "none";
+                    document.getElementById("semesterInfoDialog_refUserNameContainer").style.display = "none";
+
+                }
+
+                refContainer.style.display = "table";
+
+            }
+
+            if(currentInfo.className !== undefined) {
+
+                classNameContainer.style.display = "table";
+
+                document.getElementById("semesterInfoDialog_className").innerHTML = escapeHTML(currentInfo.className);
+
+            } else {
+
+                classNameContainer.style.display = "none";
+
+            }
+
+            if(currentInfo.permissions === undefined) {
+
+                permissionsContainer.style.display = "none";
+
+            } else {
+
+                permissionsContainer.style.display = "block";
+
+                if(currentInfo.permissions.length === 0) {
+
+                    document.getElementById("semesterInfoDialog_noPermissions").style.display = "block";
+                    document.getElementById("semesterInfoDialog_permissions").style.display = "none";
+
+                } else {
+
+                    var permissionsString = "";
+
+                    var len = currentInfo.permissions.length;
+
+                    for(var i = 0; i < len; i++) {
+
+                        var currentPermission = currentInfo.permissions[i];
+
+                        permissionsString +=
+                            "<tr>" +
+                                "<td>" + escapeHTML(currentPermission.userName) + "</td>" +
+                                "<td><img src=\"/img/" + (currentPermission.writingPermission ? "edit_black.svg" : "view.svg") + "\"></td>" +
+                            "</tr>";
+
+                    }
+
+                    document.getElementById("semesterInfoDialog_noPermissions").style.display = "none";
+
+                    document.getElementById("semesterInfoDialog_permissions").innerHTML = permissionsString;
+                    document.getElementById("semesterInfoDialog_permissions").style.display = "table";
+
+                }
+
+            }
+
+            loadMoreButton.style.display = "none";
+            loadMoreButton.disabled = false;
+
+            visibilityButton.classList.remove("button_medium");
+            visibilityButton.classList.add("button_big");
+
+        } else {
+
+            permissionsContainer.style.display = "none";
+            refContainer.style.display = "none";
+            classNameContainer.style.display = "none";
+
+            loadMoreButton.innerHTML = "<img src=\"/img/info.svg\">Mehr laden";
+            loadMoreButton.disabled = false;
+            loadMoreButton.style.display = "inline-block";
+
+            visibilityButton.classList.remove("button_big");
+            visibilityButton.classList.add("button_medium");
+
+        }
+
+    }
+
+    semesterInfoDialog.loadMore = function() {
+
+        var loadMoreButton = document.getElementById("semesterInfoDialog_loadMoreButton");
+
+        loadMoreButton.innerHTML = "<img src=\"/img/loading.svg\">Laden...";
+        loadMoreButton.disabled = true;
+
+        var semesterID = this.semesterData.semesterID;
+
+        this.additionalInfoRequest = loadData("/phpScripts/getInfo/getSemesterInfo.php", { semesterID: semesterID }, function(data) {
+
+            additionalInfo.semesters[semesterID] = data;
+
+            semesterInfoDialog.printAdditionalInfo();
+            semesterInfoDialog.resize();
+
+        }, function(errorCode) {
+
+            semesterInfoDialog.printAdditionalInfo();
+
+            new Alert({
+                type: "info",
+                icon: "error",
+                title: "Fehler",
+                description: "Es ist ein Fehler aufgetreten. Versuchen Sie es später wieder.\nFehlercode: " + errorCode
+            });
+
+        });
+
+    }
+
+
+
+
+
+    testInfoDialog.open = function(arg) {
+
+        if(typeof(arg) === "number") {
+
+            var len = currentElement.childrenData.length;
+            var found = false;
+
+            for(var i = 0; i < len; i++) {
+
+                if(currentElement.childrenData[i].testID === arg) {
+
+                    this.testData = currentElement.childrenData[i];
+                    found = true;
+                    break;
+
+                }
+
+            }
+
+            if(!found) return;
+
+        } else {
+
+            this.testData = currentElement.data;
+
+        }
+
+        if(this.testData.parentID === null) {
+
+            document.getElementById("dialogTypeStyles").innerHTML = ".dialogType_subject { display: inline; }";
+
+        } else if(this.testData.isFolder) {
+
+            document.getElementById("dialogTypeStyles").innerHTML = ".dialogType_folder { display: inline; }";
+
+        } else if(this.testData.referenceState !== null) {
+
+            document.getElementById("dialogTypeStyles").innerHTML = ".dialogType_ref { display: inline; }";
+
+        } else {
+
+            document.getElementById("dialogTypeStyles").innerHTML = ".dialogType_test { display: inline; }";
+
+        }
+
+
+        document.getElementById("testInfoDialog_name").innerHTML = escapeHTML(this.testData.name);
+
+        if(this.testData.formula !== null) {
+
+            document.getElementById("testInfoDialog_type").innerHTML = "Punkte zu Note";
+
+        } else if(this.testData.round === null) {
+
+            document.getElementById("testInfoDialog_type").innerHTML = "Nur Punkte";
+
+        } else {
+
+            document.getElementById("testInfoDialog_type").innerHTML = "Nur Note";
+
+        }
+
+        if(this.testData.classID == undefined || currentElement.accessType === ACCESS_STUDENT) {
+
+            document.getElementById("classFlagStyles").innerHTML = ".classFlag_private { display: inline; }";
+
+        } else {
+
+            document.getElementById("classFlagStyles").innerHTML = ".classFlag_class { display: inline; }";
+
+        }
+
+        if(this.testData.date !== null) {
+
+            document.getElementById("testInfoDialog_dateContainer").style.display = "table-row";
+            document.getElementById("testInfoDialog_date").innerHTML = formatDate(this.testData.date);
+
+        } else {
+
+            document.getElementById("testInfoDialog_dateContainer").style.display = "none";
+
+        }
+
+        if(this.testData.referenceState !== null) {
+
+            document.getElementById("testInfoDialog_refContainer").style.display = "table";
+
+            var refState = "";
+
+            switch(this.testData.referenceState) {
+
+                case "ok":          refState = "OK"; break;
+                case "outdated":    refState = "Stand veraltet"; break;
+                case "template":    refState = "unverknüpft"; break;
+                case "forbidden":   refState = "kein Zugriff"; break;
+                case "deleted":     refState = "gelöscht"; break;
+
+            }
+
+            document.getElementById("testInfoDialog_referenceState").innerHTML = refState;
+
+        } else {
+
+            document.getElementById("testInfoDialog_refContainer").style.display = "none";
+
+        }
+
+        document.getElementById("testInfoDialog_isHiddenIcon").src = "/img/" + (this.testData.isHidden ? "checked.svg" : "cross.svg");
+        document.getElementById("testInfoDialog_markCountsIcon").src = "/img/" + (this.testData.markCounts ? "checked.svg" : "cross.svg");
+
+        if(this.testData.round === null) {
+
+            document.getElementById("testInfoDialog_markSettingsContainer").style.display = "none";
+
+        } else {
+
+            var roundString;
+
+            if(this.testData.round == 0) {
+
+                roundString = "keine";
+
+            } else if(this.testData.round == 0.5) {
+
+                roundString = "auf Halbe";
+
+            } else if(this.testData.round == 0.25) {
+
+                roundString = "auf Viertel";
+
+            } else {
+
+                roundString = "auf " + formatNumber(this.testData.round);
+
+            }
+
+            document.getElementById("testInfoDialog_round").innerHTML = roundString;
+
+            if(this.testData.weight === null) {
+
+                document.getElementById("testInfoDialog_weightContainer").style.display = "none";
+
+            } else {
+
+                document.getElementById("testInfoDialog_weightContainer").style.display = "table-row";
+                document.getElementById("testInfoDialog_weight").innerHTML = formatNumber(this.testData.weight);
+
+            }
+
+            document.getElementById("testInfoDialog_markSettingsContainer").style.display = "block";
+
+        }
+
+        if(this.testData.round !== null && this.testData.formula === null) {
+
+            document.getElementById("testInfoDialog_pointsSettingsContainer").style.display = "none";
+
+        } else {
+
+            if(this.testData.formula === null) {
+
+                document.getElementById("testInfoDialog_formulaContainer").style.display = "none";
+
+            } else {
+
+                var formula;
+
+                if(this.testData.formula === "linear") {
+
+                    formula = "linear";
+
+                } else {
+
+                    formula = "manuell";
+
+                }
+
+                document.getElementById("testInfoDialog_formula").innerHTML = formula;
+                document.getElementById("testInfoDialog_formulaContainer").style.display = "table-row";
+
+            }
+
+            if(this.testData.maxPoints === null) {
+
+                document.getElementById("testInfoDialog_maxPointsContainer").style.display = "none";
+
+            } else {
+                
+                document.getElementById("testInfoDialog_maxPointsContainer").style.display = "table-row";
+                document.getElementById("testInfoDialog_maxPoints").innerHTML = formatNumber(this.testData.maxPoints);
+
+            }
+
+            document.getElementById("testInfoDialog_pointsSettingsContainer").style.display = "block";
+
+        }
+
+        if(this.testData.notes === null) {
+
+            document.getElementById("testInfoDialog_notesContainer").style.display = "none";
+
+        } else {
+
+            document.getElementById("testInfoDialog_notesContainer").style.display = "block";
+            document.getElementById("testInfoDialog_notes").innerHTML = escapeHTML(this.testData.notes);
+
+        }
+
+        if(this.testData.studentNotes == undefined) {
+
+            document.getElementById("testInfoDialog_studentNotesContainer").style.display = "none";
+
+        } else {
+
+            document.getElementById("testInfoDialog_studentNotesContainer").style.display = "block";
+            document.getElementById("testInfoDialog_studentNotes").innerHTML = escapeHTML(this.testData.studentNotes);
+
+        }
+
+        this.printAdditionalInfo();
+
+        if(!currentElement.isTemplate) {
+        
+            document.getElementById("testInfoDialog_averageContainer").style.display = "none";
+            document.getElementById("testInfoDialog_markContainer").style.display = "none";
+            document.getElementById("testInfoDialog_pointsContainer").style.display = "none";
+
+            if(this.testData.formula !== null) {
+
+                document.getElementById("testInfoDialog_pointsContainer").style.display = "table-row";
+                document.getElementById("testInfoDialog_markContainer").style.display = "table-row";
+
+                document.getElementById("testInfoDialog_points").innerHTML = formatNumber(this.testData.points, "-");
+                document.getElementById("testInfoDialog_mark").innerHTML = formatNumber(this.testData.mark, "-");
+
+            } else if(this.testData.round === null) {
+
+                document.getElementById("testInfoDialog_pointsContainer").style.display = "table-row";
+
+                document.getElementById("testInfoDialog_points").innerHTML = formatNumber(this.testData.points, "-");
+
+            } else if(this.testData.round == 0 || (this.testData.classID !== null && currentElement.accessType !== ACCESS_STUDENT)) {
+
+                document.getElementById("testInfoDialog_markContainer").style.display = "table-row";
+
+                document.getElementById("testInfoDialog_mark").innerHTML = formatNumber(this.testData.mark, "-");
+
+            } else {
+
+                document.getElementById("testInfoDialog_averageContainer").style.display = "table-row";
+                document.getElementById("testInfoDialog_markContainer").style.display = "table-row";
+
+                document.getElementById("testInfoDialog_average").innerHTML = formatNumber(this.testData.mark_unrounded, "-");
+                document.getElementById("testInfoDialog_mark").innerHTML = formatNumber(this.testData.mark, "-");
+
+            }
+
+            document.getElementById("testInfoDialog_markAndPointsContainer").style.display = "table";
+
+        } else {
+
+            document.getElementById("testInfoDialog_markAndPointsContainer").style.display = "none";
+
+        }
+
+        var loadMoreButton = document.getElementById("testInfoDialog_loadMoreButton");
+        var visibilityButton = document.getElementById("testInfoDialog_visibilityButton");
+        var actionButton = document.getElementById("testInfoDialog_actionButton");
+    
+        if(
+            currentElement.writingPermission && (
+                this.testData.parentID !== null ||
+                currentElement.accessType !== ACCESS_TEACHER
+            )
+        ) {
+
+            loadMoreButton.classList.remove("button_big");
+            loadMoreButton.classList.add("button_medium");
+
+            visibilityButton.style.display = "inline-block";
+
+            document.getElementById("testInfoDialog_controlButtons").style.display = "block";
+
+        } else {
+
+            loadMoreButton.classList.remove("button_medium");
+            loadMoreButton.classList.add("button_big");
+
+            visibilityButton.style.display = "none";
+
+            document.getElementById("testInfoDialog_controlButtons").style.display = "none";
+
+        }
+
+        this.show();
+
+    };
+
+    testInfoDialog.close = function() {
+
+        this.testData = undefined;
+
+        if(this.additionalInfoRequest !== undefined) {
+
+            this.additionalInfoRequest.abort();
+            this.additionalInfoRequest = undefined;
+
+        }
+
+        this.hide();
+
+    };
+
+    testInfoDialog.printAdditionalInfo = function() {
+
+        var permissionsContainer = document.getElementById("testInfoDialog_permissionsContainer");
+        var generalInfoContainer = document.getElementById("testInfoDialog_generalInfoContainer");
+
+        var loadMoreButton = document.getElementById("testInfoDialog_loadMoreButton");
+        var visibilityButton = document.getElementById("testInfoDialog_visibilityButton");
+        
+        if(additionalInfo.tests[this.testData.testID] !== undefined) {
+
+            var currentInfo = additionalInfo.tests[this.testData.testID];
+
+            if(this.testData.referenceState !== null && (this.testData.referenceState === "ok" || this.testData.referenceState === "outdated")) {
+
+                document.getElementById("testInfoDialog_refTestName").innerHTML = escapeHTML(currentInfo.refTestName);
+                document.getElementById("testInfoDialog_refUserName").innerHTML = escapeHTML(currentInfo.refUserName);
+
+                document.getElementById("testInfoDialog_refTestNameContainer").style.display = "table-row";
+                document.getElementById("testInfoDialog_refUserNameContainer").style.display = "table-row";
+
+            } else {
+
+                document.getElementById("testInfoDialog_refTestNameContainer").style.display = "none";
+                document.getElementById("testInfoDialog_refUserNameContainer").style.display = "none";
+
+            }
+
+            if(currentInfo.className !== undefined) {
+
+                document.getElementById("testInfoDialog_classNameContainer").style.display = "table-row";
+                document.getElementById("testInfoDialog_className").innerHTML = escapeHTML(currentInfo.className);
+
+            } else {
+
+                document.getElementById("testInfoDialog_classNameContainer").style.display = "none";
+
+            }
+
+            document.getElementById("testInfoDialog_semesterNameContainer").style.display = "table-row";
+            document.getElementById("testInfoDialog_semesterName").innerHTML = escapeHTML(currentInfo.semesterName);
+
+            if(currentInfo.subjectName !== undefined) {
+
+                document.getElementById("testInfoDialog_subjectNameContainer").style.display = "table-row";
+                document.getElementById("testInfoDialog_subjectName").innerHTML = escapeHTML(currentInfo.subjectName);
+
+            } else {
+
+                document.getElementById("testInfoDialog_subjectNameContainer").style.display = "none";
+
+            }
+
+            if(currentInfo.permissions === undefined) {
+
+                permissionsContainer.style.display = "none";
+
+            } else {
+
+                permissionsContainer.style.display = "block";
+
+                if(currentInfo.permissions.length === 0) {
+
+                    document.getElementById("testInfoDialog_noPermissions").style.display = "block";
+                    document.getElementById("testInfoDialog_permissions").style.display = "none";
+
+                } else {
+
+                    var permissionsString = "";
+
+                    var len = currentInfo.permissions.length;
+
+                    for(var i = 0; i < len; i++) {
+
+                        var currentPermission = currentInfo.permissions[i];
+
+                        permissionsString +=
+                            "<tr>" +
+                                "<td>" + escapeHTML(currentPermission.userName) + "</td>" +
+                                "<td>" + escapeHTML(currentPermission.firstName + " " + currentPermission.lastName) + "</td>" +
+                                "<td><img src=\"/img/" + (currentPermission.writingPermission ? "edit_black.svg" : "view.svg") + "\"></td>" +
+                            "</tr>";
+
+                    }
+
+                    document.getElementById("testInfoDialog_noPermissions").style.display = "none";
+
+                    document.getElementById("testInfoDialog_permissions").innerHTML = permissionsString;
+                    document.getElementById("testInfoDialog_permissions").style.display = "table";
+
+                }
+
+            }
+
+            generalInfoContainer.style.display = "table";
+
+            loadMoreButton.style.display = "none";
+            loadMoreButton.disabled = false;
+
+            visibilityButton.classList.remove("button_medium");
+            visibilityButton.classList.add("button_big");
+
+        } else {
+
+            permissionsContainer.style.display = "none";
+    
+            if(this.testData.date === null) {
+
+                generalInfoContainer.style.display = "none";
+
+            } else {
+
+                generalInfoContainer.style.display = "table";
+
+            }
+
+            document.getElementById("testInfoDialog_classNameContainer").style.display = "none";
+            document.getElementById("testInfoDialog_semesterNameContainer").style.display = "none";
+            document.getElementById("testInfoDialog_subjectNameContainer").style.display = "none";
+
+            if(this.testData.referenceState !== null) {
+
+                document.getElementById("testInfoDialog_refTestNameContainer").style.display = "none";
+                document.getElementById("testInfoDialog_refUserNameContainer").style.display = "none";
+
+            }
+
+            loadMoreButton.innerHTML = "<img src=\"/img/info.svg\">Mehr laden";
+            loadMoreButton.disabled = false;
+            loadMoreButton.style.display = "inline-block";
+
+            visibilityButton.classList.remove("button_big");
+            visibilityButton.classList.add("button_medium");
+
+        }
+
+
+    };
+
+    testInfoDialog.loadMore = function() {
+
+        var loadMoreButton = document.getElementById("testInfoDialog_loadMoreButton");
+
+        loadMoreButton.innerHTML = "<img src=\"/img/loading.svg\">Laden...";
+        loadMoreButton.disabled = true;
+
+        var testID = this.testData.testID;
+
+        this.additionalInfoRequest = loadData("/phpScripts/getInfo/getTestInfo.php", { testID: testID }, function(data) {
+
+            additionalInfo.tests[testID] = data;
+
+            testInfoDialog.printAdditionalInfo();
+            testInfoDialog.resize();
+
+        }, function(errorCode) {
+
+            testInfoDialog.printAdditionalInfo();
+
+            new Alert({
+                type: "info",
+                icon: "error",
+                title: "Fehler",
+                description: "Es ist ein Fehler aufgetreten. Versuchen Sie es später wieder.\nFehlercode: " + errorCode
+            });
+
+        });
+
+    };
+
+
+    document.getElementById("semesterInfoDialog_closeButton").addEventListener("click", semesterInfoDialog.close.bind(semesterInfoDialog));
+    document.getElementById("semesterInfoDialog_loadMoreButton").addEventListener("click", semesterInfoDialog.loadMore.bind(semesterInfoDialog));
+
+    document.getElementById("testInfoDialog_closeButton").addEventListener("click", testInfoDialog.close.bind(testInfoDialog));
+    document.getElementById("testInfoDialog_loadMoreButton").addEventListener("click", testInfoDialog.loadMore.bind(testInfoDialog));
+
+    document.getElementById("tests_semesterInfoButton").addEventListener("click", semesterInfoDialog.open.bind(semesterInfoDialog));
+    document.getElementById("tests_elementInfoButton").addEventListener("click", testInfoDialog.open.bind(testInfoDialog));
 
     loadElementAndPrint();
 

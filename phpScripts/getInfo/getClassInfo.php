@@ -77,17 +77,23 @@ if($class->data["referenceID"] !== NULL) {
 
     $returnProperties["refUserName"] = $stmt->get_result()->fetch_row()[0];
 
+    $stmt->close();
+
 } else {
 
-    $stmt = $mysqli->prepare("SELECT users.userName, users.firstName, users.lastName, users.gender, users.school, permissions.writingPermission FROM permissions INNER JOIN users ON users.userID = permissions.userID WHERE permissions.classID = ?");
-    $stmt->bind_param("i", $data["classID"]);
-    $stmt->execute();
+    if($class->accessType === Element::ACCESS_OWNER) {
 
-    $returnProperties["permissions"] = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        $stmt = $mysqli->prepare("SELECT users.userName, users.firstName, users.lastName, users.gender, users.school, permissions.writingPermission FROM permissions INNER JOIN users ON users.userID = permissions.userID WHERE permissions.classID = ?");
+        $stmt->bind_param("i", $data["classID"]);
+        $stmt->execute();
+
+        $returnProperties["permissions"] = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+        $stmt->close();
+
+    }
 
 }
-
-$stmt->close();
 
 echo json_encode($returnProperties);
 exit;

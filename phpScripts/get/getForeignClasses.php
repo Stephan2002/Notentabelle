@@ -51,7 +51,7 @@ if(!isset($isNotMain)) {
     
     }
 
-    $class = new StudentClass(ERROR_NONE, Element::ACCESS_OWNER, true);
+    $class = new StudentClass(ERROR_NONE, Element::ACCESS_UNDEFINED, false);
     $class->isRoot = true;
     $class->isForeign = true;
 

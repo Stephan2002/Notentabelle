@@ -46,12 +46,13 @@ class Loading {
 
 		}
 
-		var followingElement = document.createElement("DIV");
-		followingElement.tabIndex = "0";
-		followingElement.style.outline = "none";
+		var loadingAnchor = document.createElement("DIV");
+		loadingAnchor.classList.add("loadingAnchor");
+		loadingAnchor.tabIndex = "0";
+		loadingAnchor.style.outline = "none";
 
-		element.addEventListener("keydown", function(event) { Loading.focusLoading(event, followingElement, false); });
-		followingElement.addEventListener("keydown", function(event) { Loading.focusLoading(event, element, true); });
+		element.addEventListener("keydown", function(event) { Loading.focusLoading(event, loadingAnchor, false); });
+		loadingAnchor.addEventListener("keydown", function(event) { Loading.focusLoading(event, element, true); });
 
 		if(isBody) {
 
@@ -60,7 +61,7 @@ class Loading {
 		}
 		
 		parentElement.insertBefore(element, parentElement.childNodes[0]);
-		parentElement.append(followingElement);
+		parentElement.append(loadingAnchor);
 
 		element.focus();
 
@@ -76,8 +77,8 @@ class Loading {
 
 		}
 
-		var element = parentElement.children[0];
-		var followingElement = parentElement.children[parentElement.childElementCount - 1];
+		var element = parentElement.getElementsByClassName("loadingElement")[0];
+		var loadingAnchor = parentElement.getElementsByClassName("loadingAnchor")[0];
 
 		/*var element = null;
 
@@ -92,14 +93,14 @@ class Loading {
 
 		}*/
 
-		if(element == null || !element.classList.contains("loadingElement")) {
+		if(element === undefined) {
 
 			return;
 
 		}
 
 		parentElement.removeChild(element);
-		parentElement.removeChild(followingElement);
+		parentElement.removeChild(loadingAnchor);
 
 	}
 
@@ -112,8 +113,8 @@ class Loading {
 
 		}
 
-		var element = parentElement.children[0];
-		var followingElement = parentElement.children[parentElement.childElementCount - 1];
+		var element = parentElement.getElementsByClassName("loadingElement")[0];
+		var loadingAnchor = parentElement.getElementsByClassName("loadingAnchor")[0];
 
 		/*var element = null;
 
@@ -128,7 +129,7 @@ class Loading {
 
 		}*/
 
-		if(element == null || !element.classList.contains("loadingElement")) {
+		if(element === undefined) {
 
 			if(createOnMissing) {
 
@@ -160,7 +161,7 @@ class Loading {
 			if(element.style.display === "none") {
 
 				element.style.display = "flex";
-				followingElement.style.display = "block";
+				loadingAnchor.style.display = "block";
 				element.focus();
 
 			} else {
@@ -190,8 +191,8 @@ class Loading {
 
 		}
 
-		var element = parentElement.children[0];
-		var followingElement = parentElement.children[parentElement.childElementCount - 1];
+		var element = parentElement.getElementsByClassName("loadingElement")[0];
+		var loadingAnchor = parentElement.getElementsByClassName("loadingAnchor")[0];
 
 		/*var element = null;
 
@@ -206,7 +207,7 @@ class Loading {
 
 		}*/
 
-		if(element == null || !element.classList.contains("loadingElement") || element.style.display === "none") {
+		if(element === undefined || element.style.display === "none") {
 
 			return;
 
@@ -217,13 +218,13 @@ class Loading {
 		setTimeout(function () {
 
 			element.style.display = "none";
-			followingElement.style.display = "none";
+			loadingAnchor.style.display = "none";
 			element.blur();
 
 			if(removeOnHide) {
 
 				parentElement.removeChild(element);
-				parentElement.removeChild(followingElement);
+				parentElement.removeChild(loadingAnchor);
 
 			}
 
@@ -249,9 +250,9 @@ class Loading {
 
 		for(var i = 0; i < parentElement.children.length; i++) {
 
-			var element = parentElement.children[i];
+			var element = parentElement.getElementsByClassName("loadingAnchor")[0];
 
-			if(element.classList.contains("loadingElement") && element.style.display !== "none") {
+			if(element !== undefined && element.style.display !== "none") {
 
 				if(type === undefined) {
 
@@ -291,7 +292,7 @@ class Loading {
 
 	static focusLoading(event, otherElement, isAfter) {
 
-		if(event.key == "Tab") {
+		if(event.key === "Tab") {
 
 			if((event.shiftKey && isAfter) || (!event.shiftKey && !isAfter)) {
 

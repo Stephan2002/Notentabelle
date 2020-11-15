@@ -404,19 +404,16 @@ label.last {
 .inputGroup {
 
 	display: flex;
+	margin-right: -4px;
 	
 
 }
 
-.inputGroup div {
 
-	flex: 1 1 0px;
-
-}
-
-.inputGroup div:nth-child(1) {
+.inputGroup > div {
 
 	margin-right: 4px;
+	flex: 1 1 0px;
 
 }
 

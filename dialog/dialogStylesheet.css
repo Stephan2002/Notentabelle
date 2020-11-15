@@ -82,7 +82,7 @@ body.stop-scrolling {
 	
 }
 
-.dialogContent > p {
+.dialogContent .description {
 	
 	font-size: 16px;
 	margin: 16px 10px;

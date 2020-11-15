@@ -61,6 +61,8 @@ if($semester->data["classID"] !== NULL) {
 
     $returnProperties["className"] = $stmt->get_result()->fetch_row()[0];
 
+    $stmt->close();
+
 }
 
 if($semester->data["referenceID"] !== NULL) {
@@ -71,27 +73,65 @@ if($semester->data["referenceID"] !== NULL) {
 
         $returnProperties["refError"] = $refSemester->error;
     
+    } else {
+
+        $returnProperties["refSemesterName"] = $refSemester->data["name"];
+
+        if($semester->data["referenceTestID"] !== NULL) {
+
+            if($refSemester->accessType === Element::ACCESS_TEACHER) {
+
+                $refTest = getSemester($semester->data["referenceID"], $_SESSION["userid"], true);
+
+                if($refTest->error !== ERROR_NONE) {
+
+                    $returnProperties["refError"] = $refSemester->error;
+                
+                } else {
+
+                    $returnProperties["refTestName"] = $refSemester->data["name"];
+
+                }
+
+            } else {
+
+                $stmt = $mysqli->prepare("SELECT name FROM tests WHERE testID = ?");
+                $stmt->bind_param("i", $semester->data["referenceTestID"]);
+                $stmt->execute();
+
+                $returnProperties["refTestName"] = $stmt->get_result()->fetch_row()[0];
+
+                $stmt->close();
+
+            }
+
+        }
+
+        $stmt = $mysqli->prepare("SELECT userName FROM users WHERE userID = ?");
+        $stmt->bind_param("i", $refSemester->data["userID"]);
+        $stmt->execute();
+
+        $returnProperties["refUserName"] = $stmt->get_result()->fetch_row()[0];
+
+        $stmt->close();
+
     }
-
-    $returnProperties["refSemesterName"] = $refSemester->data["name"];
-
-    $stmt = $mysqli->prepare("SELECT userName FROM users WHERE userID = ?");
-    $stmt->bind_param("i", $refSemester->data["userID"]);
-    $stmt->execute();
-
-    $returnProperties["refUserName"] = $stmt->get_result()->fetch_row()[0];
 
 } else {
 
-    $stmt = $mysqli->prepare("SELECT users.userName, permissions.writingPermission FROM permissions INNER JOIN users ON users.userID = permissions.userID WHERE permissions.semesterID = ?");
-    $stmt->bind_param("i", $data["semesterID"]);
-    $stmt->execute();
+    if($semester->accessType === Element::ACCESS_OWNER) {
 
-    $returnProperties["permissions"] = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        $stmt = $mysqli->prepare("SELECT users.userName, permissions.writingPermission FROM permissions INNER JOIN users ON users.userID = permissions.userID WHERE permissions.semesterID = ?");
+        $stmt->bind_param("i", $data["semesterID"]);
+        $stmt->execute();
+
+        $returnProperties["permissions"] = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+        $stmt->close();
+
+    }
 
 }
-
-$stmt->close();
 
 echo json_encode($returnProperties);
 exit;

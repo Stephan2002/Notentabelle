@@ -87,7 +87,7 @@ if(!isset($isNotMain)) {
     
     }
 
-    $semester = new Semester(ERROR_NONE, Element::ACCESS_OWNER, true);
+    $semester = new Semester(ERROR_NONE, Element::ACCESS_UNDEFINED, false);
     $semester->isRoot = true;
     $semester->isForeign = true;
 

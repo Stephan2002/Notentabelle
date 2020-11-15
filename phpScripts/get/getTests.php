@@ -317,6 +317,8 @@ function getTests(Element &$test, bool $withMarks = false) : int {
         $results = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
         $test->childrenData = $results;
 
+        $stmt->close();
+
         if(!$withMarks) {
 
             return ERROR_NONE;
@@ -325,9 +327,36 @@ function getTests(Element &$test, bool $withMarks = false) : int {
 
         include_once($_SERVER["DOCUMENT_ROOT"] . "/phpScripts/calculateMarks.php");
 
-        if(!isset($test->data["mark"]) && !isset($test->data["points"])) {
+        if($test->isRoot) {
 
-            calculateMark($test->data, $test->childrenData, !$test->isRoot);
+            calculateMark($test->data, $test->childrenData, false);
+
+        } else {
+
+            if($test->accessType === Element::ACCESS_STUDENT) {
+
+                $stmt = $mysqli->prepare("SELECT mark, points, notes FROM marks WHERE testID = ? AND studentID = ?");
+                $stmt->bind_param("ii", $test->data["testID"], $test->studentID);
+
+            } else {
+
+                $stmt = $mysqli->prepare("SELECT mark, points FROM marks WHERE testID = ?");
+                $stmt->bind_param("i", $test->data["testID"]);
+
+            }
+
+            $stmt->execute();
+            
+            $result = $stmt->get_result()->fetch_assoc();
+
+            $test->data["mark"] = $result["mark"];
+            $test->data["points"] = $result["points"];
+            
+            if($test->accessType === Element::ACCESS_STUDENT) {
+
+                $test->data["studentNotes"] = $result["notes"];
+
+            }
 
         }
 
