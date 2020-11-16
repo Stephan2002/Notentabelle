@@ -194,19 +194,6 @@ class Loading {
 		var element = parentElement.getElementsByClassName("loadingElement")[0];
 		var loadingAnchor = parentElement.getElementsByClassName("loadingAnchor")[0];
 
-		/*var element = null;
-
-		for(var i = 0; i < parentElement.children.length; i++) {
-
-			if(parentElement.children[i].classList.contains("loadingElement")) {
-
-				element = parentElement.children[i];
-				break;
-
-			}
-
-		}*/
-
 		if(element === undefined || element.style.display === "none") {
 
 			return;

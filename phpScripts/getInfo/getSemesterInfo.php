@@ -79,17 +79,17 @@ if($semester->data["referenceID"] !== NULL) {
 
         if($semester->data["referenceTestID"] !== NULL) {
 
-            if($refSemester->accessType === Element::ACCESS_TEACHER) {
+            if($refSemester->accessType === Element::ACCESS_TEACHER || $refSemester->accessType === Element::ACCESS_STUDENT) {
 
-                $refTest = getSemester($semester->data["referenceID"], $_SESSION["userid"], true);
+                $refTest = getTest($semester->data["referenceTestID"], $_SESSION["userid"], $_SESSION["type"] === "teacher" || $_SESSION["type"] === "admin", false, true, true);
 
                 if($refTest->error !== ERROR_NONE) {
 
-                    $returnProperties["refError"] = $refSemester->error;
+                    $returnProperties["refError"] = $refTest->error;
                 
                 } else {
 
-                    $returnProperties["refTestName"] = $refSemester->data["name"];
+                    $returnProperties["refTestName"] = $refTest->data["name"];
 
                 }
 

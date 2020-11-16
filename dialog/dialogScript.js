@@ -30,7 +30,7 @@ class Dialog {
 				
 			}
 
-        });
+        }, eventListenerParameter);
 
         this.OKAction = OKAction;
         this.cancelAction = cancelAction;
@@ -261,7 +261,7 @@ class Dialog {
         if (Dialog.visibleCounter == 1) {
 
 			document.body.classList.add("stop-scrolling");
-			document.addEventListener("touchmove", Dialog.disableScroll);
+			document.addEventListener("touchmove", Dialog.disableScroll, eventListenerParameter);
 
         }
 
@@ -430,4 +430,16 @@ Dialog.URL = "dialog";
 
 window.addEventListener("resize", Dialog.resizeAll);
 document.addEventListener("DOMContentLoaded", Dialog.resizeAll);
+
+
+var eventListenerParameter = false;
+
+try {
+
+    var opts = Object.defineProperty({}, 'passive', { get: function() { eventListenerParameter = { passive: false }; }});
+
+    window.addEventListener("testPassive", null, opts);
+    window.removeEventListener("testPassive", null, opts);
+
+} catch (e) {}
 

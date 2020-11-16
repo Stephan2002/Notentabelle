@@ -88,7 +88,7 @@
 
         document.getElementById("preload").addEventListener("touchmove", function(event) {
             event.preventDefault();
-        });
+        }, { passive: false });
 
         function preload_preventTyping(event) {
             event.preventDefault();

@@ -32,7 +32,7 @@ h1 {
 
 
 
-.panel table {
+.mainTable {
 	
 	border-collapse: collapse;
 	box-sizing: content-box;
@@ -45,7 +45,7 @@ h1 {
 	
 }
 
-.panel tr {
+.mainTable tr {
 
 	background-color: rgb(240, 240, 240);
 	border-color: black;
@@ -54,51 +54,51 @@ h1 {
 
 }
 
-.panel tr:hover:not(.noSelect) {
+.mainTable tr:hover:not(.noSelect) {
 
 	background-color: rgb(230, 230, 230);
 	cursor: pointer;
 
 }
 
-.panel tr.red {
+.mainTable tr.red {
 
 	background-color: rgb(255,199,206);
 
 }
 
-.panel tr.yellow {
+.mainTable tr.yellow {
 
 	background-color: rgb(255, 235, 156);
 
 }
 
-.panel tr.green {
+.mainTable tr.green {
 
 	background-color: rgb(198, 239, 206);
 
 }
 
-.panel tr.red:hover:not(.noSelect) {
+.mainTable tr.red:hover:not(.noSelect) {
 
 	background-color: rgb(255, 179, 187);
 
 }
 
-.panel tr.yellow:hover:not(.noSelect) {
+.mainTable tr.yellow:hover:not(.noSelect) {
 
 	background-color: rgb(255, 227, 115);
 
 }
 
-.panel tr.green:hover:not(.noSelect) {
+.mainTable tr.green:hover:not(.noSelect) {
 
 	background-color: rgb(160, 235, 174);
 
 }
 
 
-.panel td, .panel th {
+.mainTable td, .mainTable th {
 
 	border-top: 1px solid black;
 	border-bottom: 1px solid black;
@@ -109,7 +109,7 @@ h1 {
 	
 }
 
-.panel th {
+.mainTable th {
 	
 	font-size: 18px;
 	background-color: hsl(0,0%,85%);
@@ -118,7 +118,7 @@ h1 {
 	
 }
 
-.panel .table_name {
+.mainTable .table_name {
 	
 	word-break: break-all;
 	font-size: 18px;
@@ -126,51 +126,51 @@ h1 {
 	
 }
 
-.panel .table_mark {
+.mainTable .table_mark {
 	
 	font-weight: bold;
 	font-size: 20px;
 	
 }
 
-.panel .table_buttons {
+.mainTable .table_buttons {
 
 	width: 108px;
 
 }
 
-.panel .studentTable_buttons {
+.mainTable .studentTable_buttons {
 
 	width: 72px;
 
 }
 
-.panel .table_buttons.noWritingPermission {
+.mainTable .table_buttons.noWritingPermission {
 	
 	width: 36px;
 
 }
 
-.panel .table_big {
+.mainTable .table_big {
 
 	display: initial;
 
 }
 
-.panel .table_small {
+.mainTable .table_small {
 
 	display: none;
 
 }
 
-.panel .studentTable_input {
+.mainTable .studentTable_input {
 
 	padding: 0px;
 	vertical-align: center;
 
 }
 
-.panel .studentTable_input input {
+.mainTable .studentTable_input input {
 
 	font-size: inherit;
 	background-color: white;
@@ -189,7 +189,7 @@ h1 {
 
 }
 
-.panel .studentTable_input input:read-only {
+.mainTable .studentTable_input input:read-only {
 
 	background-color: transparent;
 	color: black;
@@ -197,7 +197,7 @@ h1 {
 
 }
 
-.panel .studentTable_input.table_mark input {
+.mainTable .studentTable_input.table_mark input {
 
 	width: 72px;
 	padding: 0px 10px;
@@ -205,65 +205,65 @@ h1 {
 
 }
 
-.panel td > img {
+.mainTable td > img {
 
 	height: 32.5px;
 
 }
 
 
-@media (max-width: 400px) {
+@media (max-width: 500px) {
 	
-	.panel td {
+	.mainTable td {
 		
 		font-size: 14px;
 		
 	}
 	
-	.panel th {
+	.mainTable th {
 		
 		font-size: 16px;
 	
 	}
 	
-	.panel .table_mark {
+	.mainTable .table_mark {
 		
 		font-size: 18px;
 		
 	}
 	
-	.panel .table_name {
+	.mainTable .table_name {
 		
 		font-size: 16px;
 		
 	}
 
-	.panel .table_big {
+	.mainTable .table_big {
 
 		display: none;
 	
 	}
 
-	.panel .table_buttons, .panel .studentTable_buttons {
+	.mainTable .table_buttons, .mainTable .studentTable_buttons {
 
 		width: 36px;
 	
 	}
 	
-	.panel .table_small {
+	.mainTable .table_small {
 	
 		display: initial;
 	
 	}
 
-	.panel .studentTable_input input {
+	.mainTable .studentTable_input input {
 
 		width: 50px;
 		padding: 0px 5px;
 
 	}
 
-	.panel .studentTable_input.table_mark input {
+	.mainTable .studentTable_input.table_mark input {
 
 		width: 60px;
 		padding: 0px 5px;
@@ -286,6 +286,7 @@ nav {
 	text-align: right;
 	line-height: 50px;
 	top: 0px;
+	z-index: 2;
 	
 }
 
@@ -502,20 +503,6 @@ table .button_square {
 }
 
 
-button img {
-
-	float: left;
-	width: 20px;
-	height: 20px;
-
-}
-
-button.doubleLine img {
-
-	margin: 10px 0px;
-
-}
-
 
 
 
@@ -527,14 +514,14 @@ button.doubleLine img {
 }
 
 
-.infoDialog {
+.infoDialog, #tests_testInfo_div {
 
 	font-size: 17px;
 
 }
 
 
-.infoDialog table {
+.infoDialog table, #tests_testInfo_div table {
 
 	width: 100%;
 	text-align: left;
@@ -543,45 +530,45 @@ button.doubleLine img {
 
 }
 
-.infoDialog td {
+.infoDialog td, #tests_testInfo_div td {
 
 	padding: 0px;
 
 }
 
-.infoDialog td:nth-last-child(1) {
+.infoDialog td:nth-last-child(1), #tests_testInfo_div td:nth-last-child(1) {
 
 	text-align: right;
 
 }
 
-.infoDialog img {
+.infoDialog img, #tests_testInfo_div img {
 
 	height: 20px;
 	width: 20px;
 
 }
 
-.infoDialog .leftAlign {
+.infoDialog .leftAlign, #tests_testInfo_div .leftAlign {
 
 	text-align: left;
 
 }
 
-.infoDialog .notes div {
+.infoDialog .notes div, #tests_testInfo_div .notes div {
 
 	font-size: 14px;
 
 }
 
-.infoDialog .inputGroup {
+.infoDialog .inputGroup, #tests_testInfo_div .inputGroup {
 
 	margin-right: -15px;
 	
 
 }
 
-.infoDialog .inputGroup > div {
+.infoDialog .inputGroup > div, #tests_testInfo_div .inputGroup > div {
 
 	margin-right: 15px;
 

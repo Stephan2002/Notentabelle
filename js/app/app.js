@@ -66,6 +66,8 @@ var currentElement;
 var semesterInfoDialog;
 var testInfoDialog;
 
+var additionalTestInfoRequest;
+
 // Maskiert die speziellen HTML-Zeichen
 function escapeHTML(text) {
 
@@ -679,7 +681,7 @@ function printElement() {
                     "<tr class='" + colorClass + "' onclick='select(TYPE_TEST, " + currentChildData.testID + ", false, " + currentChildData.isFolder + ")'>" +
                         "<td class='table_name'>" + escapeHTML(currentChildData.name) + "</td>" +
                         "<td>" + formatDate(currentChildData.date) + "</td>" +
-                        "<td>" + formatNumber(currentChildData.weight) + "</td>" +
+                        "<td>" + (currentChildData.weight !== null ? (currentChildData.markCounts ? formatNumber(currentChildData.weight) : ("(" + formatNumber(currentChildData.weight) + ")")) : "") + "</td>" +
                         "<td>" + (currentChildData.formula != null ? (currentChildData.points != null ? formatNumber(currentChildData.points) : "") : "") + "</td>" +
                         "<td>" + ((currentElement.data.classID === null && currentChildData.round != null && currentChildData.round != 0 && currentChildData.formula == null) ? (currentChildData.mark_unrounded != null ? formatNumber(currentChildData.mark_unrounded) : "") : "") + "</td>" +
                         "<td class='table_mark'>" + (currentChildData.round != null ? (currentChildData.mark != null ? formatNumber(currentChildData.mark) : "") : (currentChildData.points != null ? formatNumber(currentChildData.points) : "")) + "</td>" +
@@ -841,7 +843,7 @@ function printElement() {
                 
                 if(currentElement.isRoot) {
                     
-                    document.getElementById("tests_studentTable_mark").innerHTML = "<span class='table_big'>Hochpunkte</span><span class='table_small'>Hochpkte.</span>";
+                    document.getElementById("tests_studentTable_mark").innerHTML = "<span class='table_big'>Hochpunkte</span><span class='table_small'>Hochp.</span>";
                     document.getElementById("tests_studentTable_mark_unrounded").innerHTML = "Schnitt";
 
                 } else if(currentElement.data.round != null) {
@@ -1170,7 +1172,9 @@ function printElement() {
                     document.getElementById("tests_calculatorButton").style.display = "none";
                     document.getElementById("tests_elementInfoButton").style.display = "none";
                     
-                    // Testinformationen einfuellen
+                    printTestInfo("tests_testInfo", currentElement.data);
+                    printAdditionalTestInfo("tests_testInfo", currentElement.data);
+
                     document.getElementById("tests_testInfo_div").style.display = "block";
 
                 }
@@ -1466,6 +1470,13 @@ function printElement() {
 // Ueberprueft, ob das aktuelle Element schon im "Cache" ist und laedt es ansonsten, laesst schlussendlich Element anzeigen
 function loadElementAndPrint() {
 
+    if(additionalTestInfoRequest !== undefined) {
+
+        additionalTestInfoRequest.abort();
+        additionalTestInfoRequest = undefined;
+
+    }
+
     isBlocked = true;
 
     if (path.length === 0) {
@@ -1702,6 +1713,375 @@ function loadElementAndPrint() {
 
     hidePanelsAndPrint();
 
+
+}
+
+
+function printTestInfo(elementPrefix, testData) {
+
+    if(testData.formula !== null) {
+
+        document.getElementById(elementPrefix + "_type").innerHTML = "Punkte zu Note";
+
+    } else if(testData.round === null) {
+
+        document.getElementById(elementPrefix + "_type").innerHTML = "Nur Punkte";
+
+    } else {
+
+        document.getElementById(elementPrefix + "_type").innerHTML = "Nur Note";
+
+    }
+
+    if(testData.classID == undefined || currentElement.accessType === ACCESS_STUDENT) {
+
+        document.getElementById("classFlagStyles").innerHTML = ".classFlag_private { display: inline; }";
+
+    } else {
+
+        document.getElementById("classFlagStyles").innerHTML = ".classFlag_class { display: inline; }";
+
+    }
+
+    if(testData.date !== null) {
+
+        document.getElementById(elementPrefix + "_dateContainer").style.display = "table-row";
+        document.getElementById(elementPrefix + "_date").innerHTML = formatDate(testData.date);
+
+    } else {
+
+        document.getElementById(elementPrefix + "_dateContainer").style.display = "none";
+
+    }
+
+    if(testData.referenceState !== null) {
+
+        document.getElementById(elementPrefix + "_refContainer").style.display = "table";
+
+        var refState = "";
+
+        switch(testData.referenceState) {
+
+            case "ok":          refState = "OK"; break;
+            case "outdated":    refState = "Stand veraltet"; break;
+            case "template":    refState = "unverknüpft"; break;
+            case "forbidden":   refState = "kein Zugriff"; break;
+            case "deleted":     refState = "gelöscht"; break;
+
+        }
+
+        document.getElementById(elementPrefix + "_referenceState").innerHTML = refState;
+
+    } else {
+
+        document.getElementById(elementPrefix + "_refContainer").style.display = "none";
+
+    }
+
+    document.getElementById(elementPrefix + "_isHiddenIcon").src = "/img/" + (testData.isHidden ? "checked.svg" : "cross.svg");
+    document.getElementById(elementPrefix + "_markCountsIcon").src = "/img/" + (testData.markCounts ? "checked.svg" : "cross.svg");
+
+    if(testData.round === null) {
+
+        document.getElementById(elementPrefix + "_markSettingsContainer").style.display = "none";
+
+    } else {
+
+        var roundString;
+
+        if(testData.round == 0) {
+
+            roundString = "keine";
+
+        } else if(testData.round == 0.5) {
+
+            roundString = "auf Halbe";
+
+        } else if(testData.round == 0.25) {
+
+            roundString = "auf Viertel";
+
+        } else {
+
+            roundString = "auf " + formatNumber(testData.round);
+
+        }
+
+        document.getElementById(elementPrefix + "_round").innerHTML = roundString;
+
+        if(testData.weight === null) {
+
+            document.getElementById(elementPrefix + "_weightContainer").style.display = "none";
+
+        } else {
+
+            document.getElementById(elementPrefix + "_weightContainer").style.display = "table-row";
+            document.getElementById(elementPrefix + "_weight").innerHTML = formatNumber(testData.weight);
+
+        }
+
+        document.getElementById(elementPrefix + "_markSettingsContainer").style.display = "block";
+
+    }
+
+    if(testData.round !== null && testData.formula === null) {
+
+        document.getElementById(elementPrefix + "_pointsSettingsContainer").style.display = "none";
+
+    } else {
+
+        if(testData.formula === null) {
+
+            document.getElementById(elementPrefix + "_formulaContainer").style.display = "none";
+
+        } else {
+
+            var formula;
+
+            if(testData.formula === "linear") {
+
+                formula = "linear";
+
+            } else {
+
+                formula = "manuell";
+
+            }
+
+            document.getElementById(elementPrefix + "_formula").innerHTML = formula;
+            document.getElementById(elementPrefix + "_formulaContainer").style.display = "table-row";
+
+        }
+
+        if(testData.maxPoints === null) {
+
+            document.getElementById(elementPrefix + "_maxPointsContainer").style.display = "none";
+
+        } else {
+            
+            document.getElementById(elementPrefix + "_maxPointsContainer").style.display = "table-row";
+            document.getElementById(elementPrefix + "_maxPoints").innerHTML = formatNumber(testData.maxPoints);
+
+        }
+
+        document.getElementById(elementPrefix + "_pointsSettingsContainer").style.display = "block";
+
+    }
+
+    if(testData.notes === null) {
+
+        document.getElementById(elementPrefix + "_notesContainer").style.display = "none";
+
+    } else {
+
+        document.getElementById(elementPrefix + "_notesContainer").style.display = "block";
+        document.getElementById(elementPrefix + "_notes").innerHTML = escapeHTML(testData.notes);
+
+    }
+
+    if(testData.studentNotes == undefined) {
+
+        document.getElementById(elementPrefix + "_studentNotesContainer").style.display = "none";
+
+    } else {
+
+        document.getElementById(elementPrefix + "_studentNotesContainer").style.display = "block";
+        document.getElementById(elementPrefix + "_studentNotes").innerHTML = escapeHTML(testData.studentNotes);
+
+    }
+
+    var loadMoreButton = document.getElementById(elementPrefix + "_loadMoreButton");
+    var visibilityButton = document.getElementById(elementPrefix + "_visibilityButton");
+    var actionButton = document.getElementById(elementPrefix + "_actionButton");
+
+    if(
+        currentElement.writingPermission && (
+            testData.parentID !== null ||
+            currentElement.accessType !== ACCESS_TEACHER
+        )
+    ) {
+
+        loadMoreButton.classList.remove("button_big");
+        loadMoreButton.classList.add("button_medium");
+
+        visibilityButton.style.display = "inline-block";
+
+    } else {
+
+        loadMoreButton.classList.remove("button_medium");
+        loadMoreButton.classList.add("button_big");
+
+        visibilityButton.style.display = "none";
+
+    }
+
+}
+
+function printAdditionalTestInfo(elementPrefix, testData) {
+
+    var permissionsContainer = document.getElementById(elementPrefix + "_permissionsContainer");
+    var generalInfoContainer = document.getElementById(elementPrefix + "_generalInfoContainer");
+
+    var loadMoreButton = document.getElementById(elementPrefix + "_loadMoreButton");
+    var visibilityButton = document.getElementById(elementPrefix + "_visibilityButton");
+    
+    if(additionalInfo.tests[testData.testID] !== undefined) {
+
+        var currentInfo = additionalInfo.tests[testData.testID];
+
+        if(testData.referenceState !== null && (testData.referenceState === "ok" || testData.referenceState === "outdated")) {
+
+            document.getElementById(elementPrefix + "_refTestName").innerHTML = escapeHTML(currentInfo.refTestName);
+            document.getElementById(elementPrefix + "_refUserName").innerHTML = escapeHTML(currentInfo.refUserName);
+
+            document.getElementById(elementPrefix + "_refTestNameContainer").style.display = "table-row";
+            document.getElementById(elementPrefix + "_refUserNameContainer").style.display = "table-row";
+
+        } else {
+
+            document.getElementById(elementPrefix + "_refTestNameContainer").style.display = "none";
+            document.getElementById(elementPrefix + "_refUserNameContainer").style.display = "none";
+
+        }
+
+        if(currentInfo.className !== undefined) {
+
+            document.getElementById(elementPrefix + "_classNameContainer").style.display = "table-row";
+            document.getElementById(elementPrefix + "_className").innerHTML = escapeHTML(currentInfo.className);
+
+        } else {
+
+            document.getElementById(elementPrefix + "_classNameContainer").style.display = "none";
+
+        }
+
+        document.getElementById(elementPrefix + "_semesterNameContainer").style.display = "table-row";
+        document.getElementById(elementPrefix + "_semesterName").innerHTML = escapeHTML(currentInfo.semesterName);
+
+        if(currentInfo.subjectName !== undefined) {
+
+            document.getElementById(elementPrefix + "_subjectNameContainer").style.display = "table-row";
+            document.getElementById(elementPrefix + "_subjectName").innerHTML = escapeHTML(currentInfo.subjectName);
+
+        } else {
+
+            document.getElementById(elementPrefix + "_subjectNameContainer").style.display = "none";
+
+        }
+
+        if(currentInfo.permissions === undefined) {
+
+            permissionsContainer.style.display = "none";
+
+        } else {
+
+            permissionsContainer.style.display = "block";
+
+            if(currentInfo.permissions.length === 0) {
+
+                document.getElementById(elementPrefix + "_noPermissions").style.display = "block";
+                document.getElementById(elementPrefix + "_permissions").style.display = "none";
+
+            } else {
+
+                var permissionsString = "";
+
+                var len = currentInfo.permissions.length;
+
+                for(var i = 0; i < len; i++) {
+
+                    var currentPermission = currentInfo.permissions[i];
+
+                    permissionsString +=
+                        "<tr>" +
+                            "<td>" + escapeHTML(currentPermission.userName) + "</td>" +
+                            "<td>" + escapeHTML(currentPermission.firstName + " " + currentPermission.lastName) + "</td>" +
+                            "<td><img src=\"/img/" + (currentPermission.writingPermission ? "edit_black.svg" : "view.svg") + "\"></td>" +
+                        "</tr>";
+
+                }
+
+                document.getElementById(elementPrefix + "_noPermissions").style.display = "none";
+
+                document.getElementById(elementPrefix + "_permissions").innerHTML = permissionsString;
+                document.getElementById(elementPrefix + "_permissions").style.display = "table";
+
+            }
+
+        }
+
+        generalInfoContainer.style.display = "table";
+
+        loadMoreButton.style.display = "none";
+        loadMoreButton.disabled = false;
+
+        visibilityButton.classList.remove("button_medium");
+        visibilityButton.classList.add("button_big");
+
+    } else {
+
+        permissionsContainer.style.display = "none";
+
+        if(testData.date === null) {
+
+            generalInfoContainer.style.display = "none";
+
+        } else {
+
+            generalInfoContainer.style.display = "table";
+
+        }
+
+        document.getElementById(elementPrefix + "_classNameContainer").style.display = "none";
+        document.getElementById(elementPrefix + "_semesterNameContainer").style.display = "none";
+        document.getElementById(elementPrefix + "_subjectNameContainer").style.display = "none";
+
+        if(testData.referenceState !== null) {
+
+            document.getElementById(elementPrefix + "_refTestNameContainer").style.display = "none";
+            document.getElementById(elementPrefix + "_refUserNameContainer").style.display = "none";
+
+        }
+
+        loadMoreButton.innerHTML = "<img src=\"/img/info.svg\">Mehr laden";
+        loadMoreButton.disabled = false;
+        loadMoreButton.style.display = "inline-block";
+
+        visibilityButton.classList.remove("button_big");
+        visibilityButton.classList.add("button_medium");
+
+    }
+
+}
+
+function loadMoreTestInfo() {
+
+    var loadMoreButton = document.getElementById("tests_testInfo_loadMoreButton");
+
+    loadMoreButton.innerHTML = "<img src=\"/img/loading.svg\">Laden...";
+    loadMoreButton.disabled = true;
+
+    var testID = currentElement.data.testID;
+
+    additionalTestInfoRequest = loadData("/phpScripts/getInfo/getTestInfo.php", { testID: testID }, function(data) {
+
+        additionalInfo.tests[testID] = data;
+
+        printAdditionalTestInfo("tests_testInfo", currentElement.data);
+        testInfoDialog.resize();
+
+    }, function(errorCode) {
+
+        printAdditionalTestInfo("tests_testInfo", currentElement.data);
+
+        new Alert({
+            type: "info",
+            icon: "error",
+            title: "Fehler",
+            description: "Es ist ein Fehler aufgetreten. Versuchen Sie es später wieder.\nFehlercode: " + errorCode
+        });
+
+    });
 
 }
 
@@ -2005,12 +2385,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
             } else {
 
-                if(currentInfo.refError === undefined) {
+                if(currentInfo.refError == undefined) {
 
                     document.getElementById("semesterInfoDialog_refUserNameContainer").style.display = "table-row";
                     document.getElementById("semesterInfoDialog_refUserName").innerHTML = escapeHTML(currentInfo.refUserName);
 
-                    if(currentInfo.refTestName === undefined) {
+                    if(currentInfo.refTestName == undefined) {
 
                         document.getElementById("semesterInfoDialog_refSemesterNameContainer").style.display = "none";
                         document.getElementById("semesterInfoDialog_refName").innerHTML = escapeHTML(currentInfo.refSemesterName);
@@ -2027,8 +2407,20 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     document.getElementById("semesterInfoDialog_refName").innerHTML = "<i>ungültig</i>";
 
-                    document.getElementById("semesterInfoDialog_refSemesterNameContainer").style.display = "none";
-                    document.getElementById("semesterInfoDialog_refUserNameContainer").style.display = "none";
+                    if(currentInfo.refSemesterName == undefined) {
+
+                        document.getElementById("semesterInfoDialog_refSemesterNameContainer").style.display = "none";
+                        document.getElementById("semesterInfoDialog_refUserNameContainer").style.display = "none";
+
+                    } else {
+
+                        document.getElementById("semesterInfoDialog_refSemesterNameContainer").style.display = "table-row";
+                        document.getElementById("semesterInfoDialog_refSemesterName").innerHTML = escapeHTML(currentInfo.refSemesterName);
+
+                        document.getElementById("semesterInfoDialog_refUserNameContainer").style.display = "table-row";
+                        document.getElementById("semesterInfoDialog_refUserName").innerHTML = escapeHTML(currentInfo.refUserName);
+
+                    }
 
                 }
 
@@ -2191,181 +2583,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
         }
 
-
         document.getElementById("testInfoDialog_name").innerHTML = escapeHTML(this.testData.name);
 
-        if(this.testData.formula !== null) {
-
-            document.getElementById("testInfoDialog_type").innerHTML = "Punkte zu Note";
-
-        } else if(this.testData.round === null) {
-
-            document.getElementById("testInfoDialog_type").innerHTML = "Nur Punkte";
-
-        } else {
-
-            document.getElementById("testInfoDialog_type").innerHTML = "Nur Note";
-
-        }
-
-        if(this.testData.classID == undefined || currentElement.accessType === ACCESS_STUDENT) {
-
-            document.getElementById("classFlagStyles").innerHTML = ".classFlag_private { display: inline; }";
-
-        } else {
-
-            document.getElementById("classFlagStyles").innerHTML = ".classFlag_class { display: inline; }";
-
-        }
-
-        if(this.testData.date !== null) {
-
-            document.getElementById("testInfoDialog_dateContainer").style.display = "table-row";
-            document.getElementById("testInfoDialog_date").innerHTML = formatDate(this.testData.date);
-
-        } else {
-
-            document.getElementById("testInfoDialog_dateContainer").style.display = "none";
-
-        }
-
-        if(this.testData.referenceState !== null) {
-
-            document.getElementById("testInfoDialog_refContainer").style.display = "table";
-
-            var refState = "";
-
-            switch(this.testData.referenceState) {
-
-                case "ok":          refState = "OK"; break;
-                case "outdated":    refState = "Stand veraltet"; break;
-                case "template":    refState = "unverknüpft"; break;
-                case "forbidden":   refState = "kein Zugriff"; break;
-                case "deleted":     refState = "gelöscht"; break;
-
-            }
-
-            document.getElementById("testInfoDialog_referenceState").innerHTML = refState;
-
-        } else {
-
-            document.getElementById("testInfoDialog_refContainer").style.display = "none";
-
-        }
-
-        document.getElementById("testInfoDialog_isHiddenIcon").src = "/img/" + (this.testData.isHidden ? "checked.svg" : "cross.svg");
-        document.getElementById("testInfoDialog_markCountsIcon").src = "/img/" + (this.testData.markCounts ? "checked.svg" : "cross.svg");
-
-        if(this.testData.round === null) {
-
-            document.getElementById("testInfoDialog_markSettingsContainer").style.display = "none";
-
-        } else {
-
-            var roundString;
-
-            if(this.testData.round == 0) {
-
-                roundString = "keine";
-
-            } else if(this.testData.round == 0.5) {
-
-                roundString = "auf Halbe";
-
-            } else if(this.testData.round == 0.25) {
-
-                roundString = "auf Viertel";
-
-            } else {
-
-                roundString = "auf " + formatNumber(this.testData.round);
-
-            }
-
-            document.getElementById("testInfoDialog_round").innerHTML = roundString;
-
-            if(this.testData.weight === null) {
-
-                document.getElementById("testInfoDialog_weightContainer").style.display = "none";
-
-            } else {
-
-                document.getElementById("testInfoDialog_weightContainer").style.display = "table-row";
-                document.getElementById("testInfoDialog_weight").innerHTML = formatNumber(this.testData.weight);
-
-            }
-
-            document.getElementById("testInfoDialog_markSettingsContainer").style.display = "block";
-
-        }
-
-        if(this.testData.round !== null && this.testData.formula === null) {
-
-            document.getElementById("testInfoDialog_pointsSettingsContainer").style.display = "none";
-
-        } else {
-
-            if(this.testData.formula === null) {
-
-                document.getElementById("testInfoDialog_formulaContainer").style.display = "none";
-
-            } else {
-
-                var formula;
-
-                if(this.testData.formula === "linear") {
-
-                    formula = "linear";
-
-                } else {
-
-                    formula = "manuell";
-
-                }
-
-                document.getElementById("testInfoDialog_formula").innerHTML = formula;
-                document.getElementById("testInfoDialog_formulaContainer").style.display = "table-row";
-
-            }
-
-            if(this.testData.maxPoints === null) {
-
-                document.getElementById("testInfoDialog_maxPointsContainer").style.display = "none";
-
-            } else {
-                
-                document.getElementById("testInfoDialog_maxPointsContainer").style.display = "table-row";
-                document.getElementById("testInfoDialog_maxPoints").innerHTML = formatNumber(this.testData.maxPoints);
-
-            }
-
-            document.getElementById("testInfoDialog_pointsSettingsContainer").style.display = "block";
-
-        }
-
-        if(this.testData.notes === null) {
-
-            document.getElementById("testInfoDialog_notesContainer").style.display = "none";
-
-        } else {
-
-            document.getElementById("testInfoDialog_notesContainer").style.display = "block";
-            document.getElementById("testInfoDialog_notes").innerHTML = escapeHTML(this.testData.notes);
-
-        }
-
-        if(this.testData.studentNotes == undefined) {
-
-            document.getElementById("testInfoDialog_studentNotesContainer").style.display = "none";
-
-        } else {
-
-            document.getElementById("testInfoDialog_studentNotesContainer").style.display = "block";
-            document.getElementById("testInfoDialog_studentNotes").innerHTML = escapeHTML(this.testData.studentNotes);
-
-        }
-
-        this.printAdditionalInfo();
+        printTestInfo("testInfoDialog", this.testData);
+        printAdditionalTestInfo("testInfoDialog", this.testData);
 
         if(!currentElement.isTemplate) {
         
@@ -2411,33 +2632,19 @@ document.addEventListener("DOMContentLoaded", function () {
 
         }
 
-        var loadMoreButton = document.getElementById("testInfoDialog_loadMoreButton");
-        var visibilityButton = document.getElementById("testInfoDialog_visibilityButton");
-        var actionButton = document.getElementById("testInfoDialog_actionButton");
-    
         if(
             currentElement.writingPermission && (
                 this.testData.parentID !== null ||
                 currentElement.accessType !== ACCESS_TEACHER
             )
         ) {
-
-            loadMoreButton.classList.remove("button_big");
-            loadMoreButton.classList.add("button_medium");
-
-            visibilityButton.style.display = "inline-block";
-
+    
             document.getElementById("testInfoDialog_controlButtons").style.display = "block";
-
+    
         } else {
-
-            loadMoreButton.classList.remove("button_medium");
-            loadMoreButton.classList.add("button_big");
-
-            visibilityButton.style.display = "none";
-
+    
             document.getElementById("testInfoDialog_controlButtons").style.display = "none";
-
+    
         }
 
         this.show();
@@ -2461,138 +2668,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     testInfoDialog.printAdditionalInfo = function() {
 
-        var permissionsContainer = document.getElementById("testInfoDialog_permissionsContainer");
-        var generalInfoContainer = document.getElementById("testInfoDialog_generalInfoContainer");
-
-        var loadMoreButton = document.getElementById("testInfoDialog_loadMoreButton");
-        var visibilityButton = document.getElementById("testInfoDialog_visibilityButton");
-        
-        if(additionalInfo.tests[this.testData.testID] !== undefined) {
-
-            var currentInfo = additionalInfo.tests[this.testData.testID];
-
-            if(this.testData.referenceState !== null && (this.testData.referenceState === "ok" || this.testData.referenceState === "outdated")) {
-
-                document.getElementById("testInfoDialog_refTestName").innerHTML = escapeHTML(currentInfo.refTestName);
-                document.getElementById("testInfoDialog_refUserName").innerHTML = escapeHTML(currentInfo.refUserName);
-
-                document.getElementById("testInfoDialog_refTestNameContainer").style.display = "table-row";
-                document.getElementById("testInfoDialog_refUserNameContainer").style.display = "table-row";
-
-            } else {
-
-                document.getElementById("testInfoDialog_refTestNameContainer").style.display = "none";
-                document.getElementById("testInfoDialog_refUserNameContainer").style.display = "none";
-
-            }
-
-            if(currentInfo.className !== undefined) {
-
-                document.getElementById("testInfoDialog_classNameContainer").style.display = "table-row";
-                document.getElementById("testInfoDialog_className").innerHTML = escapeHTML(currentInfo.className);
-
-            } else {
-
-                document.getElementById("testInfoDialog_classNameContainer").style.display = "none";
-
-            }
-
-            document.getElementById("testInfoDialog_semesterNameContainer").style.display = "table-row";
-            document.getElementById("testInfoDialog_semesterName").innerHTML = escapeHTML(currentInfo.semesterName);
-
-            if(currentInfo.subjectName !== undefined) {
-
-                document.getElementById("testInfoDialog_subjectNameContainer").style.display = "table-row";
-                document.getElementById("testInfoDialog_subjectName").innerHTML = escapeHTML(currentInfo.subjectName);
-
-            } else {
-
-                document.getElementById("testInfoDialog_subjectNameContainer").style.display = "none";
-
-            }
-
-            if(currentInfo.permissions === undefined) {
-
-                permissionsContainer.style.display = "none";
-
-            } else {
-
-                permissionsContainer.style.display = "block";
-
-                if(currentInfo.permissions.length === 0) {
-
-                    document.getElementById("testInfoDialog_noPermissions").style.display = "block";
-                    document.getElementById("testInfoDialog_permissions").style.display = "none";
-
-                } else {
-
-                    var permissionsString = "";
-
-                    var len = currentInfo.permissions.length;
-
-                    for(var i = 0; i < len; i++) {
-
-                        var currentPermission = currentInfo.permissions[i];
-
-                        permissionsString +=
-                            "<tr>" +
-                                "<td>" + escapeHTML(currentPermission.userName) + "</td>" +
-                                "<td>" + escapeHTML(currentPermission.firstName + " " + currentPermission.lastName) + "</td>" +
-                                "<td><img src=\"/img/" + (currentPermission.writingPermission ? "edit_black.svg" : "view.svg") + "\"></td>" +
-                            "</tr>";
-
-                    }
-
-                    document.getElementById("testInfoDialog_noPermissions").style.display = "none";
-
-                    document.getElementById("testInfoDialog_permissions").innerHTML = permissionsString;
-                    document.getElementById("testInfoDialog_permissions").style.display = "table";
-
-                }
-
-            }
-
-            generalInfoContainer.style.display = "table";
-
-            loadMoreButton.style.display = "none";
-            loadMoreButton.disabled = false;
-
-            visibilityButton.classList.remove("button_medium");
-            visibilityButton.classList.add("button_big");
-
-        } else {
-
-            permissionsContainer.style.display = "none";
-    
-            if(this.testData.date === null) {
-
-                generalInfoContainer.style.display = "none";
-
-            } else {
-
-                generalInfoContainer.style.display = "table";
-
-            }
-
-            document.getElementById("testInfoDialog_classNameContainer").style.display = "none";
-            document.getElementById("testInfoDialog_semesterNameContainer").style.display = "none";
-            document.getElementById("testInfoDialog_subjectNameContainer").style.display = "none";
-
-            if(this.testData.referenceState !== null) {
-
-                document.getElementById("testInfoDialog_refTestNameContainer").style.display = "none";
-                document.getElementById("testInfoDialog_refUserNameContainer").style.display = "none";
-
-            }
-
-            loadMoreButton.innerHTML = "<img src=\"/img/info.svg\">Mehr laden";
-            loadMoreButton.disabled = false;
-            loadMoreButton.style.display = "inline-block";
-
-            visibilityButton.classList.remove("button_big");
-            visibilityButton.classList.add("button_medium");
-
-        }
+        printAdditionalTestInfo("testInfoDialog", this.testData);
 
 
     };
@@ -2610,12 +2686,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
             additionalInfo.tests[testID] = data;
 
-            testInfoDialog.printAdditionalInfo();
+            printAdditionalTestInfo("testInfoDialog", testInfoDialog.testData);
             testInfoDialog.resize();
 
         }, function(errorCode) {
 
-            testInfoDialog.printAdditionalInfo();
+            printAdditionalTestInfo("testInfoDialog", testInfoDialog.testData);
 
             new Alert({
                 type: "info",
@@ -2637,6 +2713,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
     document.getElementById("tests_semesterInfoButton").addEventListener("click", semesterInfoDialog.open.bind(semesterInfoDialog));
     document.getElementById("tests_elementInfoButton").addEventListener("click", testInfoDialog.open.bind(testInfoDialog));
+
+    document.getElementById("tests_testInfo_loadMoreButton").addEventListener("click", loadMoreTestInfo);
 
     loadElementAndPrint();
 

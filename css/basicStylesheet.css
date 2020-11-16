@@ -118,7 +118,24 @@ button, input[type="submit"] {
     appearance: none; 
 	height: auto;
 	vertical-align: middle;
+	position: relative;
 	
+}
+
+button img {
+
+	position: absolute;
+	left: 5px;
+	top: calc(50% - 10px);
+	width: 20px;
+	height: 20px;
+
+}
+
+button.withImage {
+
+	padding: 5px 5px 5px 25px;
+
 }
 
 
@@ -284,6 +301,12 @@ button, input[type="submit"] {
 	
 }
 
+.button_square img {
+
+	left: 0px;
+
+}
+
 .buttonGroup {
 
 	font-size: 0px;
@@ -418,7 +441,22 @@ label.last {
 }
 
 
+@media (max-width: 350px) {
 
+	.inputGroup {
+
+		flex-wrap: wrap;		
+	
+	}
+	
+	
+	.inputGroup > div {
+	
+		flex: 1 1 100%;
+	
+	}
+
+}
 
 
 
