@@ -16,6 +16,7 @@ include("phpScripts/login.php");
         <link rel="stylesheet" href="css/basicStylesheet.css">
         <link rel="stylesheet" href="dialog/dialogStylesheet.css">
         <link rel="stylesheet" href="loading/loadingStylesheet.css">
+        <link rel="stylesheet" href="buttonSelect/buttonSelectStylesheet.css">
         <link rel="stylesheet" href="css/stylesheet.css">
 
         <!-- Icons -->
@@ -28,6 +29,7 @@ include("phpScripts/login.php");
         <script language="javascript" type="text/javascript" src="dialog/dialogScript.js"></script>
         <script language="javascript" type="text/javascript" src="dialog/alertScript.js"></script>
         <script language="javascript" type="text/javascript" src="loading/loadingScript.js"></script>
+        <script language="javascript" type="text/javascript" src="buttonSelect/buttonSelectScript.js"></script>
         <script language="javascript" type="text/javascript" src="js/app/app.js"></script>
 
         <?php if($_SESSION["type"] === "teacher" || $_SESSION["type"] === "admin") { ?>
@@ -52,6 +54,7 @@ include("phpScripts/login.php");
         <style id="typeStyles"></style>
         <style id="dialogTypeStyles"></style>
         <style id="classFlagStyles"></style>
+        <style id="modeFlagStyles"></style>
     </head>
     
     <body>
@@ -120,9 +123,9 @@ include("phpScripts/login.php");
                 <button class="button_big positive bigMargin">Versteckte Elemente anzeigen</button>
                 <button class="button_big positive">Gelöschte Elemente</button>
 
-                <div class="buttonGroup" id="semesters_editButtons">
-                    <button class="button_medium positive withImage"><img src="/img/edit.svg" alt="">Ordner umbenennen</button>
-                    <button class="button_medium negative withImage"><img src="/img/delete.svg" alt="">Ordner löschen</button>
+                <div class="buttonGroup" id="semesters_controlButtons">
+                    <button class="button_medium positive withImage" id="semesters_editButton"><img src="/img/edit.svg" alt="">Ordner umbenennen</button>
+                    <button class="button_medium negative withImage" id="semesters_deleteButton"><img src="/img/delete.svg" alt="">Ordner löschen</button>
                 </div>
             </div>
         </div>
@@ -915,5 +918,64 @@ include("phpScripts/login.php");
         </div>
 
         <?php } ?>
+
+        <div id="editSemesterDialog" class="dialog" style="display: none;">
+            <div class="dialogBlocker"></div>
+            <div class="dialogContent" tabindex="0">
+                <h2><span class="dialogType_semesterFolder">Ordner</span><span class="dialogType_semester">Semester</span><span class="dialogType_template">Vorlage</span><span class="dialogType_semesterRef dialogType_templateRef">Verknüpfungs</span> <span class="modeFlag_edit">bearbeiten</span><span class="modeFlag_add">hinzufügen</span></h2>
+
+                <label for="editSemesterDialog_name">Name:</label>
+                <input type="text" id="editSemesterDialog_name" placeholder="Name" />
+
+                <div class="buttonSelectGroup single" id="editSemesterDialog_templateType">
+                    <button class="positive">Semestervorlage</button>
+                    <button class="positive unselected">Fachvorlage</button>
+                </div>
+
+                <div class="buttonSelectGroup single" id="editSemesterDialog_semesterType">
+                    <button class="positive">privates Semester</button>
+                    <button class="positive unselected">Klassensemester</button>
+                </div>
+
+                <button class="button_big positive withMargin" id="editSemesterDialog_classButton">Klasse auswählen</button>
+                <button class="button_big positive" id="editSemesterDialog_teacherButton">Lehrpersonen kopieren aus...</button>
+
+                <button class="button_big positive withMargin" id="editSemesterDialog_templateButton">Vorlage auswählen</button>
+
+                <label><input type="checkbox" id="editSemesterDialog_withNotes"/>Notizen</label>
+                <textarea id="editSemesterDialog_notes" placeholder="Notizen"></textarea>
+
+                <button class="button_big positive withMargin" id="editSemesterDialog_permissionsButton">Zugriffsberechtigungen</button>
+
+                <div class="info orange" id="editSemesterDialog_warningContainer"></div>
+                <div class="info red" id="editSemesterDialog_errorContainer"></div>
+
+                <div class="buttonGroup">
+                    <button class="button_medium negative" id="editSemesterDialog_cancelButton">Abbrechen</button>
+                    <button class="button_medium positive" id="editSemesterDialog_OKButton"><span class="modeFlag_edit">Speichern</span><span class="modeFlag_add">Hinzufügen</span></button>
+                </div>
+            </div>
+        </div>
+
+        <div id="permissionsDialog" class="dialog" style="display: none;">
+            <div class="dialogBlocker"></div>
+            <div class="dialogContent" tabindex="0">
+                <h2 id="permissionsDialog_header">Zugriffsberechtigungen</h2>
+                <div id="permissionsDialog_content">
+                    <p id="permissionsDialog_noPermission">Keine Zugriffsberechtigungen erteilt</p>
+                    <table id="permissionsDialog_table" class="dialogTable mediumMargin" style="display: none;"></table>
+
+                    <input type="text" placeholder="Benutzername von neuer Person" class="mediumMargin" id="permissionsDialog_newName">
+                    <div class="info red" id="permissionsDialog_errorContainer"></div>
+                    <button id="permissionsDialog_addButton" class="button_big positive smallMargin">Hinzufügen</button>
+
+                    <button id="permissionsDialog_copyButton" class="button_big positive withMargin">Von anderem Element übernehmen</button>
+                </div>
+                <div class="buttonGroup noMargin">
+                    <button class="button_medium negative" id="permissionsDialog_cancelButton">Abbrechen</button>
+                    <button class="button_medium positive" id="permissionsDialog_OKButton">OK</button>
+                </div>
+            </div>
+        </div>
     </body>
 </html>

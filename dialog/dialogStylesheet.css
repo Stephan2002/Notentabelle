@@ -75,7 +75,7 @@ body.stop-scrolling {
 	
 }
 
-.dialog img {
+.dialog > img {
 	
 	width: 100px;
 	height: 100px;

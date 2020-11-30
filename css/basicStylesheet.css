@@ -119,6 +119,7 @@ button, input[type="submit"] {
 	height: auto;
 	vertical-align: middle;
 	position: relative;
+	cursor: pointer; 
 	
 }
 
@@ -192,6 +193,7 @@ button.withImage {
 
 	background-color: #AAAAAA;
 	border-color: #AAAAAA;
+	cursor: auto;
 
 }
 
@@ -380,6 +382,19 @@ input.error:focus, textarea.error:focus {
 
 }
 
+input.warning, textarea.warning {
+
+	color: rgb(255, 128, 0);
+	background-color: rgb(255, 128, 0, 0.125);
+	border-color:  rgb(255, 128, 0, 0.3);
+
+}
+
+input.warning:focus, textarea.warning:focus {
+
+	border-color: rgb(255, 128, 0);
+
+}
 
 
 textarea {
@@ -396,6 +411,62 @@ label {
 	text-align: left;
 	user-select: none;
 	margin: 12px 0px 0px;
+
+}
+
+label.checkboxSwitch {
+
+	box-sizing: border-box;
+	display: block;
+	margin: 0px;
+
+}
+
+label.checkboxSwitch span {
+
+	box-sizing: border-box;
+	width: 45px;
+	height: 28px;
+	display: block;
+	background-color: gray;
+	padding: 2px;
+	border-radius: 20px;
+	position: relative;
+	transition: background-color 0.2s;
+
+}
+
+label.checkboxSwitch span:after {
+
+	content: "";
+	display: block;
+	position: absolute;
+	top: 2px;
+	bottom: 2px;
+	left: 2px;
+	width: 24px;
+	background-color: white;
+	border-radius: 20px;
+	transition: transform 0.2s ease-in-out;
+
+}
+
+label.checkboxSwitch input:checked + span {
+
+	background-color: #4CAF50;
+
+}
+
+label.checkboxSwitch input:checked + span:after {
+
+	transform: translate(17px);
+
+}
+
+
+label.checkboxSwitch input {
+
+	display: none;
 
 }
 
@@ -428,6 +499,7 @@ label.last {
 
 	display: flex;
 	margin-right: -4px;
+	flex-wrap: wrap;
 	
 
 }
@@ -436,28 +508,9 @@ label.last {
 .inputGroup > div {
 
 	margin-right: 4px;
-	flex: 1 1 0px;
+	flex: 1 1 calc(50% - 4px);
 
 }
-
-
-@media (max-width: 350px) {
-
-	.inputGroup {
-
-		flex-wrap: wrap;		
-	
-	}
-	
-	
-	.inputGroup > div {
-	
-		flex: 1 1 100%;
-	
-	}
-
-}
-
 
 
 
@@ -479,11 +532,11 @@ label.last {
 }
 
 
-.yellow {
+.orange {
 	
-	background-color: rgb(255,235,156);
-	border-color: orange;
-	color: orange;
+	color: rgb(255, 128, 0);
+	background-color: rgb(255, 128, 0, 0.125);
+	border-color: rgb(255, 128, 0);
 	
 }
 
@@ -499,21 +552,33 @@ label.last {
 
 
 
-.withMargin {
+body .withMargin {
 
 	margin-top: 12px;
 
 }
 
-.noMargin {
+body .noMargin {
 
 	margin-top: 0px;
 
 }
 
-.smallMargin {
+body .smallMargin {
 
 	margin-top: 8px;
+
+}
+
+body .bigMargin {
+
+	margin-top: 40px;
+
+}
+
+body .mediumMargin {
+
+	margin-top: 25px;
 
 }
 

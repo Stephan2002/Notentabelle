@@ -266,7 +266,7 @@ function getTests(Element &$test, bool $withMarks = false) : int {
 
             if(!$withMarks && $test->accessType === Element::ACCESS_STUDENT) {
 
-                $stmt = $mysqli->prepare("SELECT * FROM tests WHERE parentID = ? AND isHidden = 0 AND deleteTimestamp IS NULL ORDER BY isHidden, NOT isFolder, date, NOT markCounts, name");
+                $stmt = $mysqli->prepare("SELECT * FROM tests WHERE parentID = ? AND deleteTimestamp IS NULL ORDER BY isHidden, NOT isFolder, date, NOT markCounts, name");
                 $stmt->bind_param("i", $test->data["testID"]);
 
             } elseif(!$withMarks) {
@@ -276,7 +276,7 @@ function getTests(Element &$test, bool $withMarks = false) : int {
 
             } elseif($test->accessType === Element::ACCESS_STUDENT) {
 
-                $stmt = $mysqli->prepare("SELECT tests.*, marks.mark, marks.points, marks.notes AS studentNotes FROM tests LEFT JOIN marks ON (tests.testID = marks.testID AND marks.studentID = ?) WHERE tests.parentID = ? AND tests.isHidden = 0 AND tests.deleteTimestamp IS NULL ORDER BY tests.isHidden, NOT tests.isFolder, tests.date, NOT tests.markCounts, tests.name");
+                $stmt = $mysqli->prepare("SELECT tests.*, marks.mark, marks.points, marks.notes AS studentNotes FROM tests LEFT JOIN marks ON (tests.testID = marks.testID AND marks.studentID = ?) WHERE tests.parentID = ? AND tests.deleteTimestamp IS NULL ORDER BY tests.isHidden, NOT tests.isFolder, tests.date, NOT tests.markCounts, tests.name");
                 $stmt->bind_param("ii", $test->studentID, $test->data["testID"]);
 
             } else {
@@ -290,7 +290,7 @@ function getTests(Element &$test, bool $withMarks = false) : int {
 
             if(!$withMarks && $test->accessType === Element::ACCESS_STUDENT) {
 
-                $stmt = $mysqli->prepare("SELECT * FROM tests WHERE parentID IS NULL AND semesterID = ? AND isHidden = 0 AND deleteTimestamp IS NULL ORDER BY isHidden, NOT isFolder, date, NOT markCounts, name");
+                $stmt = $mysqli->prepare("SELECT * FROM tests WHERE parentID IS NULL AND semesterID = ? AND deleteTimestamp IS NULL ORDER BY isHidden, NOT isFolder, date, NOT markCounts, name");
                 $stmt->bind_param("i", $test->data["semesterID"]);
             
             } elseif(!$withMarks) {
@@ -300,7 +300,7 @@ function getTests(Element &$test, bool $withMarks = false) : int {
 
             } elseif($test->accessType === Element::ACCESS_STUDENT) {
 
-                $stmt = $mysqli->prepare("SELECT tests.*, marks.mark, marks.points, marks.notes AS studentNotes FROM tests LEFT JOIN marks ON (tests.testID = marks.testID AND marks.studentID = ?) WHERE tests.parentID IS NULL AND tests.semesterID = ? AND tests.isHidden = 0 AND tests.deleteTimestamp IS NULL ORDER BY tests.isHidden, NOT tests.isFolder, tests.date, NOT tests.markCounts, tests.name");
+                $stmt = $mysqli->prepare("SELECT tests.*, marks.mark, marks.points, marks.notes AS studentNotes FROM tests LEFT JOIN marks ON (tests.testID = marks.testID AND marks.studentID = ?) WHERE tests.parentID IS NULL AND tests.semesterID = ? AND tests.deleteTimestamp IS NULL ORDER BY tests.isHidden, NOT tests.isFolder, tests.date, NOT tests.markCounts, tests.name");
                 $stmt->bind_param("ii", $test->studentID, $test->data["semesterID"]);
 
             } else {

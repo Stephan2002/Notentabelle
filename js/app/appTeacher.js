@@ -6,6 +6,7 @@ cache.rootClasses = undefined;
 additionalInfo.classes = [];
 
 var classInfoDialog;
+var studentInfoDialog;
 
 function showRootClasses() {
 
@@ -128,7 +129,12 @@ document.addEventListener("DOMContentLoaded", function() {
 
         if(this.additionalInfoRequest !== undefined) {
 
-            this.additionalInfoRequest.abort();
+            if(this.additionalInfoRequest.readyState !== XMLHttpRequest.DONE) {
+    
+                this.additionalInfoRequest.abort();
+
+            }
+
             this.additionalInfoRequest = undefined;
 
         }
@@ -428,57 +434,6 @@ document.addEventListener("DOMContentLoaded", function() {
                 document.getElementById("studentInfoDialog_mark").innerHTML = formatNumber(this.studentData.mark, "-");
 
             }
-
-            /*if(this.studentData.mark != undefined || this.studentData.points != undefined) {
-        
-                if(this.studentData.mark == undefined) {
-    
-                    document.getElementById("studentInfoDialog_averageContainer").style.display = "none";
-                    document.getElementById("studentInfoDialog_markContainer").style.display = "none";
-                    document.getElementById("studentInfoDialog_plusPointsContainer").style.display = "none";
-    
-                } else {
-
-                    if(this.studentData.plusPoints)
-                    
-                    document.getElementById("studentInfoDialog_averageContainer").style.display = "table-row";
-                    document.getElementById("studentInfoDialog_average").innerHTML = formatNumber(this.studentData.mark_unrounded == undefined ? this.studentData.mark : this.studentData.mark_unrounded);
-    
-                    if(this.studentData.classID === null && this.studentData.formula === null) {
-    
-                        document.getElementById("studentInfoDialog_markContainer").style.display = "table-row";
-                        document.getElementById("studentInfoDialog_mark").innerHTML = formatNumber(this.studentData.mark);
-    
-                    } else {
-    
-                        document.getElementById("studentInfoDialog_markContainer").style.display = "none";
-    
-                    }
-    
-                }
-    
-                if(this.studentData.points == undefined) {
-    
-                    document.getElementById("studentInfoDialog_pointsContainer").style.display = "none";
-    
-                } else {
-    
-                    document.getElementById("studentInfoDialog_pointsContainer").style.display = "table-row";
-                    document.getElementById("studentInfoDialog_points").innerHTML = formatNumber(this.studentData.points);
-    
-                }
-    
-                document.getElementById("studentInfoDialog_markAndPointsContainer").style.display = "table";
-    
-            } else {
-    
-                document.getElementById("studentInfoDialog_noMarkAndPoints").style.display = "table-row";
-                document.getElementById("studentInfoDialog_pointsContainer").style.display = "none";
-                document.getElementById("studentInfoDialog_averageContainer").style.display = "none";
-                document.getElementById("studentInfoDialog_markContainer").style.display = "none";
-                document.getElementById("studentInfoDialog_plusPointsContainer").style.display = "none";
-    
-            }*/
 
             document.getElementById("studentInfoDialog_markAndPointsContainer").style.display = "table";
 

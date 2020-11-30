@@ -44,9 +44,9 @@ function finish() {
 
 }
 
-function sendResponse($changes, int $errorCode = ERROR_NONE, int $occuredIn = NULL, int $newID = NULL) {
+function sendResponse($result, int $errorCode = ERROR_NONE, int $occuredIn = NULL, int $newID = NULL) {
 
-    $obj = array("error" => $errorCode, "changes" => $changes);
+    $obj = array("error" => $errorCode, "result" => $result);
     
     if(isset($occuredIn)) {
 
@@ -478,24 +478,20 @@ function getTest(int $testID, int $userID, bool $isTeacher, bool $checkOnlyForTe
         
             }
 
-            if(!$data["isHidden"]) {
+            $stmt->prepare("SELECT studentID FROM students WHERE userID = ? AND EXISTS (SELECT 1 FROM classes WHERE classes.classID = students.classID AND EXISTS (SELECT 1 FROM semesters WHERE semesterID = ? AND semesters.classID = classes.classID)) AND deleteTimestamp IS NULL");
+            $stmt->bind_param("ii", $userID, $data["semesterID"]);
+            $stmt->execute();
 
-                $stmt->prepare("SELECT studentID FROM students WHERE userID = ? AND EXISTS (SELECT 1 FROM classes WHERE classes.classID = students.classID AND EXISTS (SELECT 1 FROM semesters WHERE semesterID = ? AND semesters.classID = classes.classID)) AND deleteTimestamp IS NULL");
-                $stmt->bind_param("ii", $userID, $data["semesterID"]);
-                $stmt->execute();
+            $studentData = $stmt->get_result()->fetch_assoc();
 
-                $studentData = $stmt->get_result()->fetch_assoc();
+            if(!is_null($studentData)) {
 
-                if(!is_null($studentData)) {
+                $stmt->close();
 
-                    $stmt->close();
+                $test = new Test(0, Element::ACCESS_STUDENT, false, $data);
+                $test->studentID = $studentData["studentID"];
 
-                    $test = new Test(0, Element::ACCESS_STUDENT, false, $data);
-                    $test->studentID = $studentData["studentID"];
-
-                    return $test;
-
-                }
+                return $test;
 
             }
 
