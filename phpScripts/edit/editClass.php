@@ -215,7 +215,7 @@ function editClass(StudentClass $class, array &$data) : array {
 
         if(!empty($permissionsToAdd)) {
             
-            $stmt->prepare("SELECT userID, type FROM users WHERE userName = ? AND deleteTimestamp IS NULL");
+            $stmt->prepare("SELECT userID, isTeacher FROM users WHERE userName = ? AND deleteTimestamp IS NULL");
 
             foreach($permissionsToAdd as &$currentPermission) {
                 
@@ -230,7 +230,7 @@ function editClass(StudentClass $class, array &$data) : array {
 
                 }
 
-                if($result["type"] !== "teacher" && $result["type"] !== "admin") {
+                if(!$result["isTeacher"]) {
 
                     return array("error" => ERROR_UNSUITABLE_INPUT, "changes" => $changes);
 
@@ -319,7 +319,7 @@ if(!isset($_SESSION["userid"])) {
 
 session_write_close();
 
-if($_SESSION["type"] !== "teacher" && $_SESSION["type"] !== "admin") {
+if(!$_SESSION["isTeacher"]) {
 
     throwError(ERROR_ONLY_TEACHER);
 

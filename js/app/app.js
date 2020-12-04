@@ -27,6 +27,15 @@ const ACCESS_TEACHER = 2;
 const ACCESS_STUDENT = 3;
 const ACCESS_PUBLIC = 4;
 
+
+const TEXT_ERROR_OCCURED = "Es ist ein Fehler aufgetreten.";
+const TEXT_ERROR_NO_CHANGE = TEXT_ERROR_OCCURED + "\nMöglicherweise besteht ein Problem mit der Internetverbindung.\n\nFehlercode: ";
+const TEXT_ERROR_UNCHANGED = TEXT_ERROR_OCCURED + "\nEs wurden keine Veränderungen gespeichert.\n\nFehlercode: ";
+const TEXT_ERROR_CHANGED = TEXT_ERROR_OCCURED + "\nJedoch wurde ein Teil der Veränderungen gespeichert.\n\nFehlercode: ";
+
+const MAX_LENGTH_NAME = 64;
+const MAX_LENGTH_NOTES = 256;
+
 var publishInstalled = false;
 var isLoading = false;
 var isBlocked = false;
@@ -337,7 +346,7 @@ function printElement() {
                     "<td class='table_name'>" + escapeHTML(currentChildData.name) + "</td>" +
                     "<td class='table_buttons'>" +
                         "<button class='button_square negative table_big'><img src='/img/delete.svg' alt='X'></button>" +
-                        "<button class='button_square positive table_big' onclick='event.stopPropagation(); editSemesterDialog.edit(" + currentChildData.semesterID + ")'><img src='/img/edit.svg' alt='.'></button>" +
+                        "<button class='button_square positive table_big' onclick='event.stopPropagation(); editSemesterDialog.openEdit(" + currentChildData.semesterID + ")'><img src='/img/edit.svg' alt='.'></button>" +
                         "<button class='button_square neutral' onclick='event.stopPropagation(); semesterInfoDialog.open(" + currentChildData.semesterID + ")'><img src='/img/info.svg' alt='i'></button>" + 
                     "</td>" +
                 "</tr>";
@@ -404,8 +413,8 @@ function printElement() {
         if (currentElement.isRoot) {
 
             document.getElementById("semesters_controlButtons").style.display = "none";
-            document.getElementById("title").innerHTML = "Semester";
-            document.getElementsByTagName("TITLE")[0].innerHTML = "Notentabelle - Semester";
+            document.getElementById("title").innerHTML = "Semesterauswahl";
+            document.getElementsByTagName("TITLE")[0].innerHTML = "Notentabelle - App";
             document.getElementById("returnButton").style.display = "none";
 
         } else {
@@ -1245,7 +1254,7 @@ function printElement() {
                     "<td>" + escapeHTML(currentChildData.userName) + "</td>" +
                     "<td class='table_buttons'>" +
                         "<button class='button_square positive table_big'><img src='/img/save.svg' alt='S'></button>" +
-                        "<button class='button_square neutral' onclick='event.stopPropagation(); classInfoDialog.open(" + currentChildData.semesterID + ")'><img src='/img/info.svg' alt='i'></button>" +
+                        "<button class='button_square neutral' onclick='event.stopPropagation(); semesterInfoDialog.open(" + currentChildData.semesterID + ")'><img src='/img/info.svg' alt='i'></button>" +
                     "</td>" +
                 "</tr>";
 
@@ -2115,13 +2124,7 @@ function loadMoreTestInfo() {
     }, function(errorCode) {
 
         printAdditionalTestInfo("tests_testInfo", currentElement.data);
-
-        new Alert({
-            type: "info",
-            icon: "error",
-            title: "Fehler",
-            description: "Es ist ein Fehler aufgetreten. Versuchen Sie es später wieder.\nFehlercode: " + errorCode
-        });
+        showErrorMessage(TEXT_ERROR_NO_CHANGE + errorCode);
 
     });
 
@@ -2189,7 +2192,7 @@ function loadPublish() {
 
 }
 
-function updateErrors(errorObj, errorContainer, button) {
+function updateErrors(errorObj, errorContainer, button, keepButtonSelectable) {
     
     var errorString = "";
     var hasError = false;
@@ -2219,11 +2222,111 @@ function updateErrors(errorObj, errorContainer, button) {
 
     if(button instanceof HTMLButtonElement) {
 
-        button.disabled = hasError;
+        if(keepButtonSelectable) {
+
+            if(hasError) {
+
+                button.classList.add("deactivated");
+
+            } else {
+
+                button.classList.remove("deactivated");
+
+            }
+
+        } else {
+
+            button.disabled = hasError;
+
+        }
 
     }
 
     return !hasError;
+
+}
+
+function getPermissionUpdates(newPermissions, oldPermissions) {
+
+    var permissionUpdates = [];
+    var permissionObj = {};
+    var cleanedPermissions = [];
+
+    for(var i = 0; i < newPermissions.length; i++) {
+
+        if(newPermissions[i] !== undefined) {
+
+            cleanedPermissions.push({
+                userName: newPermissions[i].userName,
+                writingPermission: newPermissions[i].writingPermission
+            });
+
+            permissionObj[newPermissions[i].userName.toLowerCase()] = newPermissions[i];
+
+        }
+
+    }
+
+    for(var i = 0; i < oldPermissions.length; i++) {
+
+        var userName = oldPermissions[i].userName.toLowerCase();
+
+        if(permissionObj[userName] === undefined) {
+
+            // Berechtigung geloescht
+
+            permissionUpdates.push({
+                userName: userName,
+                writingPermission: null
+            });
+
+        } else {
+
+            permissionObj[userName].alreadyExists = true;
+        
+            if(permissionObj[userName].writingPermission != oldPermissions[i].writingPermission) {
+
+                // writingPermission veraendert
+
+                permissionUpdates.push({
+                    userName: userName,
+                    writingPermission: permissionObj[userName].writingPermission
+                });
+
+            }
+
+        }
+
+    }
+
+    for(var key in permissionObj) {
+
+        if(!permissionObj[key].alreadyExists) {
+
+            // neue Berechtigung
+
+            permissionUpdates.push({
+                userName: key,
+                writingPermission: permissionObj[key].writingPermission
+            });
+
+        }
+
+    }
+
+    return { updates: permissionUpdates, cleaned: cleanedPermissions };
+
+}
+
+
+function showErrorMessage(description) {
+
+    new Alert({
+        type: "info",
+        icon: "error",
+        title: "Fehler",
+        description: description
+    });
 
 }
 
@@ -2284,6 +2387,36 @@ document.addEventListener("DOMContentLoaded", function () {
             this.semesterData = currentElement.data;
 
         }
+
+        this.printInfo();
+
+        document.getElementById("semesterInfoDialog_editButton").onclick = editSemesterDialog.openEdit.bind(editSemesterDialog, this.semesterData);
+
+        this.show();
+
+    };
+
+    semesterInfoDialog.close = function() {
+
+        this.semesterData = undefined;
+
+        if(this.additionalInfoRequest !== undefined) {
+
+            if(this.additionalInfoRequest.readyState !== XMLHttpRequest.DONE) {
+
+                this.additionalInfoRequest.abort();
+
+            }
+
+            this.additionalInfoRequest = undefined;
+
+        }
+
+        this.hide();
+
+    };
+
+    semesterInfoDialog.printInfo = function() {
 
         var type;
 
@@ -2433,31 +2566,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         }
 
-        document.getElementById("semesterInfoDialog_editButton").onclick = editSemesterDialog.edit.bind(editSemesterDialog, this.semesterData);
-
-        this.show();
-
-    };
-
-    semesterInfoDialog.close = function() {
-
-        this.semesterData = undefined;
-
-        if(this.additionalInfoRequest !== undefined) {
-
-            if(this.additionalInfoRequest.readyState !== XMLHttpRequest.DONE) {
-
-                this.additionalInfoRequest.abort();
-
-            }
-
-            this.additionalInfoRequest = undefined;
-
-        }
-
-        this.hide();
-
-    };
+    }
 
     semesterInfoDialog.printAdditionalInfo = function() {
 
@@ -2616,12 +2725,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             semesterInfoDialog.printAdditionalInfo();
 
-            new Alert({
-                type: "info",
-                icon: "error",
-                title: "Fehler",
-                description: "Es ist ein Fehler aufgetreten. Versuchen Sie es später wieder.\nFehlercode: " + errorCode
-            });
+            showErrorMessage(TEXT_ERROR_NO_CHANGE + errorCode);
 
         });
 
@@ -2791,12 +2895,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             printAdditionalTestInfo("testInfoDialog", testInfoDialog.testData);
 
-            new Alert({
-                type: "info",
-                icon: "error",
-                title: "Fehler",
-                description: "Es ist ein Fehler aufgetreten. Versuchen Sie es später wieder.\nFehlercode: " + errorCode
-            });
+            showErrorMessage(TEXT_ERROR_NO_CHANGE + errorCode);
 
         });
 
@@ -2806,7 +2905,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
 
-    editSemesterDialog.edit = function(arg) {
+    editSemesterDialog.openEdit = function(arg) {
 
         this.errors = {};
         this.warnings = {};
@@ -2875,10 +2974,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
             document.getElementById("editSemesterDialog_templateType").style.display = "none";
             document.getElementById("editSemesterDialog_permissionsButton").style.display = "none";
+            document.getElementById("editSemesterDialog_refTestButton").style.display = "none";
 
         } else if(this.semesterData.referenceID !== null) {
 
             document.getElementById("editSemesterDialog_permissionsButton").style.display = "none";
+            document.getElementById("editSemesterDialog_refTestButton").style.display = "inline-block";
 
             if(this.semesterData.templateType === null) {
 
@@ -2893,6 +2994,7 @@ document.addEventListener("DOMContentLoaded", function () {
         } else {
 
             document.getElementById("editSemesterDialog_permissionsButton").style.display = "inline-block";
+            document.getElementById("editSemesterDialog_refTestButton").style.display = "none";
 
             if(this.semesterData.templateType === null) {
 
@@ -2925,10 +3027,13 @@ document.addEventListener("DOMContentLoaded", function () {
         } else {
             
             document.getElementById("editSemesterDialog_withNotes").checked = true;
+            document.getElementById("editSemesterDialog_notes").value = this.semesterData.notes;
 
         }
 
         this.updateNotesCheckbox();
+
+        document.getElementById("editSemesterDialog_OKButton").classList.remove("deactivated");
 
         updateErrors(this.warnings, document.getElementById("editSemesterDialog_warningContainer"));
         updateErrors(this.errors, document.getElementById("editSemesterDialog_errorContainer"), document.getElementById("editSemesterDialog_OKButton"));
@@ -2937,9 +3042,131 @@ document.addEventListener("DOMContentLoaded", function () {
 
     };
 
-    editSemesterDialog.add = function(isFolder, isTemplate) {
+    editSemesterDialog.openAdd = function(isFolder, isTemplate) {
 
+        this.errors = { name: false };
+        this.warnings = {};
+        
         this.isNew = true;
+
+        this.semesterData = {
+            isFolder: isFolder,
+            templateType: isTemplate ? (this.templateTypeSelect.getState(0) ? "semesterTemplate" : "subjectTemplate") : null
+        };
+
+        if(!currentElement.isRoot) {
+
+            this.semesterData.parentID = currentElement.data.parentID;
+
+        }
+
+        this.siblingData = currentElement.childrenData;
+
+        document.getElementById("modeFlagStyles").innerHTML = ".modeFlag_add { display: inline; }";
+
+        document.getElementById("editSemesterDialog_refTestButton").style.display = "none";
+
+        var baseName;
+
+        if(isFolder) {
+
+            baseName = "Ordner ";
+
+            document.getElementById("dialogTypeStyles").innerHTML = ".dialogType_semesterFolder { display: inline; }";
+
+            document.getElementById("editSemesterDialog_permissionsButton").style.display = "none";
+
+            document.getElementById("editSemesterDialog_templateButton").style.display = "none";
+            document.getElementById("editSemesterDialog_templateType").style.display = "none";
+            document.getElementById("editSemesterDialog_semesterType").style.display = "none";
+            document.getElementById("editSemesterDialog_classButton").style.display = "none";
+            document.getElementById("editSemesterDialog_teacherButton").style.display = "none";
+
+        } else {
+
+            document.getElementById("editSemesterDialog_permissionsButton").style.display = "inline-block";
+
+            if(isTemplate) {
+
+                baseName = "Vorlage ";
+
+                document.getElementById("dialogTypeStyles").innerHTML = ".dialogType_template { display: inline; }";
+
+                document.getElementById("editSemesterDialog_templateButton").style.display = "none";
+                document.getElementById("editSemesterDialog_templateType").style.display = "flex";
+                document.getElementById("editSemesterDialog_semesterType").style.display = "none";
+
+                document.getElementById("editSemesterDialog_classButton").style.display = "none";
+                document.getElementById("editSemesterDialog_teacherButton").style.display = "none";
+
+            } else {
+
+                baseName = "Semester ";
+
+                document.getElementById("dialogTypeStyles").innerHTML = ".dialogType_semester { display: inline; }";
+
+                document.getElementById("editSemesterDialog_templateButton").style.display = "inline-block";
+                document.getElementById("editSemesterDialog_templateType").style.display = "none";
+
+                if(user.isTeacher) {
+
+                    document.getElementById("editSemesterDialog_semesterType").style.display = "flex";
+                    this.updateSemesterType(this.semesterTypeSelect.getSelected());
+
+                } else {
+
+                    document.getElementById("editSemesterDialog_semesterType").style.display = "none";
+                    document.getElementById("editSemesterDialog_classButton").style.display = "none";
+                    document.getElementById("editSemesterDialog_teacherButton").style.display = "none";
+
+                }
+
+            }
+
+        }
+
+        // Möglicher Benennungsalgorithmus
+        /* var counter = 1;
+
+        nameNotFound:
+        while(true) {
+
+            for(var i = 0; i < this.siblingData; i++) {
+
+                if(this.siblingData[i].name === baseName + counter) {
+
+                    continue nameNotFound;
+
+                }
+
+            }
+
+            break;
+
+        }
+
+        */
+
+        var nameElement = document.getElementById("editSemesterDialog_name");
+
+        nameElement.value = "";
+        nameElement.classList.remove("error");
+        nameElement.classList.remove("warning");
+
+        var notesElement = document.getElementById("editSemesterDialog_notes");
+
+        notesElement.value = "";
+        notesElement.classList.remove("error");
+        
+        this.updateNotesCheckbox();
+        
+        document.getElementById("editSemesterDialog_OKButton").disabled = false;
+
+        updateErrors(this.warnings, document.getElementById("editSemesterDialog_warningContainer"));
+        updateErrors(this.errors, document.getElementById("editSemesterDialog_errorContainer"), document.getElementById("editSemesterDialog_OKButton"), true);
+        
+        this.show();
+
 
     };
 
@@ -2959,9 +3186,17 @@ document.addEventListener("DOMContentLoaded", function () {
 
             var element = document.getElementById("editSemesterDialog_name");
 
+            delete this.warnings.name;
+            element.classList.remove("warning");
+
             if(element.value.trim() === "") {
 
-                this.errors.name = printAll ? "Name muss angegeben werden." : false;
+                this.errors.name = printAll ? "Der Name muss angegeben werden." : false;
+                element.classList.add("error");
+
+            } else if(element.value.length >= MAX_LENGTH_NAME) {
+
+                this.errors.name = "Der Name muss weniger als " + MAX_LENGTH_NAME + " Zeichen lang sein.";
                 element.classList.add("error");
 
             } else {
@@ -3024,10 +3259,42 @@ document.addEventListener("DOMContentLoaded", function () {
                     this.warnings.name = "Es existiert bereits ein Element mit gleichem Namen.";
                     element.classList.add("warning");
 
+                }
+
+            }
+
+        }
+
+        if(checkAll || ID === "notes") {
+
+            var element = document.getElementById("editSemesterDialog_notes");
+
+            if(document.getElementById("editSemesterDialog_withNotes").checked && element.value.length >= MAX_LENGTH_NOTES) {
+
+                this.errors.notes = "Die Notizen müssen kleiner als " + MAX_LENGTH_NOTES + " Zeichen lang sein.";
+                element.classList.add("error");
+
+            } else {
+
+                delete this.errors.notes;
+                element.classList.remove("error");
+
+            }
+
+
+        }
+        
+        if(this.isNew && this.semesterData.templateType === null) {
+            
+            if(checkAll || ID === "class") {
+                
+                if(this.semesterTypeSelect.getState(1) && this.classID === undefined) {
+                    
+                    this.errors.class = printAll ? "Es wurde keine Klasse ausgewählt." : false;
+
                 } else {
 
-                    delete this.warnings.name;
-                    element.classList.remove("warning");
+                    delete this.errors.class;
 
                 }
 
@@ -3038,7 +3305,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if(callErrorUpdate) {
 
             updateErrors(this.warnings, document.getElementById("editSemesterDialog_warningContainer"));
-            updateErrors(this.errors, document.getElementById("editSemesterDialog_errorContainer"), document.getElementById("editSemesterDialog_OKButton"));
+            return updateErrors(this.errors, document.getElementById("editSemesterDialog_errorContainer"), document.getElementById("editSemesterDialog_OKButton"), this.isNew);
 
         }
 
@@ -3062,9 +3329,273 @@ document.addEventListener("DOMContentLoaded", function () {
     };
 
     editSemesterDialog.save = function() {
+
+        var properties = {};
+
+        properties.name = document.getElementById("editSemesterDialog_name").value;
         
-        updateErrors(this.warnings, document.getElementById("editSemesterDialog_warningContainer"));
-        var noError = updateErrors(this.errors, document.getElementById("editSemesterDialog_errorContainer"), document.getElementById("editSemesterDialog_OKButton"));
+        if(this.semesterData.templateType !== null) {
+
+            properties.templateType = this.templateTypeSelect.getState(0) ? "semesterTemplate" : "subjectTemplate";
+
+        } else {
+
+            properties.templateType = null;
+
+        }
+
+        if(document.getElementById("editSemesterDialog_withNotes").checked) {
+
+            var element = document.getElementById("editSemesterDialog_notes");
+
+            if(element.value.trim() !== "") {
+
+                properties.notes = element.value;
+
+            }
+
+        }
+
+        if(this.isNew) {
+
+            this.saveAdd(properties);
+
+        } else {
+
+            this.saveEdit(properties);
+
+        }
+
+    }
+
+    editSemesterDialog.saveEdit = function(properties) {
+
+        var changedProperties = {};
+        var permissionUpdates;
+        var semesterData = this.semesterData;
+
+        if(properties.name !== this.semesterData.name) changedProperties.name = properties.name;
+
+        if(this.semesterData.notes === null) {
+
+            if(properties.notes !== undefined) {
+                
+                changedProperties.notes = properties.notes;
+
+            }
+
+        } else {
+
+            changedProperties.notes = properties.notes ? properties.notes : null;
+
+        }
+
+        if(this.semesterData.templateType !== null) {
+
+            if(properties.templateType !== this.semesterData.templateType) changedProperties.templateType = properties.templateType;
+
+        }
+
+        if(this.permissionsData !== undefined) {
+
+            permissionUpdates = getPermissionUpdates(this.permissionsData, additionalInfo.semesters[semesterData.semesterID].permissions);
+            changedProperties.permissions = permissionUpdates.updates;
+
+        }
+
+        /*if(this.referenceTestID !== undefined) {
+
+            if(this.referenceTestID !== semesterData.referenceTestID) changedProperties.referenceTestID = this.referenceTestID;
+
+        }*/
+
+        changedProperties.semesterID = semesterData.semesterID;
+
+        loadData("/phpScripts/edit/editSemester.php", [ changedProperties ], function(result) {
+
+            if(result.result[0] === false) {
+
+                if(permissionUpdates !== undefined) {
+
+                    additionalInfo.semesters[semesterData.semesterID].permissions = permissionUpdates.cleaned;
+
+                }
+
+                if(changedProperties.name !== undefined) semesterData.name = changedProperties.name;
+                if(changedProperties.templateType !== undefined) semesterData.templateType = changedProperties.templateType;
+                if(changedProperties.notes !== undefined) semesterData.notes = changedProperties.notes;
+
+                if(semesterInfoDialog.isVisible()) {
+
+                    semesterInfoDialog.printInfo();
+                    Loading.hide(semesterInfoDialog.dialogElement);
+        
+                } else {
+
+                    hidePanelsAndPrint();
+        
+                }
+
+            } else {
+
+                if(semesterInfoDialog.isVisible()) {
+
+                    Loading.hide(semesterInfoDialog.dialogElement);
+        
+                } else {
+
+                    Loading.hide();
+
+                }
+
+            }
+
+        }, function(errorCode, result) {
+
+            if(result.result === undefined || result.result[0] !== false) {
+
+                if(result.result !== undefined && result.result[0] === null) {
+
+                    showErrorMessage(TEXT_ERROR_UNCHANGED + errorCode);
+
+                } else {
+
+                    showErrorMessage(TEXT_ERROR_NO_CHANGE + errorCode);
+
+                }
+
+                if(semesterInfoDialog.isVisible()) {
+    
+                    Loading.hide(semesterInfoDialog.dialogElement);
+        
+                } else {
+
+                    Loading.hide();
+
+                }
+
+            } else {
+
+                showErrorMessage(TEXT_ERROR_CHANGED + errorCode);
+
+                if(changedProperties.name !== undefined) semesterData.name = changedProperties.name;
+                if(changedProperties.templateType !== undefined) semesterData.templateType = changedProperties.templateType;
+                if(changedProperties.notes !== undefined) semesterData.notes = changedProperties.notes;
+
+                if(semesterInfoDialog.isVisible()) {
+
+                    semesterInfoDialog.printInfo();
+                    Loading.hide(semesterInfoDialog.dialogElement);
+        
+                } else {
+
+                    hidePanelsAndPrint();
+        
+                }
+
+            }
+
+        });
+
+        if(currentElement.type === TYPE_TEST) {
+            
+            if(semesterData.parentID === null) {
+
+                cache.rootSemesters = undefined;
+
+            } else {
+
+                delete cache.semesters[semesterData.parentID]
+
+            }
+
+        } else {
+
+            delete cache.semesters[semesterData.semesterID];
+
+        }
+
+        if(semesterInfoDialog.isVisible()) {
+
+            Loading.show(semesterInfoDialog.dialogElement);
+
+        } else {
+
+            Loading.show(null, "semi-transparent");
+
+        }
+
+        this.referenceTestID = undefined;
+
+        this.close();
+
+    };
+
+    editSemesterDialog.saveAdd = function(properties) {
+
+        if(!this.check()) {
+
+            return;
+
+        }
+
+        if(this.templateID !== undefined) properties.templateID = this.templateID;
+
+        if(this.semesterData.templateType !== null) {
+
+            if(this.semesterTypeSelect.getState(1)) {
+                // Klassensemester
+
+                properties.classID = this.classID;
+
+                if(this.copyTeacherID !== undefined) properties.copyTeacherID = this.copyTeacherID;
+
+            }
+
+        }
+
+        if(this.permissionsData !== undefined) {
+
+            var cleanedPermissions = this.permissionsData.filter(function(element) { return element !== undefined } );
+
+            properties.permissions = cleanedPermissions;
+
+        }
+
+        properties.parentID = this.semesterData.parentID;
+        properties.isFolder = this.semesterData.isFolder;
+
+        loadData("/phpScripts/create/createSemester.php", properties, function(result) {
+
+            properties.semesterID = result.newID;
+
+            currentElement.childrenData.push(properties);
+
+            hidePanelsAndPrint();
+
+        }, function(errorCode) {
+
+            showErrorMessage(TEXT_ERROR_NO_CHANGE + errorCode);
+            Loading.hide();
+
+        });
+
+        if(properties.classID === undefined) properties.classID = null;
+        if(properties.notes === undefined) properties.notes = null;
+        
+        properties.isHidden = 0;
+        properties.isFolder = Number(properties.isFolder);
+        properties.referenceID = null;
+        properties.referenceTestID = null;
+        properties.deleteTimestamp = null;
+
+        Loading.show(null, "semi-transparent");
+
+        this.classID = undefined;
+        this.templateID = undefined;
+        this.copyTeacherID = undefined;
+
+        this.close();
 
     };
 
@@ -3081,6 +3612,24 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
     };
+
+    editSemesterDialog.updateSemesterType = function(index) {
+
+        if(index === 0) {
+
+            document.getElementById("editSemesterDialog_classButton").style.display = "none";
+            document.getElementById("editSemesterDialog_teacherButton").style.display = "none";
+
+        } else {
+
+            document.getElementById("editSemesterDialog_classButton").style.display = "inline-block";
+            document.getElementById("editSemesterDialog_teacherButton").style.display = "inline-block";
+
+        }
+
+        this.check("class", false);
+
+    }
 
 
 
@@ -3099,6 +3648,10 @@ document.addEventListener("DOMContentLoaded", function () {
                 
                 this.data = copy(editSemesterDialog.permissionsData);
 
+            } else if(this.ID === undefined) {
+                
+                this.data = [];
+                
             } else if(additionalInfo.semesters[this.ID] !== undefined) {
 
                 this.data = copy(additionalInfo.semesters[this.ID].permissions);
@@ -3114,21 +3667,20 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     Loading.hide(permissionsDialog.contentElement);
                     contentElement.style.opacity = "1";
+                    
+                    if(permissionsDialog.type === TYPE_SEMESTER && semesterInfoDialog.isVisible()) {
+                        
+                        semesterInfoDialog.printAdditionalInfo();
+
+                    }
 
                     setTimeout(permissionsDialog.showContent.bind(permissionsDialog), 200);
-        
-                    // Update semesterInfoDialog
-        
+
                 }, function(errorCode) {
         
-                    // Update semesterInfoDialog
-        
-                    new Alert({
-                        type: "info",
-                        icon: "error",
-                        title: "Fehler",
-                        description: "Es ist ein Fehler aufgetreten. Versuchen Sie es später wieder.\nFehlercode: " + errorCode
-                    });
+                    showErrorMessage(TEXT_ERROR_NO_CHANGE + errorCode);
+
+                    Loading.hide(permissionsDialog.contentElement);
         
                 });
 
@@ -3207,6 +3759,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             document.getElementById("permissionsDialog_noPermission").style.display = "block";
             document.getElementById("permissionsDialog_table").style.display = "none";
+            document.getElementById("permissionsDialog_table").innerHTML = "";
 
         }
 
@@ -3359,8 +3912,6 @@ document.addEventListener("DOMContentLoaded", function () {
     };
 
     permissionsDialog.newNameInput = function() {
-        
-        var element = document.getElementById("permissionsDialog_newName");
 
         if(this.nameCheckRequest !== undefined) {
 
@@ -3387,8 +3938,6 @@ document.addEventListener("DOMContentLoaded", function () {
     };
 
     permissionsDialog.newNameChange = function() {
-
-        var element = document.getElementById("permissionsDialog_newName");
 
         if(this.nameCheckTimeoutID !== undefined) {
 
@@ -3457,6 +4006,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     permissionsDialog.close = function() {
 
+        this.ID = undefined;
         this.data = undefined;
         this.needsNameCheck = false;
 
@@ -3480,6 +4030,8 @@ document.addEventListener("DOMContentLoaded", function () {
             this.nameCheckTimeoutID = undefined;
 
         }
+
+        Loading.hide(permissionsDialog.contentElement);
 
         this.hide();
 
@@ -3506,10 +4058,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
     editSemesterDialog.templateTypeSelect = new ButtonSelect(document.getElementById("editSemesterDialog_templateType"));
-    editSemesterDialog.semesterTypeSelect = new ButtonSelect(document.getElementById("editSemesterDialog_semesterType"));
+    editSemesterDialog.semesterTypeSelect = new ButtonSelect(document.getElementById("editSemesterDialog_semesterType"), editSemesterDialog.updateSemesterType.bind(editSemesterDialog));
 
     document.getElementById("editSemesterDialog_name").addEventListener("input", editSemesterDialog.check.bind(editSemesterDialog, "name"));
     document.getElementById("editSemesterDialog_withNotes").addEventListener("change", editSemesterDialog.updateNotesCheckbox.bind(editSemesterDialog));
+    document.getElementById("editSemesterDialog_notes").addEventListener("input", editSemesterDialog.check.bind(editSemesterDialog, "notes"));
     document.getElementById("editSemesterDialog_permissionsButton").addEventListener("click", permissionsDialog.open.bind(permissionsDialog, TYPE_SEMESTER));
     document.getElementById("editSemesterDialog_cancelButton").addEventListener("click", editSemesterDialog.close.bind(editSemesterDialog));
     document.getElementById("editSemesterDialog_OKButton").addEventListener("click", editSemesterDialog.save.bind(editSemesterDialog));
@@ -3522,15 +4075,21 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("permissionsDialog_newName").addEventListener("change", permissionsDialog.newNameChange.bind(permissionsDialog));
 
 
-    document.getElementById("tests_testInfo_loadMoreButton").addEventListener("click", loadMoreTestInfo);
+
+    document.getElementById("semesters_addSemesterButton").addEventListener("click", editSemesterDialog.openAdd.bind(editSemesterDialog, false, false));
+    document.getElementById("semesters_addTemplateButton").addEventListener("click", editSemesterDialog.openAdd.bind(editSemesterDialog, false, true));
+    document.getElementById("semesters_addFolderButton").addEventListener("click", editSemesterDialog.openAdd.bind(editSemesterDialog, true, false));
+
+    document.getElementById("semesters_editButton").addEventListener("click", editSemesterDialog.openEdit.bind(editSemesterDialog, undefined));
+
 
     document.getElementById("tests_semesterInfoButton").addEventListener("click", semesterInfoDialog.open.bind(semesterInfoDialog));
     document.getElementById("tests_elementInfoButton").addEventListener("click", testInfoDialog.open.bind(testInfoDialog));
+    document.getElementById("tests_editSemesterButton").addEventListener("click", editSemesterDialog.openEdit.bind(editSemesterDialog, undefined));
 
-    document.getElementById("semesters_editButton").addEventListener("click", editSemesterDialog.edit.bind(editSemesterDialog, undefined));
-    document.getElementById("tests_editSemesterButton").addEventListener("click", editSemesterDialog.edit.bind(editSemesterDialog, undefined));
+    document.getElementById("tests_testInfo_loadMoreButton").addEventListener("click", loadMoreTestInfo);
 
-    // setTimeout(function() { editSemesterDialog.edit() }, 2000);
+    // setTimeout(function() { editSemesterDialog.openEdit() }, 2000);
 
     loadElementAndPrint();
 

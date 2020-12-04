@@ -189,7 +189,7 @@ if(isset($data["classID"])) {
     
     }
 
-    $class = getClass($data["classID"], $_SESSION["userid"], $_SESSION["type"] === "teacher" || $_SESSION["type"] === "admin");
+    $class = getClass($data["classID"], $_SESSION["userid"], $_SESSION["isTeacher"]);
 
 } else {
 

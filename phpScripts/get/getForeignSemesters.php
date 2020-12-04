@@ -41,7 +41,7 @@ function getForeignSemesters(Semester $element) : int {
     }
     
     // Semester mit Lehrer-Zugriff
-    if($_SESSION["type"] === "teacher" || $_SESSION["type"] === "admin") {
+    if($_SESSION["isTeacher"]) {
 
         $stmt->prepare("SELECT semesters.*, users.userName FROM semesters LEFT JOIN users ON semesters.userID = users.userID WHERE EXISTS (SELECT 1 FROM tests WHERE semesters.semesterID = tests.semesterID AND EXISTS (SELECT 1 FROM permissions WHERE tests.testID = permissions.testID AND permissions.userID = ?)) AND semesters.deleteTimestamp IS NULL ORDER BY semesters.templateType, semesters.name");
         $stmt->bind_param("i", $_SESSION["userid"]);

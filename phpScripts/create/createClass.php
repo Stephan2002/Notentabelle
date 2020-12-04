@@ -126,7 +126,7 @@ function createClass(array &$data, int $userID) : array {
 
         }
 
-        $stmt = $mysqli->prepare("SELECT userID, type FROM users WHERE userName = ? AND deleteTimestamp IS NULL");
+        $stmt = $mysqli->prepare("SELECT userID, isTeacher FROM users WHERE userName = ? AND deleteTimestamp IS NULL");
 
         foreach($data["permissions"] as &$currentPermission) {
             
@@ -141,7 +141,7 @@ function createClass(array &$data, int $userID) : array {
 
             }
 
-            if($result["type"] !== "teacher" && $result["type"] !== "admin") {
+            if(!$result["isTeacher"]) {
 
                 return array("error" => ERROR_UNSUITABLE_INPUT);
 
@@ -249,7 +249,7 @@ if(!connectToDatabase()) {
 }
 
 
-if($_SESSION["type"] !== "teacher" && $_SESSION["type"] !== "admin") {
+if(!$_SESSION["isTeacher"]) {
 
     throwError(ERROR_ONLY_TEACHER);
 

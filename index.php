@@ -63,7 +63,7 @@ if(isset($_GET["error"]) && is_numeric($_GET["error"])) {
 	
 			}
 	
-			$stmt = $mysqli->prepare("SELECT userID, userName, type, password, isVerified, lowerDisplayBound, upperDisplayBound, deleteTimestamp FROM users WHERE username = ? OR eMail = ?");
+			$stmt = $mysqli->prepare("SELECT userID, userName, status, isTeacher, password, isVerified, lowerDisplayBound, upperDisplayBound, deleteTimestamp FROM users WHERE username = ? OR eMail = ?");
 			$stmt->bind_param("ss", $_POST["username"], $_POST["username"]);
 			$stmt->execute();
 	
@@ -77,7 +77,7 @@ if(isset($_GET["error"]) && is_numeric($_GET["error"])) {
 	
 				$error = 8;
 	
-			} elseif($results["type"] === "blocked") {
+			} elseif($results["status"] === "blocked") {
 	
 				$error = 9;
 	
@@ -95,7 +95,8 @@ if(isset($_GET["error"]) && is_numeric($_GET["error"])) {
 	
 				$_SESSION["userid"] = $results["userID"];
 				$_SESSION["username"] = $results["userName"];
-				$_SESSION["type"] = $results["type"];
+				$_SESSION["status"] = $results["status"];
+				$_SESSION["isTeacher"] = (bool)$results["isTeacher"];
 				$_SESSION["lowerDisplayBound"] = $results["lowerDisplayBound"];
 				$_SESSION["upperDisplayBound"] = $results["upperDisplayBound"];
 	
@@ -156,7 +157,7 @@ if(isset($_GET["error"]) && is_numeric($_GET["error"])) {
 			include("phpScripts/autoLogin.php");
 	
 			session_start();
-			$error = login(); // Wird spaeter eingefuegt: Automatischer Login-Prozess
+			// $error = login(); Wird spaeter eingefuegt: Automatischer Login-Prozess
 	
 			if($error === 0) {
 	
@@ -223,7 +224,7 @@ if(isset($_GET["error"]) && is_numeric($_GET["error"])) {
 
 			if($error !== 0) {
 
-				$text = "<div class='info red'>";
+				$text = "<div class='info red noMargin'>";
 
 				if($error === 1) {
 					
@@ -291,14 +292,14 @@ if(isset($_GET["error"]) && is_numeric($_GET["error"])) {
 
 			} elseif($isAlreadyLoggedIn) {
 
-				echo 	"<div class='info gray'>". 
+				echo 	"<div class='info gray noMargin'>". 
 							"<p class='blankLine_small'>Sie sind bereits eingeloggt</p>" .
 							"<p><a href='app'>Hier</a> klicken, um zur App zu gelangen.</p>" .
 						"</div>";
 
 			} elseif($logout) {
 
-				echo 	"<div class='info green'>". 
+				echo 	"<div class='info green noMargin'>". 
 							"<p class='blankLine_small'>Erfolgreich ausgeloggt.</p>" .
 							"<p>Danke für Ihren Besuch!</p>" .
 						"</div>";
@@ -307,24 +308,22 @@ if(isset($_GET["error"]) && is_numeric($_GET["error"])) {
 				
 			?>
 			
-			<form method="POST" action="index">
+			<form method="POST" action="index" class="withMargin">
 				<input type="hidden" name="login" value="1">
 				<input type="text" id="username" name="username" maxlength="64" placeholder="Benutzername oder E-Mail" <?php if(isset($_POST["username"])) {echo "value='" . $_POST["username"] . "'";}?>>
 				<input type="password" id="password" name="password" placeholder="Passwort">
 				<label><input type="checkbox" name="auto_login" value="1">Login speichern</label>
-				<input type="submit" class="button_small positive" value="Login">
+				<input type="submit" class="button_big positive withMargin" value="Login">
 			</form>
 
-			
-		
 			<p class="blankLine_big">Noch kein Konto?</p>
-			<p><button class="button_small positive" onclick="window.location.href = 'register'">Kostenlos registrieren</button></p>
+			<a href="register"><button class="button_small positive">Kostenlos registrieren</button></a>
 			
 			<p class="blankLine_big">Noch nicht überzeugt?</p>
-			<p><button class="button_small positive" onclick="window.location.href = 'demo'">Demo ausprobieren</button></p>
+			<a href="demo"><button class="button_small positive">Demo ausprobieren</button></a>
 			
 			<p class="blankLine_big">Mehr Informationen</p>
-			<p><button class="button_small positive" onclick="window.location.href = 'about'">Über Notentabelle</button></p>
+			<a href="about"><button class="button_small positive">Über Notentabelle</button></a>
 		
 		</div>
 	

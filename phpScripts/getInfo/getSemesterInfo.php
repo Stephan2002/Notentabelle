@@ -42,7 +42,7 @@ if(!connectToDatabase()) {
 
 }
 
-$semester = getSemester($data["semesterID"], $_SESSION["userid"], $_SESSION["type"] === "teacher" || $_SESSION["type"] === "admin");
+$semester = getSemester($data["semesterID"], $_SESSION["userid"], $_SESSION["isTeacher"]);
 
 if($semester->error !== ERROR_NONE) {
 
@@ -67,7 +67,7 @@ if($semester->data["classID"] !== NULL) {
 
 if($semester->data["referenceID"] !== NULL) {
 
-    $refSemester = getSemester($semester->data["referenceID"], $_SESSION["userid"], $_SESSION["type"] === "teacher" || $_SESSION["type"] === "admin");
+    $refSemester = getSemester($semester->data["referenceID"], $_SESSION["userid"], $_SESSION["isTeacher"]);
 
     if($refSemester->error !== ERROR_NONE) {
 
@@ -81,7 +81,7 @@ if($semester->data["referenceID"] !== NULL) {
 
             if($refSemester->accessType === Element::ACCESS_TEACHER || $refSemester->accessType === Element::ACCESS_STUDENT) {
 
-                $refTest = getTest($semester->data["referenceTestID"], $_SESSION["userid"], $_SESSION["type"] === "teacher" || $_SESSION["type"] === "admin", false, true, true);
+                $refTest = getTest($semester->data["referenceTestID"], $_SESSION["userid"], $_SESSION["isTeacher"], false, true, true);
 
                 if($refTest->error !== ERROR_NONE) {
 

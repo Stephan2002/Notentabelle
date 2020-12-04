@@ -80,19 +80,6 @@ class Loading {
 		var element = parentElement.getElementsByClassName("loadingElement")[0];
 		var loadingAnchor = parentElement.getElementsByClassName("loadingAnchor")[0];
 
-		/*var element = null;
-
-		for(var i = 0; i < parentElement.children.length; i++) {
-
-			if(parentElement.children[i].classList.contains("loadingElement")) {
-
-				element = parentElement.children[i];
-				break;
-
-			}
-
-		}*/
-
 		if(element === undefined) {
 
 			return;
@@ -115,19 +102,6 @@ class Loading {
 
 		var element = parentElement.getElementsByClassName("loadingElement")[0];
 		var loadingAnchor = parentElement.getElementsByClassName("loadingAnchor")[0];
-
-		/*var element = null;
-
-		for(var i = 0; i < parentElement.children.length; i++) {
-
-			if(parentElement.children[i].classList.contains("loadingElement")) {
-
-				element = parentElement.children[i];
-				break;
-
-			}
-
-		}*/
 
 		if(element === undefined) {
 
@@ -235,33 +209,27 @@ class Loading {
 
 		}
 
-		for(var i = 0; i < parentElement.children.length; i++) {
+		var element = parentElement.getElementsByClassName("loadingAnchor")[0];
 
-			var element = parentElement.getElementsByClassName("loadingAnchor")[0];
+		if(element !== undefined && element.style.display !== "none") {
 
-			if(element !== undefined && element.style.display !== "none") {
+			if(type === undefined) {
 
-				if(type === undefined) {
+				return true;
 
-					return true;
+			}
 
-				}
+			if(element.classList.contains("solid")) {
 
-				if(element.classList.contains("solid")) {
+				return type === "solid";
 
-					return type === "solid";
+			} else if(element.classList.contains("transparent")) {
 
-				} else if(element.classList.contains("transparent")) {
+				return type === "transparent";
 
-					return type === "transparent";
+			} else {
 
-				} else {
-
-					return type === "semi-transparent";
-
-				}
-
-
+				return type === "semi-transparent";
 
 			}
 
@@ -282,8 +250,9 @@ class Loading {
 		if(event.key === "Tab") {
 
 			if((event.shiftKey && isAfter) || (!event.shiftKey && !isAfter)) {
-
+				
 				otherElement.focus();
+				event.preventDefault();
 
 			}
 

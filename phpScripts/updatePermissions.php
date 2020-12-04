@@ -20,7 +20,7 @@ function updatePermissions(Element $element, array &$permissions) : int {
 
     // Alte Zugriffsrechte laden
 
-    $stmt = $mysqli->prepare("SELECT permissions.*, users.userName, users.type FROM permissions LEFT JOIN users ON permissions.userID = users.userID WHERE " . $attribute . " = ?");
+    $stmt = $mysqli->prepare("SELECT permissions.*, users.userName, users.isTeacher FROM permissions LEFT JOIN users ON permissions.userID = users.userID WHERE " . $attribute . " = ?");
     $stmt->bind_param("i", $element->data[$attribute]);
     $stmt->execute();
 
@@ -33,7 +33,7 @@ function updatePermissions(Element $element, array &$permissions) : int {
 
             "writingPermission" => (bool)$currentRow["writingPermission"],
             "userID" => $currentRow["userID"],
-            "isTeacher" => $currentRow["type"] === "teacher" || $currentRow["type"] === "admin"
+            "isTeacher" => $currentRow["isTeacher"]
 
         );
 
@@ -111,7 +111,7 @@ function updatePermissions(Element $element, array &$permissions) : int {
 
         // userID zu entsprechendem userName laden und ueberpruefen, ob Berechtigung ueberhaupt moeglich
 
-        $stmt->prepare("SELECT userID, type FROM users WHERE userName = ? AND deleteTimestamp IS NULL");
+        $stmt->prepare("SELECT userID, isTeacher FROM users WHERE userName = ? AND deleteTimestamp IS NULL");
 
         foreach($permissionsToAdd as &$currentPermission) {
             
@@ -126,7 +126,7 @@ function updatePermissions(Element $element, array &$permissions) : int {
 
             }
 
-            if(!is_null($element->data["classID"]) && $result["type"] !== "teacher" && $result["type"] !== "admin") {
+            if(!is_null($element->data["classID"]) && !$result["isTeacher"]) {
 
                 return ERROR_UNSUITABLE_INPUT;
 

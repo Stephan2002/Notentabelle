@@ -12,7 +12,7 @@ include("phpScripts/login.php");
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
-        <title>Notentabelle</title>
+        <title>Notentabelle - App</title>
         <link rel="stylesheet" href="css/basicStylesheet.css">
         <link rel="stylesheet" href="dialog/dialogStylesheet.css">
         <link rel="stylesheet" href="loading/loadingStylesheet.css">
@@ -32,14 +32,14 @@ include("phpScripts/login.php");
         <script language="javascript" type="text/javascript" src="buttonSelect/buttonSelectScript.js"></script>
         <script language="javascript" type="text/javascript" src="js/app/app.js"></script>
 
-        <?php if($_SESSION["type"] === "teacher" || $_SESSION["type"] === "admin") { ?>
+        <?php if($_SESSION["isTeacher"]) { ?>
             <script language="javascript" type="text/javascript" src="js/app/appTeacher.js"></script>
         <?php } ?>
         
         <script>
             var user = {
                 userName: "<?php echo addslashes($_SESSION["username"]); ?>",
-                isTeacher: <?php echo ($_SESSION["type"] === "teacher" || $_SESSION["type"] === "admin" ? "true" : "false") ?>,
+                isTeacher: <?php echo ($_SESSION["isTeacher"] ? "true" : "false") ?>,
                 lowerDisplayBound: <?php echo $_SESSION["lowerDisplayBound"]; ?>,
                 upperDisplayBound: <?php echo $_SESSION["upperDisplayBound"]; ?>
             };
@@ -69,11 +69,11 @@ include("phpScripts/login.php");
 
         <div class="panel" id="semesters_div" style="display: none">
             <div class="container">
-                <button class="button_big positive withMargin">Neues Semester</button>
+                <button id="semesters_addSemesterButton" class="button_big positive withMargin">Neues Semester</button>
 
                 <div class="buttonGroup noMargin">
-                    <button class="button_medium positive">Neue Vorlage</button>
-                    <button class="button_medium positive">Neuer Ordner</button>
+                    <button id="semesters_addTemplateButton" class="button_medium positive">Neue Vorlage</button>
+                    <button id="semesters_addFolderButton" class="button_medium positive">Neuer Ordner</button>
                 </div>
                 
                 <div id="semesters_empty" class="info gray bigMargin">
@@ -108,7 +108,7 @@ include("phpScripts/login.php");
 
             <div class="container">
                 <?php 
-                    if($_SESSION["type"] === "teacher" || $_SESSION["type"] === "admin") {
+                    if($_SESSION["isTeacher"]) {
                         echo "<button id='semesters_classButton' class='button_big positive withMargin'>Klassen</button>";
                     }
                 ?>
@@ -294,7 +294,7 @@ include("phpScripts/login.php");
                 </div>
             </div>
 
-            <?php if($_SESSION["type"] === "teacher" || $_SESSION["type"] === "admin") { ?>
+            <?php if($_SESSION["isTeacher"]) { ?>
 
             <table id="tests_studentTable" class="bigMargin mainTable">
                 <thead>
@@ -314,7 +314,7 @@ include("phpScripts/login.php");
             <?php } ?>
 
             <div class="container" style="margin-bottom: 100px;">
-                <?php if($_SESSION["type"] === "teacher" || $_SESSION["type"] === "admin") { ?>
+                <?php if($_SESSION["isTeacher"]) { ?>
                     
                 <div id="tests_studentButtons">
                     <div class="info gray bigMargin" id="tests_noMarks" style="display: none;">
@@ -372,7 +372,7 @@ include("phpScripts/login.php");
             </div>
 
             <div id="foreignSemesters_shared">
-                <h2>Geteilte Semester</h2>
+                <h2>Geteilte Semester und Vorlagen:</h2>
                 <table class="bigMargin mainTable">
                     <thead>
                         <tr>
@@ -386,7 +386,7 @@ include("phpScripts/login.php");
                 </table>
             </div>
 
-            <?php if($_SESSION["type"] === "teacher" || $_SESSION["type"] === "admin") { ?>
+            <?php if($_SESSION["isTeacher"]) { ?>
 
             <div id="foreignSemesters_teacher">
                 <h2>Mit Zugriff als Lehrperson</h2>
@@ -421,7 +421,7 @@ include("phpScripts/login.php");
             </div>
         </div>
 
-        <?php if($_SESSION["type"] === "teacher" || $_SESSION["type"] === "admin") { ?>
+        <?php if($_SESSION["isTeacher"]) { ?>
 
         <div class="panel" id="classes_div" style="display: none">
             <div class="container">
@@ -567,7 +567,7 @@ include("phpScripts/login.php");
 
         <div id="semesterInfoDialog" class="dialog infoDialog" style="display: none;">
             <div class="dialogBlocker"></div>
-            <div class="dialogContent" tabindex="0">
+            <div class="dialogContent">
                 <h2><span class="dialogType_semesterFolder">Ordner</span><span class="dialogType_semester">Semester</span><span class="dialogType_template">Vorlage</span><span class="dialogType_semesterRef dialogType_templateRef">Verknüpfungs</span>-Eigenschaften</h3>
 
                 <h3 id="semesterInfoDialog_name">Name</h3>
@@ -649,7 +649,7 @@ include("phpScripts/login.php");
 
         <div id="testInfoDialog" class="dialog infoDialog" style="display: none;">
             <div class="dialogBlocker"></div>
-            <div class="dialogContent" tabindex="0">
+            <div class="dialogContent">
                 <h2><span class="dialogType_subject">Fach</span><span class="dialogType_folder">Ordner</span><span class="dialogType_test">Prüfungs</span><span class="dialogType_ref">Verknüpfungs</span>-Eigenschaften</h3>
 
                 <h3 id="testInfoDialog_name">Name</h3>
@@ -789,11 +789,11 @@ include("phpScripts/login.php");
             </div>
         </div>
 
-        <?php if($_SESSION["type"] === "teacher" || $_SESSION["type"] === "admin") { ?>
+        <?php if($_SESSION["isTeacher"]) { ?>
 
         <div id="classInfoDialog" class="dialog infoDialog" style="display: none;">
             <div class="dialogBlocker"></div>
-            <div class="dialogContent" tabindex="0">
+            <div class="dialogContent">
                 <h2>Klassen-Eigenschaften</h3>
 
                 <h3 id="classInfoDialog_name">Name</h3>
@@ -846,7 +846,7 @@ include("phpScripts/login.php");
 
         <div id="studentInfoDialog" class="dialog infoDialog" style="display: none;">
             <div class="dialogBlocker"></div>
-            <div class="dialogContent" tabindex="0">
+            <div class="dialogContent">
                 <h2 id="studentInfoDialog_header">Schüler-Eigenschaften</h3>
 
                 <h3 id="studentInfoDialog_name">Name</h3>
@@ -921,7 +921,7 @@ include("phpScripts/login.php");
 
         <div id="editSemesterDialog" class="dialog" style="display: none;">
             <div class="dialogBlocker"></div>
-            <div class="dialogContent" tabindex="0">
+            <div class="dialogContent">
                 <h2><span class="dialogType_semesterFolder">Ordner</span><span class="dialogType_semester">Semester</span><span class="dialogType_template">Vorlage</span><span class="dialogType_semesterRef dialogType_templateRef">Verknüpfungs</span> <span class="modeFlag_edit">bearbeiten</span><span class="modeFlag_add">hinzufügen</span></h2>
 
                 <label for="editSemesterDialog_name">Name:</label>
@@ -942,6 +942,8 @@ include("phpScripts/login.php");
 
                 <button class="button_big positive withMargin" id="editSemesterDialog_templateButton">Vorlage auswählen</button>
 
+                <button class="button_big positive withMargin" id="editSemesterDialog_refTestButton">Einstiegspunkt festlegen</button>
+
                 <label><input type="checkbox" id="editSemesterDialog_withNotes"/>Notizen</label>
                 <textarea id="editSemesterDialog_notes" placeholder="Notizen"></textarea>
 
@@ -959,7 +961,7 @@ include("phpScripts/login.php");
 
         <div id="permissionsDialog" class="dialog" style="display: none;">
             <div class="dialogBlocker"></div>
-            <div class="dialogContent" tabindex="0">
+            <div class="dialogContent">
                 <h2 id="permissionsDialog_header">Zugriffsberechtigungen</h2>
                 <div id="permissionsDialog_content">
                     <p id="permissionsDialog_noPermission">Keine Zugriffsberechtigungen erteilt</p>

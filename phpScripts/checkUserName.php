@@ -19,7 +19,7 @@ if(!connectToDatabase()) {
 
 }
 
-$stmt = $mysqli->prepare("SELECT type FROM users WHERE userName = ?");
+$stmt = $mysqli->prepare("SELECT isTeacher FROM users WHERE userName = ?");
 $stmt->bind_param("s", $userName);
 $stmt->execute();
 
@@ -39,13 +39,13 @@ if($needsTeacher) {
 
         throwError(ERROR_NOT_LOGGED_IN);
 
-    } elseif($_SESSION["type"] !== "teacher" && $_SESSION["type"] !== "admin") {
+    } elseif(!$_SESSION["isTeacher"]) {
 
         throwError(ERROR_ONLY_TEACHER);
 
     }
 
-    sendResponse($result[0] === "teacher" || $result[0] === "admin");
+    sendResponse((bool)$result[0]);
 
 }
 

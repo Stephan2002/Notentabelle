@@ -965,7 +965,7 @@ $response = array();
 
 foreach($data as $key => &$currentTestData) {
 
-    $test = getTest((int)$currentTestData["testID"], $_SESSION["userid"], $_SESSION["type"] === "teacher" || $_SESSION["type"] === "admin");
+    $test = getTest((int)$currentTestData["testID"], $_SESSION["userid"], $_SESSION["isTeacher"]);
 
     if($test->error !== ERROR_NONE) {
 
@@ -979,7 +979,7 @@ foreach($data as $key => &$currentTestData) {
 
     }
 
-    $errorAndChanges = editTest($test, $currentTestData, $_SESSION["userid"], $_SESSION["type"] === "teacher" || $_SESSION["type"] === "admin", is_null($test->data["parentID"]) && $test->accessType === Element::ACCESS_TEACHER);
+    $errorAndChanges = editTest($test, $currentTestData, $_SESSION["userid"], $_SESSION["isTeacher"], is_null($test->data["parentID"]) && $test->accessType === Element::ACCESS_TEACHER);
 
     if(array_key_exists("changes", $errorAndChanges)) {
 

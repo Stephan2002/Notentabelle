@@ -28,7 +28,11 @@ h1 {
 	
 }
 
+h2 {
 
+	margin-top: 40px;
+
+}
 
 
 
@@ -332,7 +336,7 @@ h1 {
 #permissionsDialog_noPermission {
 
 	font-style: italic;
-	background-color: rgb(217, 217, 217);
+	background-color: rgb(230, 230, 230);
 	border-top: 1px solid black;
 	border-bottom: 1px solid black;
 	padding: 8px 3px;

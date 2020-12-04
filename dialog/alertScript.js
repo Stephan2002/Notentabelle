@@ -62,9 +62,9 @@ class Alert extends Dialog {
 			title.appendChild(document.createTextNode(data.title));
 			this.contentElement.appendChild(title);
 
-			var description = document.createElement("DIV");
+			var description = document.createElement("P");
 			description.classList.add("description");
-			description.innerHTML = "<p class='blankLine'>" + data.description.replace("\n", "</p><p class='blankLine'>") + "</p>";
+			description.innerHTML = data.description.replace(/\n/g, "<br />");
 			this.contentElement.appendChild(description);
 
 			var button = document.createElement("BUTTON");
@@ -118,9 +118,9 @@ class Alert extends Dialog {
 			title.appendChild(document.createTextNode(data.title));
 			this.contentElement.appendChild(title);
 
-			var description = document.createElement("DIV");
+			var description = document.createElement("P");
 			description.classList.add("description");
-			description.innerHTML = "<p class='blankLine'>" + data.description.replace("\n", "</p><p class='blankLine'>") + "</p>";
+			description.innerHTML = data.description.replace(/\n/g, "<br />");
 			this.contentElement.appendChild(description);
 
 			var buttonGroup = document.createElement("DIV");
@@ -193,9 +193,9 @@ class Alert extends Dialog {
 			title.appendChild(document.createTextNode(data.title));
 			this.contentElement.appendChild(title);
 
-			var description = document.createElement("DIV");
+			var description = document.createElement("P");
 			description.classList.add("description");
-			description.innerHTML = "<p class='blankLine'>" + data.description.replace("\n", "</p><p class='blankLine'>") + "</p>";
+			description.innerHTML = data.description.replace(/\n/g, "<br />");
 			this.contentElement.appendChild(description);
 
 			var button;
@@ -327,9 +327,9 @@ class Alert extends Dialog {
 			title.appendChild(document.createTextNode(data.title));
 			this.contentElement.appendChild(title);
 
-			var description = document.createElement("DIV");
+			var description = document.createElement("P");
 			description.classList.add("description");
-			description.innerHTML = "<p class='blankLine'>" + data.description.replace("\n", "</p><p class='blankLine'>") + "</p>";
+			description.innerHTML = data.description.replace(/\n/g, "<br />");
 			this.contentElement.appendChild(description);
 
 			var input = document.createElement("INPUT");

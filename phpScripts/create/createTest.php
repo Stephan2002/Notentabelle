@@ -414,7 +414,7 @@ function createTest(Element $test, array &$data, int $userID, bool $isTeacher) :
 
         }
 
-        $stmt = $mysqli->prepare("SELECT userID, type FROM users WHERE userName = ? AND deleteTimestamp IS NULL");
+        $stmt = $mysqli->prepare("SELECT userID, isTeacher FROM users WHERE userName = ? AND deleteTimestamp IS NULL");
 
         foreach($data["permissions"] as &$currentPermission) {
             
@@ -429,7 +429,7 @@ function createTest(Element $test, array &$data, int $userID, bool $isTeacher) :
 
             }
 
-            if($result["type"] !== "teacher" && $result["type"] !== "admin") {
+            if(!$result["isTeacher"]) {
 
                 return array("error" => ERROR_UNSUITABLE_INPUT);
 
@@ -736,13 +736,13 @@ if(!is_int($data["parentID"])) {
 
 if(isset($data["isSubject"]) && $data["isSubject"]) { 
 
-    $element = getSemester($data["parentID"], $_SESSION["userid"], $_SESSION["type"] === "teacher" || $_SESSION["type"] === "admin");
+    $element = getSemester($data["parentID"], $_SESSION["userid"], $_SESSION["isTeacher"]);
     $element->type = Element::TYPE_TEST;
     $element->isRoot = true;
 
 } else {
 
-    $element = getTest($data["parentID"], $_SESSION["userid"], $_SESSION["type"] === "teacher" || $_SESSION["type"] === "admin");
+    $element = getTest($data["parentID"], $_SESSION["userid"], $_SESSION["isTeacher"]);
 
 }
 
@@ -758,7 +758,7 @@ if(!$element->writingPermission) {
 
 }
 
-$errorAndChanges = createTest($element, $data, $_SESSION["userid"], $_SESSION["type"] === "teacher" || $_SESSION["type"] === "admin");
+$errorAndChanges = createTest($element, $data, $_SESSION["userid"], $_SESSION["isTeacher"]);
 
 if($errorAndChanges["error"] !== ERROR_NONE) {
 

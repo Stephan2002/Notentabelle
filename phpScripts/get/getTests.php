@@ -476,11 +476,11 @@ if(!isset($isNotMain)) {
     
     if(isset($testID)) {
         
-        $test = getTest($testID, $_SESSION["userid"], $_SESSION["type"] === "teacher" || $_SESSION["type"] === "admin", isset($data["checkOnlyForTemplate"]));
+        $test = getTest($testID, $_SESSION["userid"], $_SESSION["isTeacher"], isset($data["checkOnlyForTemplate"]));
 
     } else {
 
-        $test = getSemester($semesterID, $_SESSION["userid"], $_SESSION["type"] === "teacher" || $_SESSION["type"] === "admin", isset($data["checkOnlyForTemplate"]));
+        $test = getSemester($semesterID, $_SESSION["userid"], $_SESSION["isTeacher"], isset($data["checkOnlyForTemplate"]));
         
         $test->type = Element::TYPE_TEST;
         $test->isRoot = true;

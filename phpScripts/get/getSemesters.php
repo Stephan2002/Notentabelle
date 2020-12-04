@@ -76,7 +76,7 @@ if(!connectToDatabase()) {
 
 if(isset($semesterID)) {
 
-    $semesterFolder = getSemester($semesterID, $_SESSION["userid"], $_SESSION["type"] === "teacher" || $_SESSION["type"] === "admin");
+    $semesterFolder = getSemester($semesterID, $_SESSION["userid"], $_SESSION["isTeacher"]);
 
 } else {
 

@@ -17,7 +17,7 @@ Input als JSON per POST bestehend aus Objekt (nur ein neues Element kann erstell
         referenceTestID?* (falls isFolder false, templateType NULL und classID NULL)
         templateID? (falls templateType NULL / unset)
         copyTeachersID? (falls classID gesetzt)
-        permissions* (falls isFolder false und referenceID NULL): Array aus Objekten mit:
+        permissions?* (falls isFolder false und referenceID NULL): Array aus Objekten mit:
             userName
             writingPermission
 
@@ -271,7 +271,7 @@ function createSemester(Semester $semesterFolder, array &$data, int $userID, boo
 
         }
 
-        $stmt = $mysqli->prepare("SELECT userID, type FROM users WHERE userName = ? AND deleteTimestamp IS NULL");
+        $stmt = $mysqli->prepare("SELECT userID, isTeacher FROM users WHERE userName = ? AND deleteTimestamp IS NULL");
 
         foreach($data["permissions"] as &$currentPermission) {
             
@@ -286,7 +286,7 @@ function createSemester(Semester $semesterFolder, array &$data, int $userID, boo
 
             }
 
-            if($properties["classID"] !== NULL && $result["type"] !== "teacher" && $result["type"] !== "admin") {
+            if($properties["classID"] !== NULL && !$result["isTeacher"]) {
 
                 return array("error" => ERROR_UNSUITABLE_INPUT);
 
@@ -474,7 +474,7 @@ if(isset($data["parentID"])) {
     
     }
 
-    $semesterFolder = getSemester($data["parentID"], $_SESSION["userid"], $_SESSION["type"] === "teacher" || $_SESSION["type"] === "admin");
+    $semesterFolder = getSemester($data["parentID"], $_SESSION["userid"], $_SESSION["isTeacher"]);
 
 } else {
 
@@ -495,7 +495,7 @@ if($semesterFolder->accessType !== Element::ACCESS_OWNER) {
 
 }
 
-$errorAndChanges = createSemester($semesterFolder, $data, $_SESSION["userid"], $_SESSION["type"] === "teacher" || $_SESSION["type"] === "admin");
+$errorAndChanges = createSemester($semesterFolder, $data, $_SESSION["userid"], $_SESSION["isTeacher"]);
 
 if($errorAndChanges["error"] !== ERROR_NONE) {
 

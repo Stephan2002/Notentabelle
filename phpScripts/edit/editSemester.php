@@ -128,7 +128,7 @@ function editSemester(Semester $semester, array &$data) : array {
         if($data["referenceTestID"] !== NULL) {
 
             $stmt = $mysqli->prepare("SELECT 1 FROM tests WHERE testID = ? AND semesterID = ?");
-            $stmt->bind_param("ii", $data["referenceTestID"], $test->data["semesterID"]);
+            $stmt->bind_param("ii", $data["referenceTestID"], $semester->data["referenceID"]);
             $stmt->execute();
 
             if($stmt->get_result()->num_rows !== 1) {
@@ -264,7 +264,7 @@ $response = array();
 
 foreach($data as $key => &$currentSemesterData) {
 
-    $semester = getSemester($currentSemesterData["semesterID"], $_SESSION["userid"], $_SESSION["type"] === "teacher" || $_SESSION["type"] === "admin");
+    $semester = getSemester($currentSemesterData["semesterID"], $_SESSION["userid"], $_SESSION["isTeacher"]);
 
     if($semester->error !== ERROR_NONE) {
 
@@ -274,7 +274,7 @@ foreach($data as $key => &$currentSemesterData) {
 
     if($semester->accessType !== Element::ACCESS_OWNER) {
 
-        sendResponse($response, ERROR_NO_WRTITING_PERMISSION, $key);
+        sendResponse($response, ERROR_NO_WRITING_PERMISSION, $key);
 
     }
 

@@ -42,7 +42,7 @@ if(!connectToDatabase()) {
 
 }
 
-$test = getTest($data["testID"], $_SESSION["userid"], $_SESSION["type"] === "teacher" || $_SESSION["type"] === "admin", false, true);
+$test = getTest($data["testID"], $_SESSION["userid"], $_SESSION["isTeacher"], false, true);
 
 if($test->error !== ERROR_NONE) {
 

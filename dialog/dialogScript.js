@@ -47,8 +47,14 @@ class Dialog {
 
         }
 
+        if(this.dialogElement.tabIndex < 0) {
+
+            this.dialogElement.tabIndex = 0;
+
+        }
+
         this.anchorElement.id = "dialogAnchor_" + this.id;
-        this.anchorElement.tabIndex = "0";
+        this.anchorElement.tabIndex = 0;
         this.dialogElement.setAttribute("data-id", this.id);
 
         if(this.destroyOnHide) {
@@ -59,7 +65,7 @@ class Dialog {
 
         var copy = this;
         
-        this.contentElement.addEventListener("keydown", function (event) {
+        this.dialogElement.addEventListener("keydown", function (event) {
 			
 			if (event.key === "Enter") {
 
@@ -128,28 +134,14 @@ class Dialog {
 
                 if(event.shiftKey) {
 
-                    if(copy.contentElement == document.activeElement) {
+                    if(copy.dialogElement == document.activeElement) {
                         
                         copy.anchorElement.focus();
                         event.preventDefault();
 
                     }
 
-                } /*else {
-
-                    if(
-                        document.activeElement.classList.contains("lastDialogElement") || 
-                        (
-                            document.activeElement.classList.contains("secondLastDialogElement") &&
-                            copy.contentElement.getElementsByClassName("lastDialogElement")[0].disabled
-                        )
-                    ) {
-
-                        event.preventDefault();
-
-                    }
-
-                }*/
+                }
 
             }
 
@@ -164,7 +156,7 @@ class Dialog {
             
                 if(!event.shiftKey) {
 
-                    copy.contentElement.focus();
+                    copy.dialogElement.focus();
                     event.preventDefault();
 
                 }
@@ -196,6 +188,12 @@ class Dialog {
     hide() {
 
         Dialog.hide(this);
+
+    }
+
+    isVisible() {
+
+        return Dialog.isVisible(this);
 
     }
 
@@ -248,13 +246,8 @@ class Dialog {
         dialogElement.style.animationName = "";
         contentElement.style.animationName = "";
 
-        /*setTimeout(function() {
 
-            dialogElement.style.opacity = 1;
-
-        }, 0);*/
-
-        contentElement.focus();
+        dialogElement.focus();
 
         Dialog.visibleCounter++;
 
@@ -343,6 +336,24 @@ class Dialog {
             }
 
 		}, 200);
+
+    }
+
+    static isVisible(parameter) {
+
+        var dialogElement;
+
+        if(parameter instanceof Dialog) {
+
+            dialogElement = parameter.dialogElement;
+
+        } else {
+
+            dialogElement = Dialog.getDialogElement(parameter);
+
+        }
+
+        return dialogElement.style.display !== "none";
 
     }
 

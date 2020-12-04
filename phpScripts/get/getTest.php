@@ -51,7 +51,7 @@ if(!connectToDatabase()) {
 
 }
 
-$test = getTest($testID, $_SESSION["userid"], $_SESSION["type"] === "teacher" || $_SESSION["type"] === "admin", isset($data["checkOnlyForTemplate"]));
+$test = getTest($testID, $_SESSION["userid"], $_SESSION["isTeacher"], isset($data["checkOnlyForTemplate"]));
 
 if($test->error !== ERROR_NONE) {
 

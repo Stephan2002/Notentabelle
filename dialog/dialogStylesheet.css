@@ -21,6 +21,7 @@ body.stop-scrolling {
 	animation-duration: 0.2s;
     transition: opacity 0.2s;
     opacity: 0;
+    outline: none;
     
 }
 
@@ -36,7 +37,6 @@ body.stop-scrolling {
 	overflow-x: hidden;
     animation-name: dialogContentAnimation;
 	animation-duration: 0.3s;
-	outline: none;
     position: relative;
     box-sizing: border-box;
 
@@ -75,7 +75,7 @@ body.stop-scrolling {
 	
 }
 
-.dialog > img {
+.dialogContent > img {
 	
 	width: 100px;
 	height: 100px;

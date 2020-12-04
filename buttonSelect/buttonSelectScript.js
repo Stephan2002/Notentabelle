@@ -97,7 +97,21 @@ class ButtonSelect {
 
     getState(index) {
 
-        return !this.buttons[index].contains("unselected");
+        return !this.buttons[index].classList.contains("unselected");
+
+    }
+
+    getSelected() {
+
+        for(var i = 0; i < this.buttons.length; i++) {
+
+            if(!this.buttons[i].classList.contains("unselected")) {
+
+                return i;
+
+            }
+
+        }
 
     }
 

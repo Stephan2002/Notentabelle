@@ -336,7 +336,7 @@ if(!isset($_SESSION["userid"])) {
 
 session_write_close();
 
-if($_SESSION["type"] !== "teacher" && $_SESSION["type"] !== "admin") {
+if(!$_SESSION["isTeacher"]) {
 
     throwError(ERROR_ONLY_TEACHER);
 

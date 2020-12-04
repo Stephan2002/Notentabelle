@@ -38,7 +38,7 @@ if(!isset($isNotMain)) {
 
     session_write_close();
 
-    if($_SESSION["type"] !== "teacher" && $_SESSION["type"] !== "admin") {
+    if(!$_SESSION["isTeacher"]) {
 
         throwError(ERROR_ONLY_TEACHER);
 
