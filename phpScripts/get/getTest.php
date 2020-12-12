@@ -244,7 +244,7 @@ if(isset($test->data["classID"]) && $test->accessType !== Element::ACCESS_STUDEN
 
             } else {
 
-                $test->data["mark"] = roundMark_float($result["mark"]);
+                $test->data["mark"] = roundMark_float($result["mark"], $test->data["round"]);
 
             }
 

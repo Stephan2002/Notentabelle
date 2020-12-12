@@ -12,6 +12,9 @@ Input als JSON per POST bestehend aus Array, jeweils mit:
         notes*
         templateType (bei Vorlagen)
         referenceTestID* (wenn referenceID gesetzt)
+        permissions* (falls kein Ordner, keine Referenz): Array aus Objekten mit:
+            userName
+            writingPermission (NULL: Berechtigung loeschen)
 
 Bei Fehlern wird nichts geaendert, ausser bei Fehlern bei:
     permissions
@@ -33,7 +36,7 @@ function editSemester(Semester $semester, array &$data) : array {
 
     if(array_key_exists("name", $data)) {
 
-        if(!is_string($data["name"]) || $data["name"] === "" || strlen($data["name"]) >= 64) {
+        if(!is_string($data["name"]) || $data["name"] === "" || strlen($data["name"]) >= MAX_LENGTH_NAME) {
 
             return array("error" => ERROR_BAD_INPUT);
 
@@ -67,7 +70,7 @@ function editSemester(Semester $semester, array &$data) : array {
 
     if(array_key_exists("notes", $data)) {
 
-        if((!is_string($data["notes"]) && !is_null($data["notes"])) || strlen($data["notes"] >= 256)) {
+        if((!is_string($data["notes"]) && !is_null($data["notes"])) || strlen($data["notes"]) >= MAX_LENGTH_NOTES) {
 
             return array("error" => ERROR_BAD_INPUT);
 

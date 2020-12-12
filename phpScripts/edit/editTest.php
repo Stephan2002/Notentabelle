@@ -94,7 +94,7 @@ function editTest(Test $test, array &$data, int $userID, bool $isTeacher, bool $
 
     if(array_key_exists("name", $data)) {
 
-        if(!is_string($data["name"]) || $data["name"] === "" || strlen($data["name"]) >= 64) {
+        if(!is_string($data["name"]) || $data["name"] === "" || strlen($data["name"]) >= MAX_LENGTH_NAME) {
 
             return array("error" => ERROR_BAD_INPUT);
 
@@ -313,7 +313,7 @@ function editTest(Test $test, array &$data, int $userID, bool $isTeacher, bool $
 
     if(array_key_exists("notes", $data)) {
 
-        if((!is_string($data["notes"]) && !is_null($data["notes"])) || strlen($data["notes"] >= 256)) {
+        if((!is_string($data["notes"]) && !is_null($data["notes"])) || strlen($data["notes"]) >= MAX_LENGTH_NOTES) {
 
             return array("error" => ERROR_BAD_INPUT);
 
@@ -676,7 +676,7 @@ function editTest(Test $test, array &$data, int $userID, bool $isTeacher, bool $
 
                 $withNotes = true;
 
-                if((!is_string($student["notes"]) && !is_null($student["notes"])) || strlen($student["notes"] >= 256)) {
+                if((!is_string($student["notes"]) && !is_null($student["notes"])) || strlen($student["notes"]) >= MAX_LENGTH_NOTES) {
 
                     editTest_updateFunc($test, $needsUpdate, $updateMarksIncluded);
                     return array("error" => ERROR_BAD_INPUT, "changes" => $changes);
@@ -975,7 +975,7 @@ foreach($data as $key => &$currentTestData) {
 
     if(!$test->writingPermission) {
 
-        sendResponse($response, ERROR_NO_WRTITING_PERMISSION, $key);
+        sendResponse($response, ERROR_NO_WRITING_PERMISSION, $key);
 
     }
 

@@ -5,8 +5,16 @@ cache.rootClasses = undefined;
 
 additionalInfo.classes = [];
 
+var editMarks = true;
+var showStudentsWithoutMark = false;
+var markData;
+
 var classInfoDialog;
 var studentInfoDialog;
+
+var editClassDialog;
+var editStudentDialog;
+var editStudentMarkDialog;
 
 function showRootClasses() {
 
@@ -28,10 +36,36 @@ function showForeignClasses() {
 
 }
 
+function changeStudentMarkVisibility() {
+
+    var spanElement = this.children[0];
+
+    if(showStudentsWithoutMark) {
+
+        spanElement.innerHTML = "anzeigen";
+        showStudentsWithoutMark = false;
+
+    } else {
+
+        spanElement.innerHTML = "ausblenden";
+        showStudentsWithoutMark = true;
+
+    }
+
+    hidePanelsAndPrint();
+
+}
+
+
+
 document.addEventListener("DOMContentLoaded", function() {
 
-    classInfoDialog = new Dialog(document.getElementById("classInfoDialog"), false, false, undefined, function() { classInfoDialog.close(); });
-    studentInfoDialog = new Dialog(document.getElementById("studentInfoDialog"), false, false, undefined, function() { studentInfoDialog.close(); });
+    classInfoDialog         = new Dialog(document.getElementById("classInfoDialog"),    false, false, undefined, function() { classInfoDialog.close(); }, "classInfoDialog");
+    studentInfoDialog       = new Dialog(document.getElementById("studentInfoDialog"),  false, false, undefined, function() { studentInfoDialog.close(); }, "studentInfoDialog");
+
+    editClassDialog         = new EditDialog(document.getElementById("editClassDialog"),        false, false, function() { editClassDialog.save(); }, function() { editClassDialog.close(); }, "editClassDialog");
+    editStudentDialog       = new EditDialog(document.getElementById("editStudentDialog"),      false, false, function() { editStudentDialog.save(); }, function() { editStudentDialog.close(); }, "editStudentDialog");
+    editStudentMarkDialog   = new EditDialog(document.getElementById("editStudentMarkDialog"),  false, false, function() { editStudentMarkDialog.save(); }, function() { editStudentMarkDialog.close(); }, "editStudentMarkDialog");
 
     classInfoDialog.open = function(arg) {
 
@@ -60,6 +94,36 @@ document.addEventListener("DOMContentLoaded", function() {
 
         }
 
+        this.printInfo();
+
+        document.getElementById("classInfoDialog_editButton").onclick = editClassDialog.openEdit.bind(editClassDialog, this.classData);
+
+        this.show();
+
+    };
+
+    classInfoDialog.close = function() {
+
+        this.classData = undefined;
+
+        if(this.additionalInfoRequest !== undefined) {
+
+            if(this.additionalInfoRequest.readyState !== XMLHttpRequest.DONE) {
+    
+                this.additionalInfoRequest.abort();
+
+            }
+
+            this.additionalInfoRequest = undefined;
+
+        }
+
+        this.hide();
+
+    };
+
+    classInfoDialog.printInfo = function() {
+
         document.getElementById("classInfoDialog_name").innerHTML = escapeHTML(this.classData.name);
         document.getElementById("classInfoDialog_isHiddenIcon").src = "/img/" + (this.classData.isHidden ? "checked.svg" : "cross.svg");
 
@@ -83,12 +147,16 @@ document.addEventListener("DOMContentLoaded", function() {
 
         if(this.classData.referenceID === null) {
 
+            document.getElementById("dialogTypeStyles").innerHTML = ".dialogType_class { display: inline; }";
+
             action2Button.style.display = "inline-block";
 
             actionButton.classList.remove("button_big");
             actionButton.classList.add("button_medium");
 
         } else {
+
+            document.getElementById("dialogTypeStyles").innerHTML = ".dialogType_classRef { display: inline; }";
 
             action2Button.style.display = "none";
 
@@ -118,28 +186,6 @@ document.addEventListener("DOMContentLoaded", function() {
             loadMoreButton.style.display = "none";
 
         }
-
-        this.show();
-
-    };
-
-    classInfoDialog.close = function() {
-
-        this.classData = undefined;
-
-        if(this.additionalInfoRequest !== undefined) {
-
-            if(this.additionalInfoRequest.readyState !== XMLHttpRequest.DONE) {
-    
-                this.additionalInfoRequest.abort();
-
-            }
-
-            this.additionalInfoRequest = undefined;
-
-        }
-
-        this.hide();
 
     };
 
@@ -276,6 +322,8 @@ document.addEventListener("DOMContentLoaded", function() {
 
     studentInfoDialog.open = function(studentID, asMarkInfo = false) {
 
+        this.asMarkInfo = asMarkInfo;
+
         var list;
 
         if(asMarkInfo) {
@@ -304,6 +352,24 @@ document.addEventListener("DOMContentLoaded", function() {
 
         if(!found) return;
 
+        this.printInfo();
+
+        if(asMarkInfo) {
+
+            document.getElementById("studentInfoDialog_editButton").onclick = editStudentMarkDialog.open.bind(editStudentMarkDialog, this.studentData);
+
+        } else {
+
+            document.getElementById("studentInfoDialog_editButton").onclick = editStudentDialog.openEdit.bind(editStudentDialog, this.studentData);
+
+        }
+
+        this.show();
+
+    };
+
+    studentInfoDialog.printInfo = function() {
+
         document.getElementById("studentInfoDialog_name").innerHTML = (this.studentData.firstName === null ? "" : (escapeHTML(this.studentData.firstName) + " ")) + escapeHTML(this.studentData.lastName);
         
         document.getElementById("studentInfoDialog_lastName").innerHTML = escapeHTML(this.studentData.lastName);
@@ -331,7 +397,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
                 genderString = "männlich";
 
-            } else {
+            } else if(this.studentData.gender === "f") {
 
                 genderString = "weiblich";
 
@@ -348,7 +414,7 @@ document.addEventListener("DOMContentLoaded", function() {
         var deleteButton = document.getElementById("studentInfoDialog_deleteButton");
         var visibilityButton = document.getElementById("studentInfoDialog_visibilityButton");
 
-        if(!asMarkInfo) {
+        if(!this.asMarkInfo) {
 
             if(this.studentData.userName === null) {
 
@@ -448,7 +514,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
             document.getElementById("studentInfoDialog_controlButtons").style.display = "block";
 
-            if(!asMarkInfo) {
+            if(!this.asMarkInfo) {
 
                 visibilityButton.style.display = "inline-block";
 
@@ -465,8 +531,6 @@ document.addEventListener("DOMContentLoaded", function() {
 
         }
 
-        this.show();
-
     };
 
     studentInfoDialog.close = function() {
@@ -477,11 +541,1061 @@ document.addEventListener("DOMContentLoaded", function() {
     };
 
 
-    document.getElementById("classInfoDialog_closeButton").addEventListener("click", classInfoDialog.close.bind(classInfoDialog));
-    document.getElementById("classInfoDialog_loadMoreButton").addEventListener("click", classInfoDialog.loadMore.bind(classInfoDialog));
 
-    document.getElementById("studentInfoDialog_closeButton").addEventListener("click", studentInfoDialog.close.bind(studentInfoDialog));
 
-    document.getElementById("students_classInfoButton").addEventListener("click", classInfoDialog.open.bind(classInfoDialog));
+    editClassDialog.openEdit = function(arg) {
+
+        this.errors = {};
+        this.warnings = {};
+        this.isNew = false;
+
+        if(typeof(arg) === "object") {
+
+            this.classData = arg;
+
+        } else if(arg === undefined) {
+
+            this.classData = currentElement.data;
+
+        } else {
+
+            var len = currentElement.childrenData.length;
+            var found = false;
+
+            for(var i = 0; i < len; i++) {
+                
+                if(currentElement.childrenData[i].classID === arg) {
+
+                    this.classData = currentElement.childrenData[i];
+                    found = true;
+                    break;
+
+                }
+
+            }
+            
+            if(!found) return;
+
+        }
+
+        if(currentElement.isRoot) {
+
+            this.siblingData = currentElement.childrenData;
+
+        }
+
+        document.getElementById("modeFlagStyles").innerHTML = ".modeFlag_edit { display: inline; }";
+
+        if(this.classData.referenceID === null) {
+
+            document.getElementById("dialogTypeStyles").innerHTML = ".dialogType_class { display: inline; }";
+            document.getElementById("editClassDialog_permissionsButton").style.display = "inline-block";
+
+        } else {
+
+            document.getElementById("dialogTypeStyles").innerHTML = ".dialogType_classRef { display: inline; }";
+            document.getElementById("editClassDialog_permissionsButton").style.display = "none";
+
+        }
+
+        var nameElement = document.getElementById("editClassDialog_name");
+
+        nameElement.value = this.classData.name;
+        nameElement.classList.remove("error");
+        nameElement.classList.remove("warning");
+
+        if(this.classData.notes === null) {
+            
+            document.getElementById("editClassDialog_with_notes").checked = false;
+            document.getElementById("editClassDialog_notes").value = "";
+
+        } else {
+            
+            document.getElementById("editClassDialog_with_notes").checked = true;
+            document.getElementById("editClassDialog_notes").value = this.classData.notes;
+
+        }
+
+        this.updateCheckbox("notes");
+
+        document.getElementById("editClassDialog_OKButton").classList.remove("deactivated");
+
+        this.updateWarnings();
+        this.updateErrors();
+
+        this.show();
+
+    };
+
+    editClassDialog.openAdd = function() {
+
+        this.errors = {};
+        this.warnings = {};
+        this.isNew = true;
+
+        this.classData = {};
+
+        document.getElementById("modeFlagStyles").innerHTML = ".modeFlag_add { display: inline; }";
+        document.getElementById("dialogTypeStyles").innerHTML = ".dialogType_class { display: inline; }";
+
+        var nameElement = document.getElementById("editClassDialog_name");
+
+        nameElement.value = "";
+        nameElement.classList.remove("error");
+        nameElement.classList.remove("warning");
+
+        document.getElementById("editClassDialog_notes").value = "";
+
+        this.updateCheckbox("notes");
+
+        document.getElementById("editClassDialog_OKButton").disabled = false;
+
+        this.errors = { name: false };
+
+        this.updateWarnings();
+        this.updateErrors(true);
+
+        this.show();
+
+    };
+
+    editClassDialog.check = function(ID, printAll = true, callErrorUpdate = true) {
+
+        if(ID === undefined) {
+
+            var checkAll = true;
+
+        } else {
+
+            var checkAll = false;
+
+        }
+
+        if(checkAll || ID === "name") {
+
+            this.checkName(TYPE_CLASS, printAll);
+
+        }
+
+        if(checkAll || ID === "notes") {
+
+            this.checkNotes();
+
+        }
+
+        if(callErrorUpdate) {
+
+            this.updateWarnings();
+            return this.updateErrors(this.isNew);
+
+        }
+
+    };
+
+    editClassDialog.close = function() {
+
+        this.classData = undefined;
+        this.permissionsData = undefined;
+
+        if(this.nameCheckRequest !== undefined) {
+
+            this.nameCheckRequest.abort();
+            this.nameCheckRequest = undefined;
+
+        }
+
+        this.hide();
+
+    };
+
+    editClassDialog.save = function() {
+
+        if((this.isNew && !this.check("name")) || Object.keys(this.errors).length > 0) {
+
+            return;
+
+        }
+
+        var properties = {};
+
+        properties.name = document.getElementById("editClassDialog_name").value;
+
+        if(document.getElementById("editClassDialog_with_notes").checked) {
+
+            var element = document.getElementById("editClassDialog_notes");
+
+            if(element.value.trim() !== "") {
+
+                properties.notes = element.value;
+
+            }
+
+        }
+
+        if(this.isNew) {
+
+            this.saveAdd(properties);
+
+        } else {
+
+            this.saveEdit(properties);
+
+        }
+
+    };
+
+    editClassDialog.saveEdit = function(properties) {
+
+        var changedProperties = {};
+        var permissionUpdates;
+        var classData = this.classData;
+
+        if(properties.name !== this.classData.name) changedProperties.name = properties.name;
+
+        if(this.classData.notes === null) {
+
+            if(properties.notes !== undefined) {
+                
+                changedProperties.notes = properties.notes;
+
+            }
+
+        } else if(this.classData.notes !== properties.notes) {
+
+            changedProperties.notes = properties.notes || null;
+
+        }
+
+        if(this.permissionsData !== undefined) {
+
+            permissionUpdates = this.getPermissionUpdates(additionalInfo.classes[classData.classID].permissions);
+            changedProperties.permissions = permissionUpdates.updates;
+
+        }
+
+        if(Object.keys(changedProperties).length <= 0) {
+
+            this.close();
+            return;
+
+        }
+
+        changedProperties.classID = classData.classID;
+
+        loadData("/phpScripts/edit/editClass.php", [ changedProperties ], function(result) {
+
+            var currentAdditionalInfo = additionalInfo.classes[classData.classID];
+
+            if(permissionUpdates !== undefined) {
+
+                currentAdditionalInfo.permissions = permissionUpdates.cleaned;
+
+            }
+
+            additionalInfo.classes = [];
+            additionalInfo.semesters = [];
+            additionalInfo.tests = [];
+
+            if(currentAdditionalInfo !== undefined) additionalInfo.classes[classData.classID] = currentAdditionalInfo;
+
+            delete changedProperties.permissions;
+            assignProperties(classData, changedProperties);
+
+            if(classInfoDialog.isVisible()) {
+
+                classInfoDialog.printInfo();
+                Loading.hide(classInfoDialog.dialogElement);
+    
+            } 
+
+            hidePanelsAndPrint();
+
+        }, function(errorCode, result) {
+
+            if(result === undefined || result.result === undefined || result.result[0] !== false) {
+
+                if(result !== undefined && result.result !== undefined && result.result[0] === null) {
+
+                    showErrorMessage(TEXT_ERROR_UNCHANGED + errorCode, true);
+
+                } else {
+
+                    showErrorMessage(TEXT_ERROR_NO_CHANGE + errorCode, true);
+
+                }
+
+            } else {
+
+                showErrorMessage(TEXT_ERROR_CHANGED + errorCode, true);
+
+            }
+
+        });
+
+        if(!currentElement.isRoot) {
+            
+            cache.rootClasss = undefined;
+
+        } else {
+
+            delete cache.classes[classData.classID];
+
+        }
+
+        if(classInfoDialog.isVisible()) {
+
+            Loading.show(classInfoDialog.dialogElement);
+
+        } else {
+
+            Loading.show(null, "semi-transparent");
+
+        }
+
+        this.close();
+
+    };
+
+    editClassDialog.saveAdd = function(properties) {
+
+        if(this.permissionsData !== undefined) {
+
+            var cleanedPermissions = this.permissionsData.filter(function(element) { return element !== undefined } );
+
+            properties.permissions = cleanedPermissions;
+
+        }
+
+        loadData("/phpScripts/create/createClass.php", properties, function(result) {
+
+            properties.classID = result.classID;
+
+            currentElement.childrenData.push(properties);
+
+            hidePanelsAndPrint();
+
+        }, function(errorCode) {
+
+            showErrorMessage(TEXT_ERROR_NO_CHANGE + errorCode, true);
+
+        });
+
+        if(properties.notes === undefined) properties.notes = null;
+        
+        properties.isHidden = 0;
+        properties.referenceID = null;
+        properties.deleteTimestamp = null;
+
+        Loading.show(null, "semi-transparent");
+
+        this.close();
+
+    };
+
+
+
+
+    editStudentDialog.openEdit = function(arg) {
+
+        this.errors = {};
+        this.warnings = {};
+        this.isNew = false;
+
+        if(typeof(arg) === "object") {
+
+            this.studentData = arg;
+
+        } else {
+
+            var len = currentElement.childrenData.length;
+            var found = false;
+
+            for(var i = 0; i < len; i++) {
+                
+                if(currentElement.childrenData[i].studentID === arg) {
+
+                    this.studentData = currentElement.childrenData[i];
+                    found = true;
+                    break;
+
+                }
+
+            }
+            
+            if(!found) return;
+
+        }
+
+        document.getElementById("modeFlagStyles").innerHTML = ".modeFlag_edit { display: inline; }";
+
+        var nameElement = document.getElementById("editStudentDialog_lastName");
+
+        nameElement.value = this.studentData.lastName;
+        nameElement.classList.remove("error");
+        nameElement.classList.remove("warning");
+
+        nameElement = document.getElementById("editStudentDialog_firstName");
+
+        nameElement.value = this.studentData.firstName || "";
+        nameElement.classList.remove("error");
+        nameElement.classList.remove("warning");
+
+        document.getElementById("editStudentDialog_gender").value = this.studentData.gender || "";
+
+        if(this.studentData.notes === null) {
+            
+            document.getElementById("editStudentDialog_with_notes").checked = false;
+            document.getElementById("editStudentDialog_notes").value = "";
+
+        } else {
+            
+            document.getElementById("editStudentDialog_with_notes").checked = true;
+            document.getElementById("editStudentDialog_notes").value = this.studentData.notes;
+
+        }
+
+        this.updateCheckbox("notes");
+
+        if(this.studentData.userName === null) {
+            
+            document.getElementById("editStudentDialog_with_userName").checked = false;
+            document.getElementById("editStudentDialog_userName").value = "";
+
+        } else {
+            
+            document.getElementById("editStudentDialog_with_userName").checked = true;
+            document.getElementById("editStudentDialog_userName").value = this.studentData.userName;
+
+        }
+
+        this.updateCheckbox("userName");
+
+        document.getElementById("editStudentDialog_OKButton").classList.remove("deactivated");
+
+        this.updateWarnings();
+        this.updateErrors();
+
+        this.show();
+
+    };
+
+    editStudentDialog.openAdd = function() {
+
+        this.errors = { name: false };
+        this.warnings = {};
+        this.isNew = true;
+
+        this.studentData = { userName: null };
+
+        document.getElementById("modeFlagStyles").innerHTML = ".modeFlag_add { display: inline; }";
+
+        var nameElement = document.getElementById("editStudentDialog_lastName");
+
+        nameElement.value = "";
+        nameElement.classList.remove("error");
+        nameElement.classList.remove("warning");
+
+        nameElement = document.getElementById("editStudentDialog_firstName");
+
+        nameElement.value = "";
+        nameElement.classList.remove("error");
+        nameElement.classList.remove("warning");
+
+        document.getElementById("editStudentDialog_gender").value = "";
+
+        document.getElementById("editStudentDialog_notes").value = "";
+
+        this.updateCheckbox("notes");
+
+        document.getElementById("editStudentDialog_userName").value = "";
+
+        this.updateCheckbox("userName");
+
+        document.getElementById("editStudentDialog_OKButton").disabled = false;
+
+        this.updateWarnings();
+        this.updateErrors(true);
+
+        this.show();
+
+    };
+
+    editStudentDialog.check = function(ID, printAll = true, callErrorUpdate = true) {
+
+        if(ID === undefined) {
+
+            var checkAll = true;
+
+        } else {
+
+            var checkAll = false;
+
+        }
+
+        if(checkAll || ID === "name") {
+            
+            var lastNameElement = document.getElementById("editStudentDialog_lastName");
+            var firstNameElement = document.getElementById("editStudentDialog_firstName");
+
+            var localError = false;
+
+            if(lastNameElement.value.trim() === "") {
+
+                this.errors.name = printAll ? "Der Nachname des Schülers muss angegeben werden." : false;
+                localError = printAll || undefined;
+
+                if(printAll) {
+
+                    lastNameElement.classList.add("error");
+
+                }
+
+            } else if(lastNameElement.value.length >= MAX_LENGTH_NAME) {
+
+                this.errors.name = "Der Nachname muss weniger als " + MAX_LENGTH_NAME + " Zeichen lang sein.";
+                lastNameElement.classList.add("error");
+                localError = true;
+
+            }
+
+            if(firstNameElement.value.length >= MAX_LENGTH_NAME) {
+
+                this.errors.name = "Der Vorname muss weniger als " + MAX_LENGTH_NAME + " Zeichen lang sein.";
+                firstNameElement.classList.add("error");
+                localError = true;
+
+            }
+
+            delete this.warnings.name;
+
+            lastNameElement.classList.remove("warning");
+            firstNameElement.classList.remove("warning");
+
+            if(!localError) {
+
+                delete this.errors.name;
+
+                lastNameElement.classList.remove("error");
+                firstNameElement.classList.remove("error");
+
+                if(localError === false) {
+
+                    var firstName = firstNameElement.value.trim() || null;
+                    var lastName = lastNameElement.value || null;
+
+                    var nameAlreadyExists = false;
+
+                    var siblingData = currentElement.childrenData;
+                    var studentID = this.studentData.studentID;
+
+                    for(var i = 0; i < siblingData.length; i++) {
+
+                        var currentSibling = siblingData[i];
+
+                        if(this.isNew || currentSibling.studentID !== studentID) {
+
+                            if(currentSibling.lastName === lastName && currentSibling.firstName === firstName) {
+
+                                var nameAlreadyExists = true;
+                                break;
+
+                            }
+
+                        }
+
+                    }
+
+                    if(nameAlreadyExists) {
+
+                        this.warnings.name = "Es existiert bereits ein/e Schüler/in mit diesem Namen.";
+
+                        lastNameElement.classList.add("warning");
+
+                        if(firstName !== null) {
+
+                            firstNameElement.classList.add("warning");
+
+                        }
+
+                    }
+
+                }
+
+            }
+
+        }
+
+        if(checkAll || ID === "userName") {
+
+            var element = document.getElementById("editStudentDialog_userName");
+
+            if(element.value.trim() === "") {
+
+                element.classList.remove("error");
+
+                delete this.errors.userName;
+                this.needsNameCheck = false;
+
+            } else if(element.value.toLowerCase() === user.userName.toLowerCase()) {
+                
+                element.classList.add("error");
+
+                this.errors.userName = "Man kann sich nicht selbst hinzufügen.";
+                this.needsNameCheck = false;
+                
+            } else {
+
+                var found = false;
+                var userName = element.value.toLowerCase();
+
+                var siblingData = currentElement.childrenData;
+                var studentID = this.studentData.studentID;
+
+                for(var i = 0; i < siblingData.length; i++) {
+
+                    var currentSibling = siblingData[i];
+
+                    if(this.isNew || currentSibling.studentID !== studentID) {
+
+                        if(currentSibling.userName !== null && currentSibling.userName.toLowerCase() === userName) {
+
+                            found = true;
+                            element.classList.add("error");
+
+                            this.errors.userName = "Dieses Benutzerkonto gehört einem anderen Schüler / einer anderen Schülerin.";
+                            this.needsNameCheck = false;
+
+                            break;
+
+                        }
+
+                    }
+
+                }
+                
+                if(!found) {
+
+                    if(this.studentData.userName === null || userName !== this.studentData.userName.toLowerCase()) {
+
+                        this.errors.userName = false;
+                        this.needsNameCheck = true;
+
+                    } else {
+
+                        delete this.errors.userName;
+                        element.classList.remove("error");
+                        this.needsNameCheck = false;
+
+                    }
+
+                }
+
+            }
+
+        }
+
+        if(checkAll || ID === "notes") {
+
+            this.checkNotes();
+
+        }
+
+        if(callErrorUpdate) {
+
+            this.updateWarnings();
+            return this.updateErrors(this.isNew);
+
+        }
+
+    };
+
+    editStudentDialog.checkUserNameExistance = function() {
+
+        this.needsNameCheck = false;
+
+        var requestObj = { userName: document.getElementById("editStudentDialog_userName").value };
+
+        this.nameCheckRequest = loadData("/phpScripts/checkUserName", requestObj, function(data) {
+
+            if(data.result) {
+
+                document.getElementById("editStudentDialog_userName").classList.remove("error");
+                delete editStudentDialog.errors.userName;
+
+            } else {
+
+                document.getElementById("editStudentDialog_userName").classList.add("error");
+                editStudentDialog.errors.userName = "Dieser Benutzername existiert nicht.";
+
+            }
+
+            editStudentDialog.updateErrors(editStudentDialog.isNew);
+
+        }, function() {
+
+            document.getElementById("editStudentDialog_userName").classList.add("error");
+            editStudentDialog.errors.userName = "Beim Überprüfen des Benutzernamens ist ein Fehler aufgetreten.";
+
+        });
+
+    };
+
+    editStudentDialog.userNameInput = function() {
+        
+        if(this.nameCheckRequest !== undefined) {
+
+            this.nameCheckRequest.abort();
+            this.nameCheckRequest = undefined;
+
+        }
+
+        if(this.nameCheckTimeoutID !== undefined) {
+
+            clearTimeout(this.nameCheckTimeoutID);
+            this.nameCheckTimeoutID = undefined;
+
+        }
+
+        this.check("userName");
+
+        if(this.needsNameCheck) {
+
+            this.nameCheckTimeoutID = setTimeout(this.checkUserNameExistance.bind(this), 1000);
+
+        }
+
+    };
+
+    editStudentDialog.userNameChange = function() {
+        
+        if(this.nameCheckTimeoutID !== undefined) {
+
+            clearTimeout(this.nameCheckTimeoutID);
+            this.nameCheckTimeoutID = undefined;
+
+        }
+
+        if(this.needsNameCheck) {
+
+            this.checkUserNameExistance();
+
+        }
+
+    };
+
+    editStudentDialog.updateUserNameCheckbox = function() {
+
+        if(document.getElementById("editStudentDialog_with_userName").checked) {
+
+            document.getElementById("editStudentDialog_userName").style.display = "inline";
+
+            this.userNameInput();
+
+        } else {
+
+            document.getElementById("editStudentDialog_userName").style.display = "none";
+
+            delete this.errors.userName;
+            
+            this.needsNameCheck = false;
+
+            if(this.nameCheckRequest !== undefined) {
+
+                this.nameCheckRequest.abort();
+                this.nameCheckRequest = undefined;
+
+            }
+
+            if(this.nameCheckTimeoutID !== undefined) {
+
+                clearTimeout(this.nameCheckTimeoutID);
+                this.nameCheckTimeoutID = undefined;
+
+            }
+
+            this.updateErrors(this.isNew);
+
+        }
+
+    }
+
+    editStudentDialog.close = function() {
+
+        this.needsNameCheck = false;
+        this.studentData = undefined;
+
+        if(this.nameCheckRequest !== undefined) {
+
+            this.nameCheckRequest.abort();
+            this.nameCheckRequest = undefined;
+
+        }
+
+        if(this.nameCheckTimeoutID !== undefined) {
+
+            clearTimeout(this.nameCheckTimeoutID);
+            this.nameCheckTimeoutID = undefined;
+
+        }
+
+        this.hide();
+
+    };
+
+    editStudentDialog.save = function() {
+        
+        if((this.isNew && !this.check("name")) || Object.keys(this.errors).length > 0) {
+
+            return;
+
+        }
+
+        var properties = {};
+
+        properties.lastName = document.getElementById("editStudentDialog_lastName").value;
+
+        var firstName = document.getElementById("editStudentDialog_firstName").value;
+        if(firstName.trim() !== "") {
+            properties.firstName = firstName;
+
+        }
+
+        var gender = document.getElementById("editStudentDialog_gender").value;
+        if(gender !== "") {
+            properties.gender = gender;
+        }
+
+
+        if(document.getElementById("editStudentDialog_with_userName").checked) {
+
+            var userName = document.getElementById("editStudentDialog_userName").value;
+
+            if(userName.trim() !== "") {
+                properties.userName = userName;
+            }
+
+        }
+
+        if(document.getElementById("editStudentDialog_with_notes").checked) {
+            var notes = document.getElementById("editStudentDialog_notes").value;
+
+            if(notes.trim() !== "") {
+                properties.notes = notes;
+            }
+
+        }
+
+        if(this.isNew) {
+
+            this.saveAdd(properties);
+
+        } else {
+
+            this.saveEdit(properties);
+
+        }
+
+    };
+
+    editStudentDialog.saveAdd = function(properties) {
+        
+        properties.classID = currentElement.data.classID;
+
+        loadData("/phpScripts/create/createStudent.php", properties, function(result) {
+
+            properties.studentID = result.newID;
+
+            currentElement.childrenData.push(properties);
+
+            cache.tests = [];
+            cache.semesters = [];
+
+            hidePanelsAndPrint();
+
+        }, function(errorCode) {
+
+            showErrorMessage(TEXT_ERROR_NO_CHANGE + errorCode, true);
+
+        });
+
+        if(properties.firstName === undefined) properties.firstName = null;
+        if(properties.userName === undefined) properties.userName = null;
+        if(properties.gender === undefined) properties.gender = null;
+        if(properties.notes === undefined) properties.notes = null;
+        
+        properties.isHidden = 0;
+        properties.deleteTimestamp = null;
+
+        delete properties.templateID;
+        delete properties.permissions;
+
+        Loading.show(null, "semi-transparent");
+
+        this.close();
+
+    };
+
+    editStudentDialog.saveEdit = function(properties) {
+
+        var changedProperties = {};
+        var studentData = this.studentData;
+
+        if(properties.lastName !== this.studentData.lastName) changedProperties.lastName = properties.lastName;
+
+        if(this.studentData.firstName === null) {
+            if(properties.firstName !== undefined) {
+                changedProperties.firstName = properties.firstName;
+            }
+        } else if(this.studentData.firstName !== properties.firstName) {
+            changedProperties.firstName = properties.firstName || null;
+        }
+
+        if(this.studentData.userName === null) {
+            if(properties.userName !== undefined) {
+                changedProperties.userName = properties.userName;
+            }
+        } else if(this.studentData.userName !== properties.userName) {
+            changedProperties.userName = properties.userName || null;
+        }
+
+        if(this.studentData.gender === null) {
+            if(properties.gender !== undefined) {
+                changedProperties.gender = properties.gender;
+            }
+        } else if(this.studentData.gender !== properties.gender) {
+            changedProperties.gender = properties.gender || null;
+        }
+
+        if(this.studentData.notes === null) {
+            if(properties.notes !== undefined) {
+                changedProperties.notes = properties.notes;
+            }
+        } else if(this.studentData.notes !== properties.notes) {
+            changedProperties.notes = properties.notes || null;
+        }
+
+        if(Object.keys(changedProperties).length <= 0) {
+
+            this.close();
+            return;
+
+        }
+
+        changedProperties.studentID = this.studentData.studentID;
+        
+        loadData("/phpScripts/edit/editStudent.php", [ changedProperties ], function(result) {
+
+            cache.semesters = [];
+            cache.tests = [];
+
+            assignProperties(studentData, changedProperties);
+
+            if(studentInfoDialog.isVisible()) {
+
+                studentInfoDialog.printInfo();
+                Loading.hide(studentInfoDialog.dialogElement);
+    
+            }
+
+            loadElementAndPrint();
+
+        }, function(errorCode, result) {
+
+            if(result === undefined || result.result === undefined || result.result[0] == undefined) {
+
+                if(result !== undefined && result.result !== undefined && result.result[0] === null) {
+
+                    showErrorMessage(TEXT_ERROR_UNCHANGED + errorCode, true);
+
+                } else {
+
+                    showErrorMessage(TEXT_ERROR_NO_CHANGE + errorCode, true);
+
+                }
+
+            } else {
+
+                showErrorMessage(TEXT_ERROR_CHANGED + errorCode, true);
+
+            }
+
+        });
+
+        if(studentInfoDialog.isVisible()) {
+
+            Loading.show(studentInfoDialog.dialogElement);
+
+        } else {
+
+            Loading.show(null, "semi-transparent");
+
+        }
+
+        this.close();
+
+    };
+
+
+
+
+    editStudentMarkDialog.open = function() {
+
+        this.errors = {};
+        
+        this.show();
+
+    };
+
+    editStudentMarkDialog.check = function(ID, printAll = true, callErrorUpdate = true) {
+
+        
+
+    };
+
+    editStudentMarkDialog.close = function() {
+
+        this.hide();
+
+    };
+
+    editStudentMarkDialog.save = function() {
+
+        this.close();
+
+    };
+
+
+    document.getElementById("classInfoDialog_closeButton")          .addEventListener("click", classInfoDialog.close.bind(classInfoDialog));
+    document.getElementById("classInfoDialog_loadMoreButton")       .addEventListener("click", classInfoDialog.loadMore.bind(classInfoDialog));
+
+    document.getElementById("editClassDialog_with_notes")           .addEventListener("change", editClassDialog.updateCheckbox.bind(editClassDialog, "notes"));
+    document.getElementById("editClassDialog_name")                 .addEventListener("input",  editClassDialog.check.bind(editClassDialog, "name"));
+    document.getElementById("editClassDialog_notes")                .addEventListener("input",  editClassDialog.check.bind(editClassDialog, "notes"));
+    document.getElementById("editClassDialog_permissionsButton")    .addEventListener("click",  permissionsDialog.open.bind(permissionsDialog, TYPE_CLASS));
+    document.getElementById("editClassDialog_cancelButton")         .addEventListener("click",  editClassDialog.close.bind(editClassDialog));
+    document.getElementById("editClassDialog_OKButton")             .addEventListener("click",  editClassDialog.save.bind(editClassDialog));
+
+    document.getElementById("editStudentDialog_userName")           .addEventListener("change", editStudentDialog.userNameChange.bind(editStudentDialog));
+    document.getElementById("editStudentDialog_with_notes")         .addEventListener("change", editStudentDialog.updateCheckbox.bind(editStudentDialog, "notes"));
+    document.getElementById("editStudentDialog_with_userName")      .addEventListener("change", editStudentDialog.updateUserNameCheckbox.bind(editStudentDialog));
+    document.getElementById("editStudentDialog_lastName")           .addEventListener("input",  editStudentDialog.check.bind(editStudentDialog, "name"));
+    document.getElementById("editStudentDialog_firstName")          .addEventListener("input",  editStudentDialog.check.bind(editStudentDialog, "name"));
+    document.getElementById("editStudentDialog_userName")           .addEventListener("input",  editStudentDialog.userNameInput.bind(editStudentDialog));
+    document.getElementById("editStudentDialog_notes")              .addEventListener("input",  editStudentDialog.check.bind(editStudentDialog, "notes"));
+    document.getElementById("editStudentDialog_cancelButton")       .addEventListener("click",  editStudentDialog.close.bind(editStudentDialog));
+    document.getElementById("editStudentDialog_OKButton")           .addEventListener("click",  editStudentDialog.save.bind(editStudentDialog));
+
+    document.getElementById("editStudentMarkDialog_cancelButton")   .addEventListener("click",  editStudentMarkDialog.close.bind(editStudentMarkDialog));
+    document.getElementById("editStudentMarkDialog_OKButton")       .addEventListener("click",  editStudentMarkDialog.save.bind(editStudentMarkDialog));
+
+    document.getElementById("studentInfoDialog_closeButton")    .addEventListener("click", studentInfoDialog.close.bind(studentInfoDialog));
+
+    document.getElementById("classes_addClassButton")           .addEventListener("click", editClassDialog.openAdd.bind(editClassDialog));
+
+    document.getElementById("students_classInfoButton")         .addEventListener("click", classInfoDialog.open.bind(classInfoDialog));
+    document.getElementById("students_editClassButton")         .addEventListener("click", editClassDialog.openEdit.bind(editClassDialog, undefined));
+    document.getElementById("students_addStudentButton")        .addEventListener("click", editStudentDialog.openAdd.bind(editStudentDialog));
+
+    document.getElementById("tests_studentMarkVisibiltyButton") .addEventListener("click", changeStudentMarkVisibility);
 
 });

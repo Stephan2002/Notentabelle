@@ -414,6 +414,26 @@ label {
 
 }
 
+
+
+.checkboxSwitchContainer {
+
+	text-align: left;
+
+}
+
+.checkboxSwitchContainer > span {
+
+	line-height: 28px;
+
+}
+
+.checkboxSwitchContainer > label.checkboxSwitch {
+
+	float: right;
+
+}
+
 label.checkboxSwitch {
 
 	box-sizing: border-box;

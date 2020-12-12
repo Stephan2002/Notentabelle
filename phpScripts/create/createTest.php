@@ -19,7 +19,9 @@ Input als JSON per POST bestehend aus Objekt (nur ein neues Element kann erstell
         notes?*
         referenceID?* (falls isFolder false; angegeben, aber NULL: Referenz ohne ref. Element | nicht angegeben: keine Ref)
         templateID?*
-        permissions* (falls isSubject und ein Klassensemester): Array aus Objekten mit:
+        permissions* (falls Fach und ein Klassensemester): Array aus Objekten mit:
+            userName
+            writingPermission (NULL: Berechtigung loeschen)
         mark?* (falls privates Semester & (isFolder & keine Referenz) | formula manual)
         points?* (falls privates Semester & isFolder & keine Referenz)
 
@@ -104,7 +106,7 @@ function createTest(Element $test, array &$data, int $userID, bool $isTeacher) :
 
     if(isset($data["name"])) {
 
-        if(!is_string($data["name"]) || $data["name"] === "" || strlen($data["name"]) >= 64) {
+        if(!is_string($data["name"]) || $data["name"] === "" || strlen($data["name"]) >= MAX_LENGTH_NAME) {
 
             return array("error" => ERROR_BAD_INPUT);
 
@@ -259,7 +261,7 @@ function createTest(Element $test, array &$data, int $userID, bool $isTeacher) :
 
     if(isset($data["notes"]) && $data["notes"] !== "") {
 
-        if((!is_string($data["notes"]) && !is_null($data["notes"])) || strlen($data["notes"] >= 256)) {
+        if((!is_string($data["notes"]) && !is_null($data["notes"])) || strlen($data["notes"]) >= MAX_LENGTH_NOTES) {
 
             return array("error" => ERROR_BAD_INPUT);
 
@@ -459,6 +461,8 @@ function createTest(Element $test, array &$data, int $userID, bool $isTeacher) :
             return array("error" => ERROR_UNSUITABLE_INPUT);
 
         }
+
+        // TODO: Vorlagentyp (mit oder ohne Punkte/Noten) ueberpruefen
 
     }
 
@@ -679,7 +683,7 @@ function createTest(Element $test, array &$data, int $userID, bool $isTeacher) :
 
             if($test->data["classID"] === NULL) {
 
-                $changes = array("mark" => $newTest->data["mark"], "points" => $newTest->data["points"]);
+                $changes = array("mark" => $newTest->data["mark"], "mark_unrounded" => $newTest->data["mark"], "points" => $newTest->data["points"]);
 
             } else {
 

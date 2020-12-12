@@ -30,6 +30,7 @@ include("phpScripts/login.php");
         <script language="javascript" type="text/javascript" src="dialog/alertScript.js"></script>
         <script language="javascript" type="text/javascript" src="loading/loadingScript.js"></script>
         <script language="javascript" type="text/javascript" src="buttonSelect/buttonSelectScript.js"></script>
+        <script language="javascript" type="text/javascript" src="js/editDialog.js"></script>
         <script language="javascript" type="text/javascript" src="js/app/app.js"></script>
 
         <?php if($_SESSION["isTeacher"]) { ?>
@@ -120,7 +121,7 @@ include("phpScripts/login.php");
 
                 <button id="semesters_foreignSemestersButton" class="button_big positive withMargin">Geteilte Semester / Vorlagen</button>
                 
-                <button class="button_big positive bigMargin">Versteckte Elemente anzeigen</button>
+                <button id="semesters_visibilityButton" class="button_big positive bigMargin">Versteckte Elemente <span>anzeigen</span></button>
                 <button class="button_big positive">Gelöschte Elemente</button>
 
                 <div class="buttonGroup" id="semesters_controlButtons">
@@ -133,20 +134,20 @@ include("phpScripts/login.php");
         <div class="panel" id="tests_div" style="display: none">
             <div class="container">
                 <div id="tests_addSubjectButtons">
-                    <button class="button_big positive withMargin">Neues Fach / Neuer Ordner</button>
+                    <button id="tests_addSubjectButton" class="button_big positive withMargin">Neues Fach / Neuer Ordner</button>
 
                     <div class="buttonGroup noMargin">
-                        <button class="button_medium positive">Neue Prüfung</button>
-                        <button class="button_medium positive">Neue Veknüpf.</button>
+                        <button id="tests_addRootTestButton" class="button_medium positive">Neue Prüfung</button>
+                        <button id="tests_addRootRefButton" class="button_medium positive">Neue Veknüpf.</button>
                     </div>
                 </div>
 
                 <div id="tests_addFolderButtons" style="display: none">
-                    <button class="button_big positive withMargin">Neue Prüfung</button>
+                    <button id="tests_addTestButton" class="button_big positive withMargin">Neue Prüfung</button>
 
                     <div class="buttonGroup noMargin">
-                        <button class="button_medium positive">Neuer Ordner</button>
-                        <button class="button_medium positive">Neue Veknüpf.</button>
+                        <button id="tests_addFolderButton" class="button_medium positive">Neuer Ordner</button>
+                        <button id="tests_addRefButton" class="button_medium positive">Neue Veknüpf.</button>
                     </div>
                 </div>
 
@@ -321,14 +322,20 @@ include("phpScripts/login.php");
                         <p class="blankLine_small">Kein/e Schüler/in hat Noten oder Punkte.</p>
                         <p id="tests_noMarks_instruction">Fügen Sie Noten/Punkte hinzu, indem Sie Knopf unten benutzen.</p>
                     </div>
-                    <button id="tests_editStudentButton" class="button_big positive withMargin">Noten / Punkte bearbeiten</button>
-                    <button class="button_big positive withMargin">Versteckte Schüler/innen anzeigen</button>
-                    <button class="button_big positive">Schüler/innen ohne Noten anzeigen</button>
+
+                    <button id="tests_editMarksButton" class="button_big positive withMargin">Noten / Punkte bearbeiten</button>
+                    <div class="buttonGroup withMargin">
+                        <button id="tests_cancelButton" class="button_medium negative">Veränderungen verwerfen</button>
+                        <button id="tests_OKButton" class="button_medium positive">Veränderungen speichern</button>
+                    </div>
+                    
+                    <button id="tests_studentVisibilityButton" class="button_big positive withMargin">Versteckte Schüler/innen <span>anzeigen</span></button>
+                    <button id="tests_studentMarkVisibiltyButton" class="button_big positive">Schüler/innen ohne Daten <span>anzeigen</span></button>
                 </div>
 
                 <?php } ?>
 
-                <button id="tests_showHiddenTests" class="button_big positive withMargin">Versteckte Elemente anzeigen</button>
+                <button id="tests_visibilityButton" class="button_big positive withMargin">Versteckte Elemente <span>anzeigen</span></button>
                 <button id="tests_deletedButton" class="button_big positive">Gelöschte Elemente</button>
 
                 <div id="tests_semesterButtons" style="display: block;">
@@ -425,7 +432,7 @@ include("phpScripts/login.php");
 
         <div class="panel" id="classes_div" style="display: none">
             <div class="container">
-                <button class="button_big positive withMargin">Neue Klasse</button>
+                <button id="classes_addClassButton" class="button_big positive withMargin">Neue Klasse</button>
 
                 <div id="classes_empty">
                     <div class="info gray bigMargin">
@@ -443,7 +450,7 @@ include("phpScripts/login.php");
             <div class="container">
                 <button id="classes_foreignClassesButton" class='button_big positive withMargin'>Geteilte Klassen</button>
 
-                <button class="button_big positive bigMargin">Versteckte / alte Klassen anzeigen</button>
+                <button id="classes_visibilityButton" class="button_big positive bigMargin">Versteckte / alte Klassen <span>anzeigen</span></button>
                 <button class="button_big positive">Gelöschte Klassen</button>
             </div>
         </div>
@@ -474,7 +481,7 @@ include("phpScripts/login.php");
             </table>
 
             <div class="container">
-                <button class="button_big positive">Versteckte Schüler/innen anzeigen</button>
+                <button id="students_visibilityButton" class="button_big positive">Versteckte Schüler/innen <span>anzeigen</span></button>
                 <button class="button_big positive">Gelöschte Schüler/innen</button>
 
                 <button class="button_big neutral withMargin withImage" id="students_classInfoButton"><img src="/img/info.svg" alt="">Klasseninfo</button>
@@ -794,7 +801,7 @@ include("phpScripts/login.php");
         <div id="classInfoDialog" class="dialog infoDialog" style="display: none;">
             <div class="dialogBlocker"></div>
             <div class="dialogContent">
-                <h2>Klassen-Eigenschaften</h3>
+                <h2><span class="dialogType_class">Klassen</span><span class="dialogType_classRef">Verknüpfungs</span>-Eigenschaften</h3>
 
                 <h3 id="classInfoDialog_name">Name</h3>
 
@@ -922,7 +929,7 @@ include("phpScripts/login.php");
         <div id="editSemesterDialog" class="dialog" style="display: none;">
             <div class="dialogBlocker"></div>
             <div class="dialogContent">
-                <h2><span class="dialogType_semesterFolder">Ordner</span><span class="dialogType_semester">Semester</span><span class="dialogType_template">Vorlage</span><span class="dialogType_semesterRef dialogType_templateRef">Verknüpfungs</span> <span class="modeFlag_edit">bearbeiten</span><span class="modeFlag_add">hinzufügen</span></h2>
+                <h2><span class="dialogType_semesterFolder">Ordner</span><span class="dialogType_semester">Semester</span><span class="dialogType_template">Vorlage</span><span class="dialogType_semesterRef dialogType_templateRef">Verknüpfung</span> <span class="modeFlag_edit">bearbeiten</span><span class="modeFlag_add">hinzufügen</span></h2>
 
                 <label for="editSemesterDialog_name">Name:</label>
                 <input type="text" id="editSemesterDialog_name" placeholder="Name" />
@@ -944,7 +951,7 @@ include("phpScripts/login.php");
 
                 <button class="button_big positive withMargin" id="editSemesterDialog_refTestButton">Einstiegspunkt festlegen</button>
 
-                <label><input type="checkbox" id="editSemesterDialog_withNotes"/>Notizen</label>
+                <label><input type="checkbox" id="editSemesterDialog_with_notes"/>Notizen</label>
                 <textarea id="editSemesterDialog_notes" placeholder="Notizen"></textarea>
 
                 <button class="button_big positive withMargin" id="editSemesterDialog_permissionsButton">Zugriffsberechtigungen</button>
@@ -955,6 +962,94 @@ include("phpScripts/login.php");
                 <div class="buttonGroup">
                     <button class="button_medium negative" id="editSemesterDialog_cancelButton">Abbrechen</button>
                     <button class="button_medium positive" id="editSemesterDialog_OKButton"><span class="modeFlag_edit">Speichern</span><span class="modeFlag_add">Hinzufügen</span></button>
+                </div>
+            </div>
+        </div>
+
+        <div id="editTestDialog" class="dialog" style="display: none;">
+            <div class="dialogBlocker"></div>
+            <div class="dialogContent">
+                <h2><span class="dialogType_subject">Fach</span><span class="dialogType_folder">Ordner</span><span class="dialogType_test">Prüfung</span><span class="dialogType_ref">Verknüpfung</span> <span class="modeFlag_edit">bearbeiten</span><span class="modeFlag_add">hinzufügen</span></h2>
+
+                <label for="editTestDialog_name">Name:</label>
+                <input type="text" id="editTestDialog_name" placeholder="Name" />
+
+                <div class="buttonSelectGroup single" id="editTestDialog_type">
+                    <button class="positive">Nur Note</button>
+                    <button class="positive unselected">Punkte & Note</button>
+                </div>
+
+                <button class="button_big positive withMargin" id="editTestDialog_refTestButton">Referenziertes Element</button>
+                <button class="button_big positive withMargin" id="editTestDialog_templateButton">Vorlage auswählen</button>
+
+                <label><input type="checkbox" id="editTestDialog_with_date" />Datum</label>
+                <input type="date" id="editTestDialog_date" placeholder="Datum" />
+
+                <div id="editTestDialog_markCountsContainer" class="withMargin checkboxSwitchContainer">
+                    <span>Zählt:</span>
+                    <label class="checkboxSwitch">
+                        <input type="checkbox" id="editTestDialog_markCounts" checked />
+                        <span></span>
+                    </label>
+                </div>
+
+                <div class="inputGroup">
+                    <div id="editTestDialog_weightContainer">
+                        <label for="editTestDialog_weight">Gewichtung:</label>
+                        <input type="number" step="any" min="0" id="editTestDialog_weight" placeholder="Gewichtung" />
+                    </div>
+
+                    <div id="editTestDialog_formulaContainer">
+                        <label for="editTestDialog_formula">Notenberechnung:</label>
+                        <select id="editTestDialog_formula" value="linear">
+                            <option value="linear">linear</option>
+                            <option value="manual">manuell</option>
+                        </select>
+                    </div>
+
+                    <div id="editTestDialog_roundContainer">
+                        <label for="editTestDialog_roundSelect">Rundung:</label>
+                        <div>
+                            <select id="editTestDialog_roundSelect" value="0">
+                                <option value="0">keine</option>
+                                <option value="0.5">auf Halbe</option>
+                                <option value="0.25">auf Viertel</option>
+                                <option value="0.1">auf 0.1</option>
+                                <option value="-1">Anders</option>
+                            </select>
+                            <input type="number" step="any" min="0" id="editTestDialog_roundCustom" placeholder="Rund." />
+                        </div>
+                    </div>
+
+                    <div id="editTestDialog_maxPointsContainer">
+                        <label for="editTestDialog_maxPoints">Maximalpunktzahl</label>
+                        <input type="number" step="any" id="editTestDialog_maxPoints" placeholder="Maximalpkte." />
+                    </div>
+                </div>
+
+                <label><input type="checkbox" id="editTestDialog_with_notes" />Notizen</label>
+                <textarea id="editTestDialog_notes" placeholder="Notizen"></textarea>
+
+                <button class="button_big positive withMargin" id="editTestDialog_permissionsButton">Lehrpersonen</button>
+
+                <div class="inputGroup" id="editTestDialog_markAndPointsContainer">
+                    <div id="editTestDialog_pointsContainer">
+                        <label for="editTestDialog_points">Punkte:</label>
+                        <input type="number" step="any" id="editTestDialog_points" placeholder="Punktzahl" />
+                    </div>
+
+                    <div id="editTestDialog_markContainer">
+                        <label for="editTestDialog_mark">Note:</label>
+                        <input type="number" step="any" id="editTestDialog_mark" placeholder="Note">
+                    </div>
+                </div>
+
+                <div class="info orange" id="editTestDialog_warningContainer"></div>
+                <div class="info red" id="editTestDialog_errorContainer"></div>
+
+                <div class="buttonGroup">
+                    <button class="button_medium negative" id="editTestDialog_cancelButton">Abbrechen</button>
+                    <button class="button_medium positive" id="editTestDialog_OKButton"><span class="modeFlag_edit">Speichern</span><span class="modeFlag_add">Hinzufügen</span></button>
                 </div>
             </div>
         </div>
@@ -979,5 +1074,101 @@ include("phpScripts/login.php");
                 </div>
             </div>
         </div>
+
+        <?php if($_SESSION["isTeacher"]) { ?>
+
+        <div id="editClassDialog" class="dialog" style="display: none;">
+            <div class="dialogBlocker"></div>
+            <div class="dialogContent">
+                <h2><span class="dialogType_class">Klasse</span><span class="dialogType_classRef">Verknüpfung</span> <span class="modeFlag_edit">bearbeiten</span><span class="modeFlag_add">hinzufügen</span></h2>
+
+                <label for="editClassDialog_name">Name:</label>
+                <input type="text" id="editClassDialog_name" placeholder="Name" />
+
+                <label><input type="checkbox" id="editClassDialog_with_notes" />Notizen</label>
+                <textarea id="editClassDialog_notes" placeholder="Notizen"></textarea>
+
+                <button class="button_big positive withMargin" id="editClassDialog_permissionsButton">Zugriffsberechtigungen</button>
+                
+                <div class="info orange" id="editClassDialog_warningContainer"></div>
+                <div class="info red" id="editClassDialog_errorContainer"></div>
+
+                <div class="buttonGroup">
+                    <button class="button_medium negative" id="editClassDialog_cancelButton">Abbrechen</button>
+                    <button class="button_medium positive" id="editClassDialog_OKButton"><span class="modeFlag_edit">Speichern</span><span class="modeFlag_add">Hinzufügen</span></button>
+                </div>
+            </div>
+        </div>
+
+        <div id="editStudentDialog" class="dialog" style="display: none;">
+            <div class="dialogBlocker"></div>
+            <div class="dialogContent">
+                <h2>Schüler/in <span class="modeFlag_edit">bearbeiten</span><span class="modeFlag_add">hinzufügen</span></h2>
+
+                <label for="editStudentDialog_lastNname">Nachname:</label>
+                <input type="text" id="editStudentDialog_lastName" placeholder="Nachname" />
+
+                <div class="inputGroup">
+                    <div>
+                        <label for="editStudentDialog_firstName">Vorname:</label>
+                        <input type="text" id="editStudentDialog_firstName" placeholder="Vorname" />
+                    </div>
+                    <div>
+                        <label for="editStudentDialog_gender">Geschlecht:</label>
+                        <select type="text" id="editStudentDialog_gender" value="">
+                            <option value="">...</option>
+                            <option value="m">männlich</option>
+                            <option value="f">weiblich</option>
+                            <option value="d">divers</option>
+                        </select>
+                    </div>
+                </div>
+
+                <label><input type="checkbox" id="editStudentDialog_with_userName" checked />Verknüpftes Schülerkonto</label>
+                <input type="text" id="editStudentDialog_userName" placeholder="Benutzername" />
+
+                <label><input type="checkbox" id="editStudentDialog_with_notes" />Anmerkungen / Notizen</label>
+                <textarea id="editStudentDialog_notes" placeholder="Notizen"></textarea>
+                
+                <div class="info orange" id="editStudentDialog_warningContainer"></div>
+                <div class="info red" id="editStudentDialog_errorContainer"></div>
+
+                <div class="buttonGroup">
+                    <button class="button_medium negative" id="editStudentDialog_cancelButton">Abbrechen</button>
+                    <button class="button_medium positive" id="editStudentDialog_OKButton"><span class="modeFlag_edit">Speichern</span><span class="modeFlag_add">Hinzufügen</span></button>
+                </div>
+            </div>
+        </div>
+
+        <div id="editStudentMarkDialog" class="dialog" style="display: none;">
+            <div class="dialogBlocker"></div>
+            <div class="dialogContent">
+                <h2>Daten bearbeiten</h2>
+
+                <div class="inputGroup">
+                    <div id="editStudentMarkDialog_pointsContainer">
+                        <label for="editStudentMarkDialog_points">Punkte:</label>
+                        <input type="number" step="any" id="editStudentMarkDialog_points" placeholder="Punktzahl" />
+                    </div>
+
+                    <div id="editStudentMarkDialog_markContainer">
+                        <label for="editStudentMarkDialog_mark">Note:</label>
+                        <input type="number" step="any" id="editStudentMarkDialog_mark" placeholder="Note">
+                    </div>
+                </div>
+
+                <label><input type="checkbox" id="editStudentMarkDialog_with_notes" checked />Kommentar / Anmerkungen</label>
+                <textarea id="editStudentMarkDialog_notes" placeholder="Notizen"></textarea>
+
+                <div class="info red" id="editStudentMarkDialog_errorContainer"></div>
+
+                <div class="buttonGroup">
+                    <button class="button_medium negative" id="editStudentMarkDialog_cancelButton">Abbrechen</button>
+                    <button class="button_medium positive" id="editStudentMarkDialog_OKButton">OK</button>
+                </div>
+            </div>
+        </div>
+
+        <?php } ?>
     </body>
 </html>

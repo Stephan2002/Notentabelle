@@ -67,17 +67,19 @@ if($class->data["referenceID"] !== NULL) {
 
         $returnProperties["refError"] = $refClass->error;
     
+    } else {
+
+        $returnProperties["refClassName"] = $refClass->data["name"];
+
+        $stmt = $mysqli->prepare("SELECT userName FROM users WHERE userID = ?");
+        $stmt->bind_param("i", $refClass->data["userID"]);
+        $stmt->execute();
+
+        $returnProperties["refUserName"] = $stmt->get_result()->fetch_row()[0];
+
+        $stmt->close();
+
     }
-
-    $returnProperties["refClassName"] = $refClass->data["name"];
-
-    $stmt = $mysqli->prepare("SELECT userName FROM users WHERE userID = ?");
-    $stmt->bind_param("i", $refClass->data["userID"]);
-    $stmt->execute();
-
-    $returnProperties["refUserName"] = $stmt->get_result()->fetch_row()[0];
-
-    $stmt->close();
 
 } else {
 

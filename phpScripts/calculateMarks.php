@@ -152,7 +152,7 @@ function calculateMark(array &$element, array &$subElements, bool $isTest = true
 
                 if($subTest["round"] != 0) {
 
-                    //$sumMarks += $subTest["weight"] * roundMark($subTest["mark"]);
+                    //$sumMarks += $subTest["weight"] * roundMark($subTest["mark"], $subTest["round"]);
                     $sumMarks = bcadd($sumMarks, bcmul($subTest["weight"], roundMark($subTest["mark"], $subTest["round"]), 6), 6);
 
                 } else {
@@ -271,7 +271,7 @@ function calculateMark_Class(array &$element, array &$subElements, bool $isTest 
 
                         if(!is_null($student["mark"])) {
 
-                            //$students[$student["studentID"]]["sumMarks"] += roundMark($student["mark"]) * $subTest["weight"];
+                            //$students[$student["studentID"]]["sumMarks"] += roundMark($student["mark"], $subTest["round"]) * $subTest["weight"];
                             $students[$student["studentID"]]["sumMarks"] = bcadd($students[$student["studentID"]]["sumMarks"], bcmul(roundMark($student["mark"], $subTest["round"]), $subTest["weight"], 6), 6);
                             
                             //$students[$student["studentID"]]["sumWeights"] += $subTest["weight"];
@@ -301,35 +301,31 @@ function calculateMark_Class(array &$element, array &$subElements, bool $isTest 
                 }
 
                 if($withPlusPoints) {
+                    
+                    if($subTest["round"] != 0) {
 
-                    foreach($subTest["students"] as &$student) {
+                        foreach($subTest["students"] as &$student) {
+                            
+                            if(!is_null($student["mark"])) {
+                                
+                                $students[$student["studentID"]]["plusPoints"] += plusPoints(roundMark_float($student["mark"], $subTest["round"]));
 
-                        if($subTest["round"] != 0) {
-
-                            foreach($subTest["students"] as &$student) {
-        
-                                if(!is_null($student["mark"])) {
-        
-                                    $students[$student["studentID"]]["plusPoints"] += plusPoints(roundMark_float($student["mark"], $subTest["round"]));
-        
-                                }
-        
                             }
-        
-                        } else {
-        
-                            foreach($subTest["students"] as &$student) {
-        
-                                if(!is_null($student["mark"])) {
-        
-                                    $students[$student["studentID"]]["plusPoints"] += plusPoints($student["mark"]);
-        
-                                }
-        
-                            }
-        
+    
                         }
-
+    
+                    } else {
+    
+                        foreach($subTest["students"] as &$student) {
+                            
+                            if(!is_null($student["mark"])) {
+                                
+                                $students[$student["studentID"]]["plusPoints"] += plusPoints($student["mark"]);
+    
+                            }
+    
+                        }
+    
                     }
 
                 }

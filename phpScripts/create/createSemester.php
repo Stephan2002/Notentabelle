@@ -133,7 +133,7 @@ function createSemester(Semester $semesterFolder, array &$data, int $userID, boo
 
     if(isset($data["name"])) {
 
-        if(!is_string($data["name"]) || $data["name"] === "" || strlen($data["name"]) >= 64) {
+        if(!is_string($data["name"]) || $data["name"] === "" || strlen($data["name"]) >= MAX_LENGTH_NAME) {
 
             return array("error" => ERROR_BAD_INPUT);
 
@@ -150,7 +150,7 @@ function createSemester(Semester $semesterFolder, array &$data, int $userID, boo
 
     if(isset($data["notes"]) && $data["notes"] !== "") {
 
-        if((!is_string($data["notes"]) && !is_null($data["notes"])) || strlen($data["notes"] >= 256)) {
+        if((!is_string($data["notes"]) && !is_null($data["notes"])) || strlen($data["notes"]) >= MAX_LENGTH_NOTES) {
 
             return array("error" => ERROR_BAD_INPUT);
 

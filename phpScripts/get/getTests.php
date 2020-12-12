@@ -82,12 +82,8 @@ function getTests(Element &$test, bool $withMarks = false) : int {
 
         if(!$test->isRoot && $withMarks) {
             
-            if(!is_null($test->data["round"]) && is_null($test->data["formula"])) {
+            if(!is_null($test->data["round"])) {
                 
-                $stmt = $mysqli->prepare("SELECT tests.*, IF(tests.round != 0, AVG(LEAST(ROUND(marks.mark / tests.round) * tests.round, 6)), AVG(marks.mark)) AS mark FROM tests LEFT JOIN marks ON (marks.testID = tests.testID AND EXISTS (SELECT 1 FROM students WHERE students.studentID = marks.studentID AND students.deleteTimestamp IS NULL)) WHERE tests.parentID = ? AND tests.deleteTimestamp IS NULL GROUP BY tests.testID ORDER BY tests.isHidden, NOT tests.isFolder, tests.date, NOT tests.markCounts, tests.name");
-
-            } elseif(!is_null($test->data["formula"])) {
-
                 $stmt = $mysqli->prepare("SELECT tests.*, AVG(marks.points) AS points, IF(tests.round != 0, AVG(LEAST(ROUND(marks.mark / tests.round) * tests.round, 6)), AVG(marks.mark)) AS mark, IF(tests.round IS NOT NULL, AVG(LEAST(ROUND(marks.mark / tests.round) * tests.round, 6)), AVG(marks.mark)) AS mark_unrounded FROM tests LEFT JOIN marks ON (marks.testID = tests.testID AND EXISTS (SELECT 1 FROM students WHERE students.studentID = marks.studentID AND students.deleteTimestamp IS NULL)) WHERE tests.parentID = ? AND tests.deleteTimestamp IS NULL GROUP BY tests.testID ORDER BY tests.isHidden, NOT tests.isFolder, tests.date, NOT tests.markCounts, tests.name");
 
             } else {
@@ -146,7 +142,7 @@ function getTests(Element &$test, bool $withMarks = false) : int {
         }
 
         if($test->isRoot || !is_null($test->data["round"])) {
-
+            
             $sum = 0;
             $count = 0;
 
@@ -161,10 +157,6 @@ function getTests(Element &$test, bool $withMarks = false) : int {
 
                         $count++;
                         $sum += $student["mark"];
-
-                    } else {
-
-                        unset($student["mark"]);
 
                     }
 
@@ -183,10 +175,6 @@ function getTests(Element &$test, bool $withMarks = false) : int {
                             $count++;
                             $sum += $student["mark"];
 
-                        } else {
-
-                            unset($student["mark"]);
-
                         }
 
                     }
@@ -201,7 +189,6 @@ function getTests(Element &$test, bool $withMarks = false) : int {
                         if(isset($student["mark"])) {
 
                             $student["mark_unrounded"] = $student["mark"];
-                            $student["plusPoints"] = plusPoints($student["mark"]);
 
                             $count++;
                             $sum += $student["mark"];
@@ -231,9 +218,9 @@ function getTests(Element &$test, bool $withMarks = false) : int {
             }
 
         }
-
+        
         if(!$test->isRoot && (is_null($test->data["round"]) || !is_null($test->data["formula"]))) {
-
+            
             $sum = 0;
             $count = 0;
 
@@ -243,10 +230,6 @@ function getTests(Element &$test, bool $withMarks = false) : int {
 
                     $count++;
                     $sum += $student["points"];
-
-                } else {
-
-                    unset($student["points"]);
 
                 }
 
@@ -349,12 +332,27 @@ function getTests(Element &$test, bool $withMarks = false) : int {
             
             $result = $stmt->get_result()->fetch_assoc();
 
-            $test->data["mark"] = $result["mark"];
-            $test->data["points"] = $result["points"];
-            
-            if($test->accessType === Element::ACCESS_STUDENT) {
+            if($result === NULL) {
 
-                $test->data["studentNotes"] = $result["notes"];
+                $test->data["mark"] = NULL;
+                $test->data["points"] = NULL;
+                
+                if($test->accessType === Element::ACCESS_STUDENT) {
+
+                    $test->data["studentNotes"] = NULL;
+
+                }
+
+            } else {
+
+                $test->data["mark"] = $result["mark"];
+                $test->data["points"] = $result["points"];
+                
+                if($test->accessType === Element::ACCESS_STUDENT) {
+
+                    $test->data["studentNotes"] = $result["notes"];
+
+                }
 
             }
 

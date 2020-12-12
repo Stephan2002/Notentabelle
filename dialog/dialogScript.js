@@ -1,7 +1,7 @@
 
 class Dialog {
 
-    constructor(dialogElement, hideOnEnter = true, hideOnEsc = true, OKAction = undefined, cancelAction = undefined) {
+    constructor(dialogElement, hideOnEnter = true, hideOnEsc = true, OKAction = undefined, cancelAction = undefined, id = undefined) {
 
         if(dialogElement === undefined) {
 
@@ -9,13 +9,13 @@ class Dialog {
 
         } else {
 
-            this.initialize(dialogElement, hideOnEnter, hideOnEsc, OKAction, cancelAction);
+            this.initialize(dialogElement, hideOnEnter, hideOnEsc, OKAction, cancelAction, id);
 
         }
 
     }
 
-    initialize(dialogElement, hideOnEnter = true, hideOnEsc = true, OKAction = undefined, cancelAction = undefined) {
+    initialize(dialogElement, hideOnEnter = true, hideOnEsc = true, OKAction = undefined, cancelAction = undefined, id = undefined) {
 
         this.dialogElement = dialogElement;
         this.contentElement = dialogElement.getElementsByClassName("dialogContent")[0];
@@ -39,11 +39,19 @@ class Dialog {
 
         if(this.id === undefined) {
 
-            do {
+            if(id === undefined) {
 
-                this.id = Math.floor(Math.random() * 1000000000000);
+                do {
 
-            } while(document.getElementById("dialogAnchor_" + this.id) != null);
+                    this.id = Math.floor(Math.random() * 1000000000000);
+
+                } while(document.getElementById("dialogAnchor_" + this.id) != null);
+
+            } else {
+
+                this.id = id;
+
+            }
 
         }
 

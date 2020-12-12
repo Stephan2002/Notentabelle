@@ -71,7 +71,7 @@ class Alert extends Dialog {
 			button.classList.add("button_big");
 			button.classList.add("positive");
 			button.classList.add("lastDialogElement");
-			button.appendChild(document.createTextNode("OK"));
+			button.appendChild(document.createTextNode(data.OKButtonText || "OK"));
 
 			if (typeof(data.OKAction) === "function") {
 
@@ -129,7 +129,7 @@ class Alert extends Dialog {
 			button.classList.add("button_medium");
 			button.classList.add("negative");
 			button.classList.add("secondLastDialogElement");
-			button.appendChild(document.createTextNode("Abbrechen"));
+			button.appendChild(document.createTextNode(data.cancelButtonText || "Abbrechen"));
 
 			if (typeof(data.cancelAction) === "function") {
 
@@ -145,7 +145,7 @@ class Alert extends Dialog {
 			button.classList.add("button_medium");
 			button.classList.add("positive");
 			button.classList.add("lastDialogElement");
-			button.appendChild(document.createTextNode("OK"));
+			button.appendChild(document.createTextNode(data.OKButtonText || "OK"));
 
 			if (typeof(data.OKAction) === "function") {
 
@@ -250,7 +250,7 @@ class Alert extends Dialog {
 				button.classList.add("negative");
 				button.classList.add("lastDialogElement");
 				button.style.marginTop = "8px";
-				button.appendChild(document.createTextNode("Abbrechen"));
+				button.appendChild(document.createTextNode(data.cancelButtonText || "Abbrechen"));
 
 				if (typeof(data.cancelAction) === "function") {
 
@@ -348,7 +348,7 @@ class Alert extends Dialog {
 				button.classList.add("button_medium");
 				button.classList.add("negative");
 				button.classList.add("secondLastDialogElement");
-				button.appendChild(document.createTextNode("Abbrechen"));
+				button.appendChild(document.createTextNode(data.cancelButtonText || "Abbrechen"));
 
 				if (typeof(data.cancelAction) === "function") {
 
@@ -381,7 +381,7 @@ class Alert extends Dialog {
 
 			button.classList.add("positive");
 			button.classList.add("lastDialogElement");
-			button.appendChild(document.createTextNode("OK"));
+			button.appendChild(document.createTextNode(data.OKButtonText || "OK"));
 
 			if (typeof(data.OKAction) === "function") {
 

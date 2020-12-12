@@ -10,6 +10,7 @@ Input als JSON per POST bestehend aus Array, jeweils mit:
         isHidden
         firstName*
         gender*
+        notes*
         userName*
 
 Bei Fehlern wird nichts geaendert, ausser bei Fehlern bei:
@@ -32,7 +33,7 @@ function editStudent(Student $student, array &$data) : array {
 
     if(array_key_exists("lastName", $data)) {
 
-        if(!is_string($data["lastName"]) || $data["lastName"] === "" || strlen($data["lastName"]) >= 64) {
+        if(!is_string($data["lastName"]) || $data["lastName"] === "" || strlen($data["lastName"]) >= MAX_LENGTH_NAME) {
 
             return array("error" => ERROR_BAD_INPUT);
 
@@ -49,7 +50,7 @@ function editStudent(Student $student, array &$data) : array {
 
     if(array_key_exists("firstName", $data)) {
 
-        if((!is_string($data["firstName"]) && !is_null($data["firstName"])) || strlen($data["firstName"] >= 64)) {
+        if((!is_string($data["firstName"]) && !is_null($data["firstName"])) || strlen($data["firstName"]) >= MAX_LENGTH_NAME) {
 
             return array("error" => ERROR_BAD_INPUT);
 
@@ -99,6 +100,29 @@ function editStudent(Student $student, array &$data) : array {
             
             $changedProperties["gender"] = $data["gender"];
             $student->data["gender"] = $data["gender"];
+
+        }
+
+    }
+
+    if(array_key_exists("notes", $data)) {
+
+        if((!is_string($data["notes"]) && !is_null($data["notes"])) || strlen($data["notes"]) >= MAX_LENGTH_NOTES) {
+
+            return array("error" => ERROR_BAD_INPUT);
+
+        }
+
+        if($data["notes"] === "") {
+
+            $data["notes"] = NULL;
+
+        }
+
+        if($data["notes"] != $student->data["notes"]) {
+
+            $changedProperties["notes"] = $data["notes"];
+            $student->data["notes"] = $data["notes"];
 
         }
 
@@ -386,7 +410,7 @@ foreach($data as $key => &$currentStudentData) {
 
     if(!$student->writingPermission) {
 
-        sendResponse($response, ERROR_NO_WRTITING_PERMISSION, $key);
+        sendResponse($response, ERROR_NO_WRITING_PERMISSION, $key);
 
     }
 

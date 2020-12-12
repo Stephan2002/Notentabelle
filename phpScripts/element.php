@@ -21,6 +21,10 @@ define("ERROR_UNKNOWN",                 10);    // Unbekannter / anderer Fehler
 
 define("INFO_NO_CHANGE",                11);    // Keine Veraenderungen vorgenommen
 
+
+define("MAX_LENGTH_NAME", 64);
+define("MAX_LENGTH_NOTES", 256);
+
 function throwError(int $errorCode, int $occuredIn = -1) {
 
     if($occuredIn === -1) {

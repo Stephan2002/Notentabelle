@@ -617,6 +617,7 @@ table .button_square {
 .infoDialog .notes div, #tests_testInfo_div .notes div {
 
 	font-size: 14px;
+	overflow: auto;
 
 }
 
@@ -633,6 +634,30 @@ table .button_square {
 	flex: 1 1 calc(50% - 15px);
 
 }
+
+
+
+#editTestDialog .inputGroup > div {
+
+	min-width: 158px;
+
+}
+
+#editTestDialog_roundContainer > div {
+
+	display: flex;
+	
+
+}
+
+#editTestDialog_roundContainer > div > * {
+	
+	width: 50%;
+	flex: 1 1 50%;
+
+}
+
+
 
 
 
@@ -658,6 +683,8 @@ table .button_square {
 .dialogType_folder,
 .dialogType_test,
 .dialogType_ref,
+.dialogType_classRef,
+.dialogType_class,
 
 .classFlag_private,
 .classFlag_class,

@@ -9,7 +9,7 @@ Input als JSON per POST bestehend aus Objekt (nur ein neues Element kann erstell
         lastName
         isHidden? (default: false)
         firstName?*
-        gender
+        gender*?
         notes?*
         userName?*
 
@@ -25,7 +25,7 @@ function createStudent(StudentClass $class, array &$data, int $userID) : array {
 
     if(isset($data["lastName"])) {
 
-        if(!is_string($data["lastName"]) || $data["lastName"] === "" || strlen($data["lastName"]) >= 64) {
+        if(!is_string($data["lastName"]) || $data["lastName"] === "" || strlen($data["lastName"]) >= MAX_LENGTH_NAME) {
 
             return array("error" => ERROR_BAD_INPUT);
 
@@ -59,7 +59,7 @@ function createStudent(StudentClass $class, array &$data, int $userID) : array {
 
     if(isset($data["firstName"]) && $data["firstName"] !== "") {
 
-        if((!is_string($data["firstName"]) && !is_null($data["firstName"])) || strlen($data["firstName"] >= 64)) {
+        if((!is_string($data["firstName"]) && !is_null($data["firstName"])) || strlen($data["firstName"]) >= MAX_LENGTH_NAME) {
 
             return array("error" => ERROR_BAD_INPUT);
 
@@ -80,16 +80,12 @@ function createStudent(StudentClass $class, array &$data, int $userID) : array {
 
         $properties["gender"] = $data["gender"];
 
-    } else {
-
-        return array("error" => ERROR_MISSING_INPUT);
-
     }
 
 
     if(isset($data["notes"]) && $data["notes"] !== "") {
 
-        if((!is_string($data["notes"]) && !is_null($data["notes"])) || strlen($data["notes"] >= 256)) {
+        if((!is_string($data["notes"]) && !is_null($data["notes"])) || strlen($data["notes"]) >= MAX_LENGTH_NOTES) {
 
             return array("error" => ERROR_BAD_INPUT);
 
