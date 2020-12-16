@@ -150,7 +150,8 @@ h2 {
 .mainTable .studentTable_input input {
 
 	font-size: inherit;
-	background-color: white;
+	border-top: none;
+	border-bottom: none;
 	border-left: 1px solid black;
 	border-right: 1px solid black;
 	margin: 0px;
@@ -160,9 +161,17 @@ h2 {
 	width: 65px;
 	padding: 0px 10px;
 	text-align: center;
+	background-color: white;
 	-webkit-appearance: none;
     -moz-appearance: none;
     appearance: none; 
+
+}
+
+
+.mainTable .studentTable_input input.error {
+
+	background-color: rgb(255, 223, 223);
 
 }
 

@@ -13,10 +13,15 @@ class EditDialog extends Dialog {
             document.getElementById(this.id + "_" + type).style.display = "none";
 
             delete this.errors[type];
-            delete this.warnings[type];
 
-            updateErrors(this.warnings, document.getElementById(this.id + "_warningContainer"), undefined, this.isNew);
-            updateErrors(this.errors, document.getElementById(this.id + "_errorContainer"), document.getElementById(this.id + "_OKButton"), this.isNew);
+            if(this.warnings) {
+                
+                updateErrors(this.warnings, document.getElementById(this.id + "_warningContainer"), undefined);
+                delete this.warnings[type];
+
+            }
+
+            updateErrors(this.errors, document.getElementById(this.id + "_errorContainer"), document.getElementById(this.id + "_OKButton"));
 
             this.resize();
 

@@ -166,8 +166,8 @@ include("phpScripts/login.php");
                 <thead>
                     <tr>
                         <th>Name</th>
-                        <th>Datum</th>
-                        <th id="tests_table_weight"><span class="table_big">Gewichtung</span><span class="table_small">Gew.</span></th>
+                        <th id="tests_table_date">Datum</th>
+                        <th id="tests_table_weight">Gew.</th>
                         <th id="tests_table_points"><span class="table_big" style="display: none;">Punkte</span><span class="table_small" style="display: none;">Pkte.</span></th>
                         <th id="tests_table_mark_unrounded"></th>
                         <th id="tests_table_mark">Note</th>
@@ -285,6 +285,21 @@ include("phpScripts/login.php");
                     <table id="tests_testInfo_permissions" class="smallMargin"></table>
                 </div>
 
+                <table class="mediumMargin" id="tests_testInfo_markAndPointsContainer">
+                    <tr id="tests_testInfo_pointsContainer">
+                        <td>Punkte:</td>
+                        <td id="tests_testInfo_points"></td>
+                    </tr>
+                    <tr id="tests_testInfo_averageContainer">
+                        <td>Ungerundete Note:</td>
+                        <td id="tests_testInfo_average"></td>
+                    </tr>
+                    <tr id="tests_testInfo_markContainer">
+                        <td>Note:</td>
+                        <td id="tests_testInfo_mark"></td>
+                    </tr>
+                </table>
+
                 <div class="buttonGroup mediumMargin">
                     <button id="tests_testInfo_loadMoreButton" class="button_medium neutral withImage"><img src="/img/info.svg">Mehr laden</button>
                     <button id="tests_testInfo_visibilityButton" class="button_medium positive">Ausblenden</button>
@@ -324,7 +339,8 @@ include("phpScripts/login.php");
                     </div>
 
                     <button id="tests_editMarksButton" class="button_big positive withMargin">Noten / Punkte bearbeiten</button>
-                    <div class="buttonGroup withMargin">
+                    <div class="info red" id="tests_errorContainer"></div>
+                    <div id="tests_markControlButtons" class="buttonGroup withMargin" style="display: none;">
                         <button id="tests_cancelButton" class="button_medium negative">Veränderungen verwerfen</button>
                         <button id="tests_OKButton" class="button_medium positive">Veränderungen speichern</button>
                     </div>
@@ -628,11 +644,11 @@ include("phpScripts/login.php");
 
                 <table class="mediumMargin" id="semesterInfoDialog_markAndPointsContainer">
                     <tr>
-                        <td>Notenschnitt:</td>
+                        <td><span class="classFlag_private">Notenschnitt:</span><span class="classFlag_class">Klassenschnitt:</span></td>
                         <td id="semesterInfoDialog_mark"></td>
                     </tr>
                     <tr>
-                        <td>Hochpunkte:</td>
+                        <td><span class="classFlag_private">Hochpunkte:</span><span class="classFlag_class">Durchschnitt. Hochpunktzahl:</span></td>
                         <td id="semesterInfoDialog_plusPoints"></td>
                     </tr>
                 </table>
@@ -889,15 +905,15 @@ include("phpScripts/login.php");
 
                 <table class="mediumMargin" id="studentInfoDialog_markAndPointsContainer">
                     <tr id="studentInfoDialog_pointsContainer">
-                        <td>Punkte:</td>
+                        <td>Punkte<span id="studentInfoDialog_pointsLabelFragment"> vor Änderung</span>:</td>
                         <td id="studentInfoDialog_points"></td>
                     </tr>
                     <tr id="studentInfoDialog_averageContainer">
-                        <td><span class="type_subject type_folder type_root">Notenschnitt:</span><span class="type_test type_ref">Ungerundete Note:</span></td>
+                        <td><span class="type_subject type_folder type_root">Notenschnitt</span><span class="type_test type_ref">Ungerundete Note</span><span id="studentInfoDialog_averageLabelFragment"> vor Änderung</span>:</td>
                         <td id="studentInfoDialog_average"></td>
                     </tr>
                     <tr id="studentInfoDialog_markContainer">
-                        <td>Note:</td>
+                        <td>Note<span id="studentInfoDialog_markLabelFragment"> vor Änderung</span>:</td>
                         <td id="studentInfoDialog_mark"></td>
                     </tr>
                     <tr id="studentInfoDialog_plusPointsContainer">
@@ -907,7 +923,7 @@ include("phpScripts/login.php");
                 </table>
 
                 <div id="studentInfoDialog_notesContainer" class="mediumMargin notes leftAlign">
-                    <p>Anmerkungen:</p>
+                    <p>Anmerkungen<span id="studentInfoDialog_notesLabelFragment"> vor Änderung</span>:</p>
                     <div style="white-space: pre;" id="studentInfoDialog_notes"></div>
                 </div>
 
@@ -1145,6 +1161,9 @@ include("phpScripts/login.php");
             <div class="dialogContent">
                 <h2>Daten bearbeiten</h2>
 
+                <label><input type="checkbox" id="editStudentMarkDialog_with_notes" checked />Kommentar / Anmerkungen</label>
+                <textarea id="editStudentMarkDialog_notes" placeholder="Notizen"></textarea>
+
                 <div class="inputGroup">
                     <div id="editStudentMarkDialog_pointsContainer">
                         <label for="editStudentMarkDialog_points">Punkte:</label>
@@ -1156,9 +1175,6 @@ include("phpScripts/login.php");
                         <input type="number" step="any" id="editStudentMarkDialog_mark" placeholder="Note">
                     </div>
                 </div>
-
-                <label><input type="checkbox" id="editStudentMarkDialog_with_notes" checked />Kommentar / Anmerkungen</label>
-                <textarea id="editStudentMarkDialog_notes" placeholder="Notizen"></textarea>
 
                 <div class="info red" id="editStudentMarkDialog_errorContainer"></div>
 

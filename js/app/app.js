@@ -39,12 +39,14 @@ const MAX_LENGTH_NOTES = 256;
 const MAX_MARK = 100;
 const MAX_OTHER = 10000;
 
-const REGEX_STD_DATE = /^\d{4}-\d\d-\d\d$/;
-const REGEX_ALT_DATE = /^(\d\d?)\.(\d\d?)\.((?:\d\d){1,2})$/;
+const REGEX_STD_DATE = /^[1-9]\d{3}-\d\d-\d\d$/;
+const REGEX_ALT_DATE = /^(\d\d?)\.(\d\d?)\.([1-9]\d{3}|\d\d)$/;
 
 var publishInstalled = false;
 var isLoading = false;
 var isBlocked = false;
+
+var editMarks = false;
 
 var path = [];
 
@@ -213,6 +215,8 @@ function hideLoading() {
 }
 
 function hidePanelsAndPrint() {
+
+    isBlocked = true;
 
     var elements = document.body.children;
 
@@ -536,8 +540,18 @@ function printElement() {
             if(currentElement.writingPermission && currentElement.isFolder) {
 
                 document.getElementById("tests_addFolderButtons").style.display = "block";
-                document.getElementById("tests_empty_templateButton").style.display = "inline-block";
-                document.getElementById("tests_empty_instruction").style.display = "block";
+
+                if(currentElement.data.round === null) {
+
+                    document.getElementById("tests_empty_templateButton").style.display = "none";
+                    document.getElementById("tests_empty_instruction").style.display = "none";
+
+                } else {
+
+                    document.getElementById("tests_empty_templateButton").style.display = "inline-block";
+                    document.getElementById("tests_empty_instruction").style.display = "block";
+
+                }
 
             } else {
 
@@ -663,11 +677,13 @@ function printElement() {
 
             var tableString = "";
             var pointsUsed = false;
+            var unroundedUsed = false;
+            var dateUsed = false;
             
             if(currentElement.isRoot || (currentElement.data.round != null && currentElement.data.formula == null)) {
 
                 document.getElementById("tests_table_mark").innerHTML = "Note";
-                document.getElementById("tests_table_weight").innerHTML = "<span class='table_big'>Gewichtung</span><span class='table_small'>Gew.</span>";
+                document.getElementById("tests_table_weight").innerHTML = "Gew.";
 
             } else {
 
@@ -735,9 +751,9 @@ function printElement() {
                         "<td class='table_name'>" + escapeHTML(currentChildData.name) + "</td>" +
                         "<td>" + formatDate(currentChildData.date) + "</td>" +
                         "<td>" + (currentChildData.weight !== null ? (currentChildData.markCounts ? formatNumber(currentChildData.weight) : ("(" + formatNumber(currentChildData.weight) + ")")) : "") + "</td>" +
-                        "<td>" + (currentChildData.formula != null ? (currentChildData.points != null ? formatNumber(currentChildData.points) : "") : "") + "</td>" +
-                        "<td>" + ((currentElement.data.classID === null && currentChildData.round != null && currentChildData.round != 0 && currentChildData.formula == null) ? (currentChildData.mark_unrounded != null ? formatNumber(currentChildData.mark_unrounded) : "") : "") + "</td>" +
-                        "<td class='table_mark'>" + (currentChildData.round != null ? (currentChildData.mark != null ? formatNumber(currentChildData.mark) : "") : (currentChildData.points != null ? formatNumber(currentChildData.points) : "")) + "</td>" +
+                        "<td>" + (currentChildData.formula !== null ? formatNumber(currentChildData.points) : "") + "</td>" +
+                        "<td>" + ((currentElement.data.classID === null && currentChildData.round !== null && currentChildData.round != 0) ? formatNumber(currentChildData.mark_unrounded) : "") + "</td>" +
+                        "<td class='table_mark'>" + (currentChildData.round !== null ? formatNumber(currentChildData.mark) : formatNumber(currentChildData.points)) + "</td>" +
                         referenceString +
                         "<td class='table_buttons'>" +
                             (currentElement.writingPermission ? (
@@ -748,21 +764,24 @@ function printElement() {
                         "</td>" +
                     "</tr>";
 
-                if(!pointsUsed) {
-
-                    pointsUsed = currentChildData.formula != null;
-
-                }
+                if(!pointsUsed) pointsUsed = currentChildData.formula !== null;
+                if(currentElement.data.classID === null && !unroundedUsed) unroundedUsed = currentChildData.round !== null && currentChildData.round != 0;
+                if(!dateUsed) dateUsed = currentChildData.date !== null;
 
             }
 
-            if(pointsUsed) {
+            document.getElementById("tests_table_points").innerHTML = pointsUsed ? "<span class='table_big'>Punkte</span><span class='table_small'>Pkte.</span>" : "";
+            document.getElementById("tests_table_date").innerHTML = dateUsed ? "Datum" : "";
+            
+            if(unroundedUsed) {
 
-                document.getElementById("tests_table_points").innerHTML = "<span class='table_big'>Punkte</span><span class='table_small'>Pkte.</span>";
+                document.getElementById("tests_table_mark_unrounded").style.display = "none";
+                document.getElementById("tests_table_mark").colSpan = "2";
 
             } else {
 
-                document.getElementById("tests_table_points").innerHTML = "";
+                document.getElementById("tests_table_mark_unrounded").style.display = "table-cell";
+                document.getElementById("tests_table_mark").colSpan = "1";
 
             }
 
@@ -803,9 +822,17 @@ function printElement() {
 
             document.getElementById("tests_elementInfoButton").style.display = "inline-block";
 
-            if(currentElement.isRoot) {
+            if(editMarks) {
 
-                document.getElementById("tests_editMarksButton").style.display = "none";
+                document.getElementById("tests_markControlButtons").style.display = "block";
+
+            } else {
+
+                document.getElementById("tests_markControlButtons").style.display = "none";
+
+            }
+
+            if(currentElement.isRoot) {
 
                 if(currentElement.accessType === ACCESS_TEACHER) {
 
@@ -835,7 +862,7 @@ function printElement() {
 
                 if(currentElement.isFolder || currentElement.data.referenceState !== null) {
 
-                    if(currentElement.data.formula === "manual") {
+                    if(!editMarks && currentElement.data.formula === "manual") {
 
                         document.getElementById("tests_editMarksButton").style.display = "inline-block";
 
@@ -847,7 +874,15 @@ function printElement() {
 
                 } else {
 
-                    document.getElementById("tests_editMarksButton").style.display = "inline-block";
+                    if(!editMarks) {
+                        
+                        document.getElementById("tests_editMarksButton").style.display = "inline-block";
+
+                    } else {
+
+                        document.getElementById("tests_editMarksButton").style.display = "none";
+
+                    }
 
                 }
 
@@ -865,11 +900,13 @@ function printElement() {
 
             if(!currentElement.isRoot || currentElement.accessType !== ACCESS_TEACHER) {
 
+                updateStudentMarkError();
+
                 var studentTableString = "";
 
                 var isTest = !currentElement.data.isFolder && currentElement.data.referenceState === null;
 
-                if(currentElement.writingPermission) {
+                if(currentElement.writingPermission && !currentElement.isRoot) {
 
                     var getButtonString = function(studentID) {
 
@@ -913,6 +950,18 @@ function printElement() {
 
                 }
 
+                if(currentElement.isRoot || currentElement.data.round == 0 || currentElement.data.round === null) {
+
+                    document.getElementById("tests_studentTable_mark").colSpan = "1";
+                    document.getElementById("tests_studentTable_mark_unrounded").style.display = "table-cell";
+
+                } else {
+
+                    document.getElementById("tests_studentTable_mark").colSpan = "2";
+                    document.getElementById("tests_studentTable_mark_unrounded").style.display = "none";
+
+                }
+
                 if(!currentElement.isRoot && (currentElement.data.formula !== null)) {
 
                     document.getElementById("tests_studentTable_points").innerHTML = "<span class='table_big'>Punkte</span><span class='table_small'>Pkte.</span>";
@@ -927,7 +976,7 @@ function printElement() {
 
                 if(currentElement.isRoot) {
 
-                    printStudent = function(currentStudentData, colorClass) {
+                    printStudent = function(currentStudentData, markData, colorClass) {
 
                         if(currentStudentData.plusPoints == null && !showStudentsWithoutMark) return;
 
@@ -952,8 +1001,8 @@ function printElement() {
                                 "<td class='table_name'>" + escapeHTML(currentStudentData.lastName) + "</td>" +
                                 "<td>" + escapeHTML(currentStudentData.firstName) + "</td>" +
                                 "<td></td>" +
-                                "<td>" + (currentStudentData.mark_unrounded != null ? formatNumber(currentStudentData.mark_unrounded) : "") + "</td>" +
-                                "<td class='table_mark'>" + (currentStudentData.plusPoints != null ? formatNumber(currentStudentData.plusPoints) : "") + "</td>" +
+                                "<td>" + formatNumber(currentStudentData.mark_unrounded) + "</td>" +
+                                "<td class='table_mark'>" + formatNumber(currentStudentData.plusPoints) + "</td>" +
                                 getButtonString(currentStudentData.studentID) +
                             "</tr>";
 
@@ -963,7 +1012,7 @@ function printElement() {
 
                     if(isTest) {
 
-                        printStudent = function(currentStudentData, colorClass) {
+                        printStudent = function(currentStudentData, markData, colorClass) {
 
                             if(currentStudentData.points == null && !showStudentsWithoutMark) return;
 
@@ -973,7 +1022,7 @@ function printElement() {
                                     "<td>" + escapeHTML(currentStudentData.firstName) + "</td>" +
                                     "<td></td>" + 
                                     "<td></td>" +
-                                    "<td class='table_mark studentTable_input'><input type='text' readonly value='" + (currentStudentData.points != null ? formatNumber(currentStudentData.points) : "") + "'></td>" +
+                                    "<td class='table_mark studentTable_input'><input type='text'" + (markData && markData.pointsError ? " class='error'" : "") + " oninput='updateMarkOrPoints(this, true, " + currentStudentData.studentID + ")' readonly value='" + (markData && markData.points !== undefined ? markData.points : formatNumber(currentStudentData.points)) + "'></td>" +
                                     getButtonString(currentStudentData.studentID) +
                                 "</tr>";
 
@@ -981,7 +1030,7 @@ function printElement() {
 
                     } else {
 
-                        printStudent = function(currentStudentData, colorClass) {
+                        printStudent = function(currentStudentData, markData, colorClass) {
 
                             if(currentStudentData.points == null && !showStudentsWithoutMark) return;
 
@@ -991,7 +1040,7 @@ function printElement() {
                                     "<td>" + escapeHTML(currentStudentData.firstName) + "</td>" +
                                     "<td></td>" + 
                                     "<td></td>" +
-                                    "<td class='table_mark'>" + (currentStudentData.points != null ? formatNumber(currentStudentData.points) : "") + "</td>" +
+                                    "<td class='table_mark'>" + formatNumber(currentStudentData.points) + "</td>" +
                                     getButtonString(currentStudentData.studentID) +
                                 "</tr>";
 
@@ -1005,7 +1054,7 @@ function printElement() {
 
                         if(isTest) {
 
-                            printStudent = function(currentStudentData, colorClass) {
+                            printStudent = function(currentStudentData, markData, colorClass) {
 
                                 if(currentStudentData.mark == null && !showStudentsWithoutMark) return;
 
@@ -1015,7 +1064,7 @@ function printElement() {
                                         "<td>" + escapeHTML(currentStudentData.firstName) + "</td>" +
                                         "<td></td>" +
                                         "<td></td>" +
-                                        "<td class='table_mark studentTable_input'><input type='text' readonly value='" + (currentStudentData.mark != null ? formatNumber(currentStudentData.mark) : "") + "'></td>" +
+                                        "<td class='table_mark studentTable_input'><input type='text'" + (markData && markData.markError ? " class='error'" : "") + " oninput='updateMarkOrPoints(this, false, " + currentStudentData.studentID + ")' readonly value='" + (markData && markData.mark !== undefined ? markData.mark : formatNumber(currentStudentData.mark)) + "'></td>" +
                                         getButtonString(currentStudentData.studentID) +
                                     "</tr>";
         
@@ -1023,7 +1072,7 @@ function printElement() {
 
                         } else {
 
-                            printStudent = function(currentStudentData, colorClass) {
+                            printStudent = function(currentStudentData, markData, colorClass) {
 
                                 if(currentStudentData.mark == null && !showStudentsWithoutMark) return;
 
@@ -1033,7 +1082,7 @@ function printElement() {
                                         "<td>" + escapeHTML(currentStudentData.firstName) + "</td>" +
                                         "<td></td>" +
                                         "<td></td>" +
-                                        "<td class='table_mark'>" + (currentStudentData.mark != null ? formatNumber(currentStudentData.mark) : "") + "</td>" +
+                                        "<td class='table_mark'>" + formatNumber(currentStudentData.mark) + "</td>" +
                                         getButtonString(currentStudentData.studentID) +
                                     "</tr>";
         
@@ -1045,7 +1094,7 @@ function printElement() {
 
                         if(isTest) {
 
-                            printStudent = function(currentStudentData, colorClass) {
+                            printStudent = function(currentStudentData, markData, colorClass) {
 
                                 if(currentStudentData.mark == null && !showStudentsWithoutMark) return;
 
@@ -1054,8 +1103,8 @@ function printElement() {
                                         "<td class='table_name'>" + escapeHTML(currentStudentData.lastName) + "</td>" +
                                         "<td>" + escapeHTML(currentStudentData.firstName) + "</td>" +
                                         "<td></td>" +
-                                        "<td class='studentTable_input'><input type='text' readonly value='" + (currentStudentData.mark_unrounded != null ? formatNumber(currentStudentData.mark_unrounded) : "") + "'></td>" +
-                                        "<td class='table_mark'>" + (currentStudentData.mark != null ? formatNumber(currentStudentData.mark) : "") + "</td>" +
+                                        "<td class='studentTable_input'><input type='text'" + (markData && markData.markError ? " class='error'" : "") + " oninput='updateMarkOrPoints(this, false, " + currentStudentData.studentID + ")' readonly value='" + (markData && markData.mark !== undefined ? markData.mark : formatNumber(currentStudentData.mark_unrounded)) + "'></td>" +
+                                        "<td class='table_mark'>" + formatNumber(currentStudentData.mark) + "</td>" +
                                         getButtonString(currentStudentData.studentID) +
                                     "</tr>";
         
@@ -1063,7 +1112,7 @@ function printElement() {
 
                         } else {
 
-                            printStudent = function(currentStudentData, colorClass) {
+                            printStudent = function(currentStudentData, markData, colorClass) {
 
                                 if(currentStudentData.mark == null && !showStudentsWithoutMark) return;
 
@@ -1072,8 +1121,8 @@ function printElement() {
                                         "<td class='table_name'>" + escapeHTML(currentStudentData.lastName) + "</td>" +
                                         "<td>" + escapeHTML(currentStudentData.firstName) + "</td>" +
                                         "<td></td>" +
-                                        "<td class='studentTable_input'>" + (currentStudentData.mark_unrounded != null ? formatNumber(currentStudentData.mark_unrounded) : "") + "</td>" +
-                                        "<td class='table_mark'>" + (currentStudentData.mark != null ? formatNumber(currentStudentData.mark) : "") + "</td>" +
+                                        "<td>" + formatNumber(currentStudentData.mark_unrounded) + "</td>" +
+                                        "<td class='table_mark'>" + formatNumber(currentStudentData.mark) + "</td>" +
                                         getButtonString(currentStudentData.studentID) +
                                     "</tr>";
         
@@ -1087,80 +1136,168 @@ function printElement() {
 
                     if(currentElement.data.formula === "manual") {
 
-                        if(isTest) {
+                        if(currentElement.data.round == 0) {
 
-                            printStudent = function(currentStudentData, colorClass) {
+                            if(isTest) {
 
-                                if(currentStudentData.points == null && !showStudentsWithoutMark) return;
-        
-                                studentTableString +=
-                                    "<tr class='noSelect " + colorClass + "'>" +
-                                        "<td class='table_name'>" + escapeHTML(currentStudentData.lastName) + "</td>" +
-                                        "<td>" + escapeHTML(currentStudentData.firstName) + "</td>" +
-                                        "<td class='studentTable_input'><input type='text' readonly value='" + (currentStudentData.points != null ? formatNumber(currentStudentData.points) : "") + "'></td>" +
-                                        "<td></td>" +
-                                        "<td class='table_mark studentTable_input'><input type='text' readonly value='" +  (currentStudentData.mark != null ? formatNumber(currentStudentData.mark) : "") + "'></td>" +
-                                        getButtonString(currentStudentData.studentID) +
-                                    "</tr>";
-        
+                                printStudent = function(currentStudentData, markData, colorClass) {
+
+                                    if(currentStudentData.points == null && !showStudentsWithoutMark) return;
+            
+                                    studentTableString +=
+                                        "<tr class='noSelect " + colorClass + "'>" +
+                                            "<td class='table_name'>" + escapeHTML(currentStudentData.lastName) + "</td>" +
+                                            "<td>" + escapeHTML(currentStudentData.firstName) + "</td>" +
+                                            "<td class='studentTable_input'><input type='text'" + (markData && markData.pointsError ? " class='error'" : "") + " oninput='updateMarkOrPoints(this, true, " + currentStudentData.studentID + ")' readonly value='" + (markData && markData.points !== undefined ? markData.points : formatNumber(currentStudentData.points)) + "'></td>" +
+                                            "<td></td>" +
+                                            "<td class='table_mark studentTable_input'><input type='text'" + (markData && markData.markError ? " class='error'" : "") + " oninput='updateMarkOrPoints(this, false, " + currentStudentData.studentID + ")' readonly value='" + (markData && markData.mark !== undefined ? markData.mark : formatNumber(currentStudentData.mark)) + "'></td>" +
+                                            getButtonString(currentStudentData.studentID) +
+                                        "</tr>";
+            
+                                }
+
+                            } else {
+
+                                printStudent = function(currentStudentData, markData, colorClass) {
+
+                                    if(currentStudentData.points == null && !showStudentsWithoutMark) return;
+            
+                                    studentTableString +=
+                                        "<tr class='noSelect " + colorClass + "'>" +
+                                            "<td class='table_name'>" + escapeHTML(currentStudentData.lastName) + "</td>" +
+                                            "<td>" + escapeHTML(currentStudentData.firstName) + "</td>" +
+                                            "<td>" + formatNumber(currentStudentData.points) + "</td>" +
+                                            "<td></td>" +
+                                            "<td class='table_mark studentTable_input'><input type='text'" + (markData && markData.markError ? " class='error'" : "") + " oninput='updateMarkOrPoints(this, false, " + currentStudentData.studentID + ")' readonly value='" + (markData && markData.mark !== undefined ? markData.mark : formatNumber(currentStudentData.mark)) + "'></td>" +
+                                            getButtonString(currentStudentData.studentID) +
+                                        "</tr>";
+            
+                                }
+
                             }
 
                         } else {
 
-                            printStudent = function(currentStudentData, colorClass) {
+                            if(isTest) {
 
-                                if(currentStudentData.points == null && !showStudentsWithoutMark) return;
-        
-                                studentTableString +=
-                                    "<tr class='noSelect " + colorClass + "'>" +
-                                        "<td class='table_name'>" + escapeHTML(currentStudentData.lastName) + "</td>" +
-                                        "<td>" + escapeHTML(currentStudentData.firstName) + "</td>" +
-                                        "<td>" + (currentStudentData.points != null ? formatNumber(currentStudentData.points) : "") + "</td>" +
-                                        "<td></td>" +
-                                        "<td class='table_mark studentTable_input'><input type='text' readonly value='" +  (currentStudentData.mark != null ? formatNumber(currentStudentData.mark) : "") + "'></td>" +
-                                        getButtonString(currentStudentData.studentID) +
-                                    "</tr>";
-        
+                                printStudent = function(currentStudentData, markData, colorClass) {
+    
+                                    if(currentStudentData.points == null && !showStudentsWithoutMark) return;
+            
+                                    studentTableString +=
+                                        "<tr class='noSelect " + colorClass + "'>" +
+                                            "<td class='table_name'>" + escapeHTML(currentStudentData.lastName) + "</td>" +
+                                            "<td>" + escapeHTML(currentStudentData.firstName) + "</td>" +
+                                            "<td class='studentTable_input'><input type='text'" + (markData && markData.pointsError ? " class='error'" : "") + " oninput='updateMarkOrPoints(this, true, " + currentStudentData.studentID + ")' readonly value='" + (markData && markData.points !== undefined ? markData.points : formatNumber(currentStudentData.points)) + "'></td>" +
+                                            "<td class='studentTable_input'><input type='text'" + (markData && markData.markError ? " class='error'" : "") + " oninput='updateMarkOrPoints(this, false, " + currentStudentData.studentID + ")' readonly value='" + (markData && markData.mark !== undefined ? markData.mark : formatNumber(currentStudentData.mark_unrounded)) + "'></td>" +
+                                            "<td class='table_mark'>" + formatNumber(currentStudentData.mark) + "</td>" +
+                                            getButtonString(currentStudentData.studentID) +
+                                        "</tr>";
+            
+                                }
+    
+                            } else {
+    
+                                printStudent = function(currentStudentData, markData, colorClass) {
+    
+                                    if(currentStudentData.points == null && !showStudentsWithoutMark) return;
+            
+                                    studentTableString +=
+                                        "<tr class='noSelect " + colorClass + "'>" +
+                                            "<td class='table_name'>" + escapeHTML(currentStudentData.lastName) + "</td>" +
+                                            "<td>" + escapeHTML(currentStudentData.firstName) + "</td>" +
+                                            "<td>" + formatNumber(currentStudentData.points) + "</td>" +
+                                            "<td class='studentTable_input'><input type='text' oninput='updateMarkOrPoints(this, false, " + currentStudentData.studentID + ")' readonly value='" + (markData && markData.mark !== undefined ? markData.mark : formatNumber(currentStudentData.mark_unrounded)) + "'></td>" +
+                                            "<td class='table_mark'>" + formatNumber(currentStudentData.mark) + "</td>" +
+                                            getButtonString(currentStudentData.studentID) +
+                                        "</tr>";
+            
+                                }
+    
                             }
 
                         }
 
                     } else {
 
-                        if(isTest) {
+                        if(currentElement.data.round == 0) {
 
-                            printStudent = function(currentStudentData, colorClass) {
+                            if(isTest) {
 
-                                if(currentStudentData.points == null && !showStudentsWithoutMark) return;
-        
-                                studentTableString +=
-                                    "<tr class='noSelect " + colorClass + "'>" +
-                                        "<td class='table_name'>" + escapeHTML(currentStudentData.lastName) + "</td>" +
-                                        "<td>" + escapeHTML(currentStudentData.firstName) + "</td>" +
-                                        "<td class='studentTable_input'><input type='text' readonly value='" + (currentStudentData.points != null ? formatNumber(currentStudentData.points) : "") + "'></td>" +
-                                        "<td></td>" +
-                                        "<td class='table_mark'>" + (currentStudentData.mark != null ? formatNumber(currentStudentData.mark) : "") + "</td>" +
-                                        getButtonString(currentStudentData.studentID) +
-                                    "</tr>";
-        
+                                printStudent = function(currentStudentData, markData, colorClass) {
+    
+                                    if(currentStudentData.points == null && !showStudentsWithoutMark) return;
+            
+                                    studentTableString +=
+                                        "<tr class='noSelect " + colorClass + "'>" +
+                                            "<td class='table_name'>" + escapeHTML(currentStudentData.lastName) + "</td>" +
+                                            "<td>" + escapeHTML(currentStudentData.firstName) + "</td>" +
+                                            "<td class='studentTable_input'><input type='text'" + (markData && markData.pointsError ? " class='error'" : "") + " oninput='updateMarkOrPoints(this, true, " + currentStudentData.studentID + ")' readonly value='" + (markData && markData.points !== undefined ? markData.points : formatNumber(currentStudentData.points)) + "'></td>" +
+                                            "<td></td>" +
+                                            "<td class='table_mark'>" + formatNumber(currentStudentData.mark) + "</td>" +
+                                            getButtonString(currentStudentData.studentID) +
+                                        "</tr>";
+            
+                                }
+    
+                            } else {
+    
+                                printStudent = function(currentStudentData, markData, colorClass) {
+    
+                                    if(currentStudentData.points == null && !showStudentsWithoutMark) return;
+            
+                                    studentTableString +=
+                                        "<tr class='noSelect " + colorClass + "'>" +
+                                            "<td class='table_name'>" + escapeHTML(currentStudentData.lastName) + "</td>" +
+                                            "<td>" + escapeHTML(currentStudentData.firstName) + "</td>" +
+                                            "<td>" + formatNumber(currentStudentData.points) + "</td>" +
+                                            "<td></td>" +
+                                            "<td class='table_mark'>" + formatNumber(currentStudentData.mark) + "</td>" +
+                                            getButtonString(currentStudentData.studentID) +
+                                        "</tr>";
+            
+                                }
+    
                             }
 
                         } else {
 
-                            printStudent = function(currentStudentData, colorClass) {
+                            if(isTest) {
 
-                                if(currentStudentData.points == null && !showStudentsWithoutMark) return;
-        
-                                studentTableString +=
-                                    "<tr class='noSelect " + colorClass + "'>" +
-                                        "<td class='table_name'>" + escapeHTML(currentStudentData.lastName) + "</td>" +
-                                        "<td>" + escapeHTML(currentStudentData.firstName) + "</td>" +
-                                        "<td>" + (currentStudentData.points != null ? formatNumber(currentStudentData.points) : "") + "</td>" +
-                                        "<td></td>" +
-                                        "<td class='table_mark'>" + (currentStudentData.mark != null ? formatNumber(currentStudentData.mark) : "") + "</td>" +
-                                        getButtonString(currentStudentData.studentID) +
-                                    "</tr>";
-        
+                                printStudent = function(currentStudentData, markData, colorClass) {
+    
+                                    if(currentStudentData.points == null && !showStudentsWithoutMark) return;
+            
+                                    studentTableString +=
+                                        "<tr class='noSelect " + colorClass + "'>" +
+                                            "<td class='table_name'>" + escapeHTML(currentStudentData.lastName) + "</td>" +
+                                            "<td>" + escapeHTML(currentStudentData.firstName) + "</td>" +
+                                            "<td class='studentTable_input'><input type='text'" + (markData && markData.pointsError ? " class='error'" : "") + " oninput='updateMarkOrPoints(this, true, " + currentStudentData.studentID + ")' readonly value='" + (markData && markData.points !== undefined ? markData.points : formatNumber(currentStudentData.points)) + "'></td>" +
+                                            "<td>" + formatNumber(currentStudentData.mark_unrounded) + "</td>" +
+                                            "<td class='table_mark'>" + formatNumber(currentStudentData.mark) + "</td>" +
+                                            getButtonString(currentStudentData.studentID) +
+                                        "</tr>";
+            
+                                }
+    
+                            } else {
+    
+                                printStudent = function(currentStudentData, markData, colorClass) {
+    
+                                    if(currentStudentData.points == null && !showStudentsWithoutMark) return;
+            
+                                    studentTableString +=
+                                        "<tr class='noSelect " + colorClass + "'>" +
+                                            "<td class='table_name'>" + escapeHTML(currentStudentData.lastName) + "</td>" +
+                                            "<td>" + escapeHTML(currentStudentData.firstName) + "</td>" +
+                                            "<td>" + formatNumber(currentStudentData.points) + "</td>" +
+                                            "<td>" + formatNumber(currentStudentData.mark_unrounded) + "</td>" +
+                                            "<td class='table_mark'>" + formatNumber(currentStudentData.mark) + "</td>" +
+                                            getButtonString(currentStudentData.studentID) +
+                                        "</tr>";
+            
+                                }
+    
                             }
 
                         }
@@ -1199,7 +1336,7 @@ function printElement() {
 
                     }
 
-                    printStudent(currentElement.data.students[i], colorClass);
+                    printStudent(currentElement.data.students[i], markData[currentElement.data.students[i].studentID], colorClass);
 
                 }
 
@@ -1217,7 +1354,8 @@ function printElement() {
                     document.getElementById("tests_noMarks").style.display = "inline-block";
                     
                     if(
-                        currentElement.writingPermission && 
+                        currentElement.writingPermission &&
+                        !editMarks && 
                         ((
                             !currentElement.isFolder &&
                             currentElement.data.referenceState === null
@@ -1831,6 +1969,50 @@ function loadElementAndPrint() {
 
 }
 
+function printMarkInfo(elementPrefix, properties, data, singleMark) {
+
+    document.getElementById(elementPrefix + "_averageContainer").style.display = "none";
+    document.getElementById(elementPrefix + "_markContainer").style.display = "none";
+    document.getElementById(elementPrefix + "_pointsContainer").style.display = "none";
+
+    if(properties.formula !== null) {
+
+        document.getElementById(elementPrefix + "_pointsContainer").style.display = "table-row";
+        document.getElementById(elementPrefix + "_points").innerHTML = formatNumber(data.points, "-");
+
+        document.getElementById(elementPrefix + "_markContainer").style.display = "table-row";
+        document.getElementById(elementPrefix + "_mark").innerHTML = formatNumber(data.mark, "-");
+
+        if(properties.round != 0 && (singleMark || currentElement.data.classID === null || currentElement.accessType === ACCESS_STUDENT)) {
+
+            document.getElementById(elementPrefix + "_averageContainer").style.display = "table-row";
+            document.getElementById(elementPrefix + "_average").innerHTML = formatNumber(data.mark_unrounded, "-");
+        
+        }
+
+    } else if(properties.round === null) {
+
+        document.getElementById(elementPrefix + "_pointsContainer").style.display = "table-row";
+
+        document.getElementById(elementPrefix + "_points").innerHTML = formatNumber(data.points, "-");
+
+    } else if(properties.round == 0 || (!singleMark && currentElement.data.classID !== null && currentElement.accessType !== ACCESS_STUDENT)) {
+
+        document.getElementById(elementPrefix + "_markContainer").style.display = "table-row";
+
+        document.getElementById(elementPrefix + "_mark").innerHTML = formatNumber(data.mark, "-");
+
+    } else {
+
+        document.getElementById(elementPrefix + "_averageContainer").style.display = "table-row";
+        document.getElementById(elementPrefix + "_markContainer").style.display = "table-row";
+
+        document.getElementById(elementPrefix + "_average").innerHTML = formatNumber(data.mark_unrounded, "-");
+        document.getElementById(elementPrefix + "_mark").innerHTML = formatNumber(data.mark, "-");
+
+    }
+
+}
 
 function printTestInfo(elementPrefix, testData) {
 
@@ -1848,7 +2030,7 @@ function printTestInfo(elementPrefix, testData) {
 
     }
 
-    if(testData.classID == undefined || currentElement.accessType === ACCESS_STUDENT) {
+    if(currentElement.data.classID === null || currentElement.accessType === ACCESS_STUDENT) {
 
         document.getElementById("classFlagStyles").innerHTML = ".classFlag_private { display: inline; }";
 
@@ -2030,6 +2212,18 @@ function printTestInfo(elementPrefix, testData) {
 
     }
 
+    if(!currentElement.isTemplate) {
+
+        printMarkInfo(elementPrefix, testData, testData);
+
+        document.getElementById(elementPrefix + "_markAndPointsContainer").style.display = "table";
+
+    } else {
+
+        document.getElementById(elementPrefix + "_testInfoDialog_markAndPointsContainer").style.display = "none";
+
+    }
+
 }
 
 function printAdditionalTestInfo(elementPrefix, testData) {
@@ -2197,8 +2391,11 @@ function loadMoreTestInfo() {
 // Wird aufgerufen, wenn ein Element ausgewaehlt wurde
 function select(elementType, elementID, isRoot = false, isFolder = false, checkOnlyForTemplate = false) {
 
-    if(isBlocked) {
+    if(isBlocked) return
 
+    if(editMarks) {
+
+        confirmMarkCancel(select.bind(this, elementType, elementID, isRoot, isFolder, checkOnlyForTemplate), true);
         return;
 
     }
@@ -2232,8 +2429,11 @@ function showForeignSemesters() {
 
 function returnFolder() {
 
-    if(isBlocked) {
+    if(isBlocked) return;
 
+    if(editMarks) {
+
+        confirmMarkCancel(returnFolder, true);
         return;
 
     }
@@ -2496,6 +2696,16 @@ document.addEventListener("DOMContentLoaded", function () {
 
         }
 
+        if(this.semesterData.classID == undefined || currentElement.accessType === ACCESS_STUDENT) {
+
+            document.getElementById("classFlagStyles").innerHTML = ".classFlag_private { display: inline; }";
+    
+        } else {
+    
+            document.getElementById("classFlagStyles").innerHTML = ".classFlag_class { display: inline; }";
+    
+        }
+
         document.getElementById("semesterInfoDialog_name").innerHTML = escapeHTML(this.semesterData.name);
 
         if(this.semesterData.referenceID === null) {
@@ -2522,14 +2732,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
         }
 
-        if(this.semesterData.plusPoints == undefined) {
+        if(this.semesterData.plusPoints == null) {
 
             document.getElementById("semesterInfoDialog_markAndPointsContainer").style.display = "none";
 
         } else {
 
-            document.getElementById("semesterInfoDialog_plusPoints").innerHTML = formatNumber(this.semesterData.plusPoints);
-            document.getElementById("semesterInfoDialog_mark").innerHTML = formatNumber(this.semesterData.mark_unrounded);            
+            document.getElementById("semesterInfoDialog_plusPoints").innerHTML = formatNumber(this.semesterData.plusPoints, "-");
+            document.getElementById("semesterInfoDialog_mark").innerHTML = formatNumber(this.semesterData.mark_unrounded, "-");            
 
             document.getElementById("semesterInfoDialog_markAndPointsContainer").style.display = "table";
 
@@ -2840,50 +3050,6 @@ document.addEventListener("DOMContentLoaded", function () {
         printTestInfo("testInfoDialog", this.testData);
         printAdditionalTestInfo("testInfoDialog", this.testData);
 
-        if(!currentElement.isTemplate) {
-        
-            document.getElementById("testInfoDialog_averageContainer").style.display = "none";
-            document.getElementById("testInfoDialog_markContainer").style.display = "none";
-            document.getElementById("testInfoDialog_pointsContainer").style.display = "none";
-
-            if(this.testData.formula !== null) {
-
-                document.getElementById("testInfoDialog_pointsContainer").style.display = "table-row";
-                document.getElementById("testInfoDialog_markContainer").style.display = "table-row";
-
-                document.getElementById("testInfoDialog_points").innerHTML = formatNumber(this.testData.points, "-");
-                document.getElementById("testInfoDialog_mark").innerHTML = formatNumber(this.testData.mark, "-");
-
-            } else if(this.testData.round === null) {
-
-                document.getElementById("testInfoDialog_pointsContainer").style.display = "table-row";
-
-                document.getElementById("testInfoDialog_points").innerHTML = formatNumber(this.testData.points, "-");
-
-            } else if(this.testData.round == 0 || (currentElement.data.classID !== null && currentElement.accessType !== ACCESS_STUDENT)) {
-
-                document.getElementById("testInfoDialog_markContainer").style.display = "table-row";
-
-                document.getElementById("testInfoDialog_mark").innerHTML = formatNumber(this.testData.mark, "-");
-
-            } else {
-
-                document.getElementById("testInfoDialog_averageContainer").style.display = "table-row";
-                document.getElementById("testInfoDialog_markContainer").style.display = "table-row";
-
-                document.getElementById("testInfoDialog_average").innerHTML = formatNumber(this.testData.mark_unrounded, "-");
-                document.getElementById("testInfoDialog_mark").innerHTML = formatNumber(this.testData.mark, "-");
-
-            }
-
-            document.getElementById("testInfoDialog_markAndPointsContainer").style.display = "table";
-
-        } else {
-
-            document.getElementById("testInfoDialog_markAndPointsContainer").style.display = "none";
-
-        }
-
         if(
             currentElement.writingPermission && (
                 this.testData.parentID !== null ||
@@ -2939,6 +3105,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
     editSemesterDialog.openEdit = function(arg) {
+
+        if(editMarks) {
+
+            confirmMarkCancel(this.openEdit.bind(this, arg));
+            return;
+    
+        }
 
         this.errors = {};
         this.warnings = {};
@@ -3535,6 +3708,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
     editTestDialog.openEdit = function(arg) {
 
+        if(editMarks) {
+
+            confirmMarkCancel(this.openEdit.bind(this, arg));
+            return;
+    
+        }
+
         this.errors = {};
         this.warnings = {};
         this.isNew = false;
@@ -3708,7 +3888,7 @@ document.addEventListener("DOMContentLoaded", function () {
     
             }
 
-            if(this.testData.round !== null && (isTest || this.testData.formula === "manual")) {
+            if(this.testData.round !== null && ((isTest && this.testData.formula === null) || this.testData.formula === "manual")) {
                 // Note bearbeitbar
 
                 document.getElementById("editTestDialog_markContainer").style.display = "block";
@@ -3768,6 +3948,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
     editTestDialog.openAdd = function(isFolder, isReference) {
 
+        if(editMarks) {
+
+            confirmMarkCancel(this.openAdd.bind(this, isFolder, isReference));
+            return;
+    
+        }
+
         this.errors = {};
         this.warnings = {};
         
@@ -3776,7 +3963,7 @@ document.addEventListener("DOMContentLoaded", function () {
         this.testData = {
             isFolder: isFolder,
             referenceState: isReference ? "template" : null,
-            round: currentElement.data.round !== null && currentElement.data.formula === null ? "0.000" : null,
+            round: currentElement.isRoot || (currentElement.data.round !== null && currentElement.data.formula === null) ? "0.000" : null,
             semesterID: currentElement.data.semesterID,
             parentID: currentElement.isRoot ? null : currentElement.data.testID
         };
@@ -3809,7 +3996,7 @@ document.addEventListener("DOMContentLoaded", function () {
         nameElement.classList.remove("error");
         nameElement.classList.remove("warning");
 
-        document.getElementById("editTestDialog_templateButton").style.display = this.testData.isFolder ? "inline-block" : "none";
+        document.getElementById("editTestDialog_templateButton").style.display = this.testData.isFolder && this.testData.round !== null ? "inline-block" : "none";
         document.getElementById("editTestDialog_refTestButton").style.display = this.testData.referenceState !== null ? "inline-block" : "none";
         document.getElementById("editTestDialog_permissionsButton").style.display = (this.testData.parentID === null && currentElement.data.classID !== null) ? "inline-block" : "none";
         
@@ -3871,7 +4058,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         this.updateCheckbox("date");
 
-        if(currentElement.data.classID === null) {
+        if(currentElement.data.classID === null && !currentElement.isTemplate) {
 
             document.getElementById("editTestDialog_mark").value = "";
             document.getElementById("editTestDialog_mark").classList.remove("error");
@@ -4155,6 +4342,11 @@ document.addEventListener("DOMContentLoaded", function () {
                         this.errors.maxPoints = "Die Maximalpunktzahl muss kleiner als " + MAX_OTHER + " sein.";
                         localError = true;
 
+                    } else if(maxPoints <= -MAX_OTHER) {
+
+                        this.errors.maxPoints = "Die Maximalpunktzahl muss grösser als " + -MAX_OTHER + " sein.";
+                        localError = true;
+    
                     }
 
                     if(localError) {
@@ -4223,7 +4415,12 @@ document.addEventListener("DOMContentLoaded", function () {
                             this.errors.points = "Die Punktzahl muss kleiner als " + MAX_OTHER + " sein.";
                             localError = true;
         
-                        }   
+                        } else if(points <= -MAX_OTHER) {
+
+                            this.errors.points = "Die Punktzahl muss grösser als " + -MAX_OTHER + " sein.";
+                            localError = true;
+        
+                        }
 
                     }
 
@@ -4251,10 +4448,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 if(
                     this.testData.round !== null && 
                     (
-                        isTest || 
-                        (
-                            withFormula && document.getElementById("editTestDialog_formula").value === "manual"
-                        )
+                        (isTest && !withFormula) || 
+                        (withFormula && document.getElementById("editTestDialog_formula").value === "manual")
                     )
                 ) {
                     // Note bearbeitbar
@@ -4276,7 +4471,12 @@ document.addEventListener("DOMContentLoaded", function () {
                             this.errors.mark = "Die Note muss kleiner als " + MAX_MARK + " sein.";
                             localError = true;
         
-                        }   
+                        } else if(mark <= -MAX_MARK) {
+
+                            this.errors.mark = "Die Note muss grösser als " + -MAX_MARK + " sein.";
+                            localError = true;
+        
+                        }
 
                     }
 
@@ -4414,10 +4614,8 @@ document.addEventListener("DOMContentLoaded", function () {
             if(
                 this.testData.round !== null && 
                 (
-                    isTest || 
-                    (
-                        withFormula && document.getElementById("editTestDialog_formula").value === "manual"
-                    )
+                    (isTest && !withFormula) || 
+                    (withFormula && document.getElementById("editTestDialog_formula").value === "manual")
                 )
             ) {
 
@@ -4462,15 +4660,15 @@ document.addEventListener("DOMContentLoaded", function () {
         if(properties.name !== this.testData.name) changedProperties.name = properties.name;
         if(properties.markCounts != this.testData.markCounts) changedProperties.markCounts = properties.markCounts;
         
-        if(properties.weight !== undefined && properties.weight !== this.testData.weight) changedProperties.weight = properties.weight;
+        if(properties.weight !== undefined && properties.weight != this.testData.weight) changedProperties.weight = properties.weight;
         if(properties.formula !== undefined && properties.formula !== this.testData.formula) changedProperties.formula = properties.formula;
-        if(properties.round !== undefined && properties.round !== this.testData.round) changedProperties.round = properties.round;
+        if(properties.round !== undefined && properties.round != this.testData.round) changedProperties.round = properties.round;
 
         if(this.testData.maxPoints === null) {
             if(properties.maxPoints !== undefined) {
                 changedProperties.maxPoints = properties.maxPoints;
             }
-        } else if(this.testData.maxPoints !== properties.maxPoints) {
+        } else if(this.testData.maxPoints != properties.maxPoints) {
             changedProperties.maxPoints = properties.maxPoints || null;
         }
 
@@ -4486,7 +4684,7 @@ document.addEventListener("DOMContentLoaded", function () {
             if(properties.date !== undefined) {
                 changedProperties.date = properties.date;
             }
-        } else if(this.testData.date !== properties.date) {
+        } else if(Date.parse(this.testData.date) !== properties.date * 1000) {
             changedProperties.date = properties.date || null;
         }
 
@@ -4521,7 +4719,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     if(properties.points !== undefined) {
                         changedProperties.points = properties.points;
                     }
-                } else if(this.testData.points !== properties.points) {
+                } else if(this.testData.points != properties.points) {
                     changedProperties.points = properties.points || null;
                 }
 
@@ -4530,10 +4728,8 @@ document.addEventListener("DOMContentLoaded", function () {
             if(
                 this.testData.round !== null && 
                 (
-                    isTest || 
-                    (
-                        withFormula && document.getElementById("editTestDialog_formula").value === "manual"
-                    )
+                    (isTest && !withFormula) || 
+                    (withFormula && document.getElementById("editTestDialog_formula").value === "manual")
                 )
             ) {
 
@@ -4541,7 +4737,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     if(properties.mark !== undefined) {
                         changedProperties.mark = properties.mark;
                     }
-                } else if(this.testData.mark !== properties.mark) {
+                } else if(this.testData.mark != properties.mark) {
                     changedProperties.mark = properties.mark || null;
                 }
 
@@ -4573,7 +4769,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             if(currentAdditionalInfo !== undefined) additionalInfo.tests[testData.testID] = currentAdditionalInfo;
 
-            if(changedProperties.date !== undefined && changedProperties.date !== null) changedProperties.date = (new Date(changedProperties.date)).toISOString().substr(0, 10);
+            if(changedProperties.date !== undefined && changedProperties.date !== null) changedProperties.date = (new Date(changedProperties.date * 1000)).toISOString().substr(0, 10);
             if(changedProperties.markCounts !== undefined) changedProperties.markCounts = Number(changedProperties.markCounts);
             
             delete changedProperties.permissions;
@@ -4595,16 +4791,27 @@ document.addEventListener("DOMContentLoaded", function () {
                 cache.semesters = [];
                 cache.tests = [];
 
+                if(testInfoDialog.isVisible()) {
+
+                    Loading.hide(testInfoDialog.dialogElement);
+                    testInfoDialog.close();
+        
+                } 
+
+                loadElementAndPrint();
+
+            } else {
+
+                if(testInfoDialog.isVisible()) {
+
+                    testInfoDialog.printInfo();
+                    Loading.hide(testInfoDialog.dialogElement);
+        
+                }
+
+                hidePanelsAndPrint();
+
             }
-
-            if(testInfoDialog.isVisible()) {
-
-                testInfoDialog.printInfo();
-                Loading.hide(testInfoDialog.dialogElement);
-    
-            }
-
-            loadElementAndPrint();
 
         }, function(errorCode, result) {
 
@@ -4713,7 +4920,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         } else {
 
-            properties.date = (new Date(properties.date)).toISOString().substr(0, 10);
+            properties.date = (new Date(properties.date * 1000)).toISOString().substr(0, 10);
 
         }
 
@@ -4768,7 +4975,7 @@ document.addEventListener("DOMContentLoaded", function () {
             roundCustomElement.style.display = "none";
 
             delete this.errors.roundCustom;
-            this.updateErrors();
+            this.updateErrors(this.isNew);
 
         }
 
@@ -5402,9 +5609,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     document.getElementById("semesters_visibilityButton")     .addEventListener("click", function() { changeVisibilty(this, "semesters"); });
     document.getElementById("tests_visibilityButton")         .addEventListener("click", function() { changeVisibilty(this, "tests"); });
-    document.getElementById("classes_visibilityButton")       .addEventListener("click", function() { changeVisibilty(this, "classes"); });
-    document.getElementById("students_visibilityButton")      .addEventListener("click", function() { changeVisibilty(this, "students"); });
-    document.getElementById("tests_studentVisibilityButton")  .addEventListener("click", function() { changeVisibilty(this, "studentMarks"); });
 
     // setTimeout(function() { editTestDialog.openEdit(1) }, 500);
 

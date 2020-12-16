@@ -5,9 +5,9 @@ cache.rootClasses = undefined;
 
 additionalInfo.classes = [];
 
-var editMarks = true;
 var showStudentsWithoutMark = false;
-var markData;
+var showStudentsWithoutMarkBefore = false;
+var markData = [];
 
 var classInfoDialog;
 var studentInfoDialog;
@@ -56,6 +56,327 @@ function changeStudentMarkVisibility() {
 
 }
 
+function startMarkEdit() {
+    
+    if(isBlocked) return;
+
+    editMarks = true;
+
+    showStudentsWithoutMarkBefore = showStudentsWithoutMark;
+    showStudentsWithoutMark = true;
+
+    document.getElementById("tests_studentMarkVisibiltyButton").children[0].innerHTML = "ausblenden";
+
+    hidePanelsAndPrint();
+
+}
+
+function stopMarkEdit(noTableUpdate) {
+
+    if(isBlocked) return;
+
+    editMarks = false;
+    showStudentsWithoutMark = showStudentsWithoutMarkBefore;
+    markData = [];
+
+    document.getElementById("tests_studentMarkVisibiltyButton").children[0].innerHTML = showStudentsWithoutMark ? "ausblenden" : "anzeigen";
+
+    if(noTableUpdate !== true) {
+
+        hidePanelsAndPrint();
+
+    }
+
+}
+
+
+
+function saveMarkChanges(noTableUpdate, func) {
+
+    if(isBlocked) return;
+
+    var isTest = !currentElement.isFolder && currentElement.data.referenceState === null;
+    var students = currentElement.data.students;
+
+    var markChanges = [];
+
+    var markChange = 
+        currentElement.data.round !== null && 
+        (
+            (isTest && currentElement.data.formula === null) || 
+            (currentElement.data.formula === "manual")
+        );
+
+    var pointsChange = 
+        isTest && 
+        (
+            currentElement.data.round === null || 
+            currentElement.data.formula !== null
+        );
+
+    for(var i = 0; i < students.length; i++) {
+
+        var studentID = students[i].studentID;
+        var currentMarkData = markData[studentID];
+
+        if(currentMarkData) {
+
+            var changesObj = { studentID: studentID };
+            var hasChanged = false;
+
+            if(markChange) {
+        
+                var mark = currentMarkData.mark.trim() !== "" ? Number(currentMarkData.mark).toFixed(6) : null;
+        
+                if(students[i].mark == null) {
+                    if(mark !== null) {
+                        changesObj.mark = mark;
+                        hasChanged = true;
+                    }
+                } else if(students[i].mark !== mark) {
+                    changesObj.mark = mark;
+                    hasChanged = true;
+                }
+
+            }
+
+            if(pointsChange) {
+                
+                var points = currentMarkData.points.trim() !== "" ? Number(currentMarkData.points).toFixed(3) : null;
+        
+                if(students[i].points == null) {
+                    if(points !== null) {
+                        changesObj.points = points;
+                        hasChanged = true;
+                    }
+                } else if(students[i].points !== points) {
+                    changesObj.points = points;
+                    hasChanged = true;
+                }
+
+            }
+
+            var notes = currentMarkData.notes || null;
+    
+            if(students[i].studentNotes == null) {
+                if(notes !== null) {
+                    changesObj.notes = notes;
+                    hasChanged = true;
+                }
+            } else if(students[i].studentNotes !== notes) {
+                changesObj.notes = notes;
+                hasChanged = true;
+            }
+
+            if(hasChanged) {
+
+                markChanges.push(changesObj);
+
+            }
+
+        }
+
+    }
+
+    stopMarkEdit(true);
+
+    if(Object.keys(markChanges).length <= 0) {
+
+        if(typeof(func) === "function") {
+
+            func();
+        
+        }
+    
+        if(noTableUpdate !== true) {
+    
+            hidePanelsAndPrint();
+    
+        }
+
+        return;
+
+    }
+
+    Loading.show(null, "semi-transparent");
+
+    loadData("/phpScripts/edit/editTest.php", [{ testID: currentElement.data.testID, students: markChanges }], function(result) {
+
+        if(result.result[0]) {
+
+            cache.semesters = [];
+            cache.tests = [];
+
+        }
+
+        if(typeof(func) === "function") {
+
+            func();
+        
+        }
+    
+        if(noTableUpdate !== true) {
+    
+            loadElementAndPrint();
+    
+        }
+
+        return;
+
+    }, function(errorCode, result) {
+
+        if(result === undefined || result.result === undefined || result.result[0] == undefined) {
+
+            showErrorMessage(TEXT_ERROR_UNCHANGED + errorCode, true);
+
+        } else {
+
+            showErrorMessage(TEXT_ERROR_CHANGED + errorCode, true);
+
+        }
+
+    });
+
+}
+
+function confirmMarkCancel(func, noTableUpdate) {
+
+    var buttons = [
+        {
+            name: "Verwerfen und fortfahren",
+            color: "negative",
+            action: function() { stopMarkEdit(noTableUpdate); func(); }
+        }
+    ];
+
+    if(!document.getElementById("tests_OKButton").disabled) {
+
+        buttons[1] = {
+            name: "Speichern und fortfahren",
+            color: "positive",
+            action: function() { saveMarkChanges(noTableUpdate, func); }
+        }
+
+    }
+
+    new Alert({
+        title: "Veränderungen verwerfen?",
+        icon: "warning",
+        type: "options",
+        description: "Mit dieser Aktion werden die Veränderungen\nan Noten/Punkten/Anmerkungen verworfen, wenn Sie sie nicht speichern.",
+        buttons: buttons,
+        hasCancelButton: true
+
+    });
+
+}
+
+function updateMarkOrPoints(element, isPoints, studentID) {
+    
+    if(markData[studentID] === undefined) {
+
+        var students = currentElement.data.students;
+        var found = false;
+        
+        for(var i = 0; i < students.length; i++) {
+
+            if(students[i].studentID === studentID) {
+
+                found = true;
+
+                markData[studentID] = {};
+
+            }
+
+        }
+
+        if(!found) return;
+
+    }
+
+    var newValue = Number(element.value.replace(/,/g, "."));
+    var currentMarkData = markData[studentID];
+    var hasError = false;
+
+    if(isPoints) {
+
+        if(isNaN(newValue) || newValue >= MAX_OTHER || newValue <= -MAX_OTHER) {
+
+            hasError = true;
+            currentMarkData.pointsError = true;
+
+        } else {
+
+            currentMarkData.pointsError = false;
+
+        }
+
+        currentMarkData.points = element.value;
+
+    } else {
+
+        if(isNaN(newValue) || newValue >= MAX_MARK || newValue <= -MAX_MARK) {
+
+            hasError = true;
+            currentMarkData.markError = true;
+
+        } else {
+
+            currentMarkData.markError = false;
+
+        }
+
+        currentMarkData.mark = element.value;
+
+    }
+
+    if(hasError) {
+
+        element.classList.add("error");
+
+    } else {
+
+        element.classList.remove("error");
+        
+    }
+
+    updateStudentMarkError();
+
+}
+
+function updateStudentMarkError() {
+
+    var pointsError = false;
+    var markError = false;
+
+    for(var studentID in markData) {
+
+        var currentMarkData = markData[studentID];
+        
+        if(currentMarkData.pointsError) pointsError = true;
+        if(currentMarkData.markError) markError = true;
+
+    }
+
+    var errorString = "";
+
+    if(markError) errorString += "<p class='blankLine_small'>Es wurden fehlerhafte Angaben als Noten eingetragen.</p>";
+    if(pointsError) errorString += "<p class='blankLine_small'>Es wurden fehlerhafte Angaben als Punkte eingetragen.</p>";
+
+    if(pointsError || markError) {
+
+        document.getElementById("tests_OKButton").disabled = true;
+        document.getElementById("tests_errorContainer").innerHTML = errorString;
+        document.getElementById("tests_errorContainer").style.display = "inline-block";
+
+    } else {
+
+        document.getElementById("tests_OKButton").disabled = false;
+        document.getElementById("tests_errorContainer").style.display = "none";
+
+    }
+
+}
 
 
 document.addEventListener("DOMContentLoaded", function() {
@@ -433,6 +754,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
             } else {
 
+                document.getElementById("studentInfoDialog_notesLabelFragment").innerHTML = "";
                 document.getElementById("studentInfoDialog_notesContainer").style.display = "block";
                 document.getElementById("studentInfoDialog_notes").innerHTML = escapeHTML(this.studentData.notes);
 
@@ -455,49 +777,74 @@ document.addEventListener("DOMContentLoaded", function() {
 
             } else {
 
+                if(markData[this.studentData.studentID] && markData[this.studentData.studentID].notes !== undefined) {
+
+                    document.getElementById("studentInfoDialog_notesLabelFragment").innerHTML = " vor Änderung";
+
+                } else {
+
+                    document.getElementById("studentInfoDialog_notesLabelFragment").innerHTML = "";
+
+                }
+
                 document.getElementById("studentInfoDialog_notesContainer").style.display = "block";
                 document.getElementById("studentInfoDialog_notes").innerHTML = escapeHTML(this.studentData.studentNotes);
 
             }
 
-            document.getElementById("studentInfoDialog_pointsContainer").style.display = "none";
-            document.getElementById("studentInfoDialog_averageContainer").style.display = "none";
-            document.getElementById("studentInfoDialog_markContainer").style.display = "none";
-            document.getElementById("studentInfoDialog_plusPointsContainer").style.display = "none";
-
             if(currentElement.isRoot) {
 
+                editButton.style.display = "none";
+
+                document.getElementById("studentInfoDialog_pointsContainer").style.display = "none";
+                document.getElementById("studentInfoDialog_markContainer").style.display = "none";
                 document.getElementById("studentInfoDialog_averageContainer").style.display = "table-row";
                 document.getElementById("studentInfoDialog_plusPointsContainer").style.display = "table-row";
+
+                document.getElementById("studentInfoDialog_averageLabelFragment").innerHTML = "";
 
                 document.getElementById("studentInfoDialog_average").innerHTML = formatNumber(this.studentData.mark_unrounded, "-");
                 document.getElementById("studentInfoDialog_plusPoints").innerHTML = formatNumber(this.studentData.plusPoints, "-");
 
-            } else if(currentElement.data.formula !== null) {
-
-                document.getElementById("studentInfoDialog_pointsContainer").style.display = "table-row";
-                document.getElementById("studentInfoDialog_markContainer").style.display = "table-row";
-
-                document.getElementById("studentInfoDialog_points").innerHTML = formatNumber(this.studentData.points, "-");
-                document.getElementById("studentInfoDialog_mark").innerHTML = formatNumber(this.studentData.mark, "-");
-
-            } else if(currentElement.data.round === null) {
-
-                document.getElementById("studentInfoDialog_pointsContainer").style.display = "table-row";
-                document.getElementById("studentInfoDialog_points").innerHTML = formatNumber(this.studentData.points, "-");
-
-            } else if(currentElement.data.round == 0) {
-
-                document.getElementById("studentInfoDialog_markContainer").style.display = "table-row";
-                document.getElementById("studentInfoDialog_mark").innerHTML = formatNumber(this.studentData.mark, "-");
-
             } else {
 
-                document.getElementById("studentInfoDialog_averageContainer").style.display = "table-row";
-                document.getElementById("studentInfoDialog_markContainer").style.display = "table-row";
+                editButton.style.display = "inline-block";
 
-                document.getElementById("studentInfoDialog_average").innerHTML = formatNumber(this.studentData.mark_unrounded, "-");
-                document.getElementById("studentInfoDialog_mark").innerHTML = formatNumber(this.studentData.mark, "-");
+                if(markData[this.studentData.studentID]) {
+
+                    if(markData[this.studentData.studentID].mark !== undefined) {
+
+                        document.getElementById("studentInfoDialog_averageLabelFragment").innerHTML = " vor Änderung";
+                        document.getElementById("studentInfoDialog_markLabelFragment").innerHTML = " vor Änderung";
+
+                    } else {
+
+                        document.getElementById("studentInfoDialog_averageLabelFragment").innerHTML = "";
+                        document.getElementById("studentInfoDialog_markLabelFragment").innerHTML = "";
+
+                    }
+
+                    if(markData[this.studentData.studentID].points !== undefined) {
+
+                        document.getElementById("studentInfoDialog_pointsLabelFragment").innerHTML = " vor Änderung";
+
+                    } else {
+
+                        document.getElementById("studentInfoDialog_pointsLabelFragment").innerHTML = "";
+
+                    }
+
+                } else {
+
+                    document.getElementById("studentInfoDialog_averageLabelFragment").innerHTML = "";
+                    document.getElementById("studentInfoDialog_markLabelFragment").innerHTML = "";
+                    document.getElementById("studentInfoDialog_pointsLabelFragment").innerHTML = "";
+
+                }
+
+                document.getElementById("studentInfoDialog_plusPointsContainer").style.display = "none";
+
+                printMarkInfo("studentInfoDialog", currentElement.data, this.studentData, true);
 
             }
 
@@ -1497,7 +1844,7 @@ document.addEventListener("DOMContentLoaded", function() {
     
             }
 
-            loadElementAndPrint();
+            hidePanelsAndPrint();
 
         }, function(errorCode, result) {
 
@@ -1538,17 +1885,256 @@ document.addEventListener("DOMContentLoaded", function() {
 
 
 
-    editStudentMarkDialog.open = function() {
+    editStudentMarkDialog.open = function(arg) {
 
         this.errors = {};
-        
+
+        if(typeof(arg) === "object") {
+
+            this.studentData = arg;
+
+        } else {
+
+            var students = currentElement.data.students;
+            var len = students.length;
+            var found = false;
+
+            for(var i = 0; i < len; i++) {
+                
+                if(students[i].studentID === arg) {
+
+                    this.studentData = students[i];
+                    found = true;
+                    break;
+
+                }
+
+            }
+            
+            if(!found) return;
+
+        }
+
+        var currentMarkData = markData[this.studentData.studentID];
+
+        document.getElementById("editStudentMarkDialog_with_notes").checked = true;
+
+        if(currentMarkData && currentMarkData.notes !== undefined) {
+            
+            document.getElementById("editStudentMarkDialog_notes").value = currentMarkData.notes;
+
+        } else {
+            
+            document.getElementById("editStudentMarkDialog_notes").value = this.studentData.studentNotes || "";
+
+        }
+
+        this.updateCheckbox("notes");
+
+        var isTest = !currentElement.isFolder && currentElement.data.referenceState === null;
+
+        if(
+            isTest && 
+            (
+                currentElement.data.round === null || 
+                currentElement.data.formula !== null
+            )
+        ) {
+            // Punkte bearbeitbar
+
+            if(currentMarkData && currentMarkData.points !== undefined) {
+
+                document.getElementById("editStudentMarkDialog_points").value = currentMarkData.points;
+
+            } else {
+
+                document.getElementById("editStudentMarkDialog_points").value = this.studentData.points ? Number(this.studentData.points) : "";
+
+            }
+
+            document.getElementById("editStudentMarkDialog_pointsContainer").style.display = "inline-block";
+
+            this.check("points", true, false);
+
+
+        } else {
+
+            document.getElementById("editStudentMarkDialog_pointsContainer").style.display = "none";
+
+        }
+
+        if(
+            currentElement.data.round !== null && 
+            (
+                (isTest && currentElement.data.formula === null) ||
+                currentElement.data.formula === "manual"
+            )
+        ) {
+            // Note bearbeitbar
+
+            if(currentMarkData && currentMarkData.mark !== undefined) {
+
+                document.getElementById("editStudentMarkDialog_mark").value = currentMarkData.mark;
+
+            } else {
+
+                document.getElementById("editStudentMarkDialog_mark").value = this.studentData.mark ? Number(this.studentData.mark) : "";
+
+            }
+
+            document.getElementById("editStudentMarkDialog_markContainer").style.display = "inline-block";
+
+            this.check("mark", true, false);
+
+        } else {
+
+            document.getElementById("editStudentMarkDialog_markContainer").style.display = "none";
+
+        }
+
+        this.updateErrors();
+
         this.show();
 
     };
 
     editStudentMarkDialog.check = function(ID, printAll = true, callErrorUpdate = true) {
 
+        if(ID === undefined) {
+
+            var checkAll = true;
+
+        } else {
+
+            var checkAll = false;
+
+        }
+
+        var isTest = !currentElement.isFolder && currentElement.data.referenceState === null;
+            
+        if(checkAll || ID === "points") {
+
+            if(
+                isTest && 
+                (
+                    currentElement.data.round === null || 
+                    currentElement.data.formula !== null
+                )
+            ) {
+                // Punkte bearbeitbar
+
+                var element = document.getElementById("editStudentMarkDialog_points");
+                var localError = false;
+
+                if(element.value.trim() !== "") {
+
+                    var points = Number(element.value.replace(/,/g, "."));
+
+                    if(isNaN(points)) {
+
+                        this.errors.points = "Die Punktzahl muss eine Zahl sein.";
+                        localError = true;
+    
+                    } else if(points >= MAX_OTHER) {
+    
+                        this.errors.points = "Die Punktzahl muss kleiner als " + MAX_OTHER + " sein.";
+                        localError = true;
+    
+                    } else if(points <= -MAX_OTHER) {
+
+                        this.errors.points = "Die Punktzahl muss grösser als " + -MAX_OTHER + " sein.";
+                        localError = true;
+    
+                    }
+
+                }
+
+                if(localError) {
+
+                    element.classList.add("error");
+
+                } else {
+            
+                    delete this.errors.points;
+                    element.classList.remove("error");
+            
+                }
+
+            } else {
+
+                delete this.errors.points;
+
+            }
+
+        }
         
+        if(checkAll || ID === "mark") {
+
+            if(
+                currentElement.data.round !== null && 
+                (
+                    (isTest && currentElement.data.formula === null) ||
+                    currentElement.data.formula === "manual"
+                )
+            ) {
+                // Note bearbeitbar
+
+                var element = document.getElementById("editStudentMarkDialog_mark");
+                var localError = false;
+
+                if(element.value.trim() !== "") {
+
+                    var mark = Number(element.value.replace(/,/g, "."));
+
+                    if(isNaN(mark)) {
+
+                        this.errors.mark = "Die Note muss eine Zahl sein.";
+                        localError = true;
+    
+                    } else if(mark >= MAX_MARK) {
+    
+                        this.errors.mark = "Die Note muss kleiner als " + MAX_MARK + " sein.";
+                        localError = true;
+    
+                    } else if(mark <= -MAX_MARK) {
+
+                        this.errors.mark = "Die Note muss grösser als " + -MAX_MARK + " sein.";
+                        localError = true;
+    
+                    }
+
+                }
+
+                if(localError) {
+
+                    element.classList.add("error");
+
+                } else {
+            
+                    delete this.errors.mark;
+                    element.classList.remove("error");
+            
+                }
+
+            } else {
+
+                delete this.errors.mark;
+
+            }
+
+        }
+
+        if(checkAll || ID === "notes") {
+
+            this.checkNotes();
+
+        }
+
+        if(callErrorUpdate) {
+
+            return this.updateErrors(this.isNew);
+
+        }
 
     };
 
@@ -1559,6 +2145,88 @@ document.addEventListener("DOMContentLoaded", function() {
     };
 
     editStudentMarkDialog.save = function() {
+
+        if(Object.keys(this.errors).length > 0) return;
+
+        if(markData[this.studentData.studentID] === undefined) {
+
+            var students = currentElement.data.students;
+            var found = false;
+            
+            for(var i = 0; i < students.length; i++) {
+    
+                if(students[i].studentID === this.studentData.studentID) {
+    
+                    found = true;
+    
+                    markData[this.studentData.studentID] = {};
+    
+                }
+    
+            }
+    
+            if(!found) return;
+    
+        }
+
+        var currentMarkData = markData[this.studentData.studentID];
+
+        var isTest = !currentElement.isFolder && currentElement.data.referenceState === null;
+
+        if(
+            isTest && 
+            (
+                currentElement.data.round === null || 
+                currentElement.data.formula !== null
+            )
+        ) {
+            // Punkte bearbeitbar
+
+            currentMarkData.points = document.getElementById("editStudentMarkDialog_points").value;
+            currentMarkData.pointsError = false;
+
+        }
+
+
+        if(
+            currentElement.data.round !== null && 
+            (
+                (isTest && currentElement.data.formula === null) ||
+                currentElement.data.formula === "manual"
+            )
+        ) {
+            // Note bearbeitbar
+
+            currentMarkData.mark = document.getElementById("editStudentMarkDialog_mark").value;
+            currentMarkData.markError = false;
+
+        }
+
+        if(document.getElementById("editStudentMarkDialog_with_notes").checked) {
+
+            currentMarkData.notes = document.getElementById("editStudentMarkDialog_notes").value;
+
+        } else {
+
+            currentMarkData.notes = "";
+
+        }
+
+        if(!editMarks) {
+            
+            startMarkEdit();
+
+        } else {
+
+            hidePanelsAndPrint();
+
+        }
+
+        if(studentInfoDialog.isVisible()) {
+
+            studentInfoDialog.printInfo();
+
+        }
 
         this.close();
 
@@ -1585,6 +2253,10 @@ document.addEventListener("DOMContentLoaded", function() {
     document.getElementById("editStudentDialog_cancelButton")       .addEventListener("click",  editStudentDialog.close.bind(editStudentDialog));
     document.getElementById("editStudentDialog_OKButton")           .addEventListener("click",  editStudentDialog.save.bind(editStudentDialog));
 
+    document.getElementById("editStudentMarkDialog_with_notes")     .addEventListener("change", editStudentMarkDialog.updateCheckbox.bind(editStudentMarkDialog, "notes"));
+    document.getElementById("editStudentMarkDialog_notes")          .addEventListener("input",  editStudentMarkDialog.check.bind(editStudentMarkDialog, "notes"));
+    document.getElementById("editStudentMarkDialog_points")         .addEventListener("input",  editStudentMarkDialog.check.bind(editStudentMarkDialog, "points"));
+    document.getElementById("editStudentMarkDialog_mark")           .addEventListener("input",  editStudentMarkDialog.check.bind(editStudentMarkDialog, "mark"));
     document.getElementById("editStudentMarkDialog_cancelButton")   .addEventListener("click",  editStudentMarkDialog.close.bind(editStudentMarkDialog));
     document.getElementById("editStudentMarkDialog_OKButton")       .addEventListener("click",  editStudentMarkDialog.save.bind(editStudentMarkDialog));
 
@@ -1596,6 +2268,14 @@ document.addEventListener("DOMContentLoaded", function() {
     document.getElementById("students_editClassButton")         .addEventListener("click", editClassDialog.openEdit.bind(editClassDialog, undefined));
     document.getElementById("students_addStudentButton")        .addEventListener("click", editStudentDialog.openAdd.bind(editStudentDialog));
 
+    document.getElementById("classes_visibilityButton")         .addEventListener("click", function() { changeVisibilty(this, "classes"); });
+    document.getElementById("students_visibilityButton")        .addEventListener("click", function() { changeVisibilty(this, "students"); });
+    
+    document.getElementById("tests_studentVisibilityButton")    .addEventListener("click", function() { changeVisibilty(this, "studentMarks"); });
     document.getElementById("tests_studentMarkVisibiltyButton") .addEventListener("click", changeStudentMarkVisibility);
+    document.getElementById("tests_editMarksButton")            .addEventListener("click", startMarkEdit);
+    document.getElementById("tests_cancelButton")               .addEventListener("click", stopMarkEdit);
+    document.getElementById("tests_OKButton")                   .addEventListener("click", saveMarkChanges);
+
 
 });
