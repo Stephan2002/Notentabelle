@@ -367,9 +367,9 @@ function printElement() {
                 "<tr onclick='select(" + (currentChildData.isFolder ? TYPE_SEMESTER : TYPE_TEST) + ", " + (currentChildData.referenceTestID ? (currentChildData.referenceTestID + ", false, true") : ((currentChildData.referenceID ? currentChildData.referenceID : currentChildData.semesterID) + ", " + !currentChildData.isFolder + ", " + currentChildData.isFolder)) + ")'>" +
                     "<td class='table_name'>" + escapeHTML(currentChildData.name) + "</td>" +
                     "<td class='table_buttons'>" +
-                        "<button class='button_square negative table_big'><img src='/img/delete.svg' alt='X'></button>" +
-                        "<button class='button_square positive table_big' onclick='event.stopPropagation(); editSemesterDialog.openEdit(" + currentChildData.semesterID + ")'><img src='/img/edit.svg' alt='.'></button>" +
-                        "<button class='button_square neutral' onclick='event.stopPropagation(); semesterInfoDialog.open(" + currentChildData.semesterID + ")'><img src='/img/info.svg' alt='i'></button>" + 
+                        "<button class='button_square negative table_big'><img src='/img/icons/delete.svg' alt='X'></button>" +
+                        "<button class='button_square positive table_big' onclick='event.stopPropagation(); editSemesterDialog.openEdit(" + currentChildData.semesterID + ")'><img src='/img/icons/edit.svg' alt='.'></button>" +
+                        "<button class='button_square neutral' onclick='event.stopPropagation(); semesterInfoDialog.open(" + currentChildData.semesterID + ")'><img src='/img/icons/info.svg' alt='i'></button>" + 
                     "</td>" +
                 "</tr>";
 
@@ -708,19 +708,19 @@ function printElement() {
 
                     if(currentChildData.referenceState === "forbidden") {
 
-                        referenceString = "<td><img src='/img/warning.svg' alt='!' title='Kein Zugriff mehr!'>"
+                        referenceString = "<td><img src='/img/icons/warning.svg' alt='!' title='Kein Zugriff mehr!'>"
 
                     } else if(currentChildData.referenceState === "removed") {
 
-                        referenceString = "<td><img src='/img/warning.svg' alt='!' title='Element entfernt!'>"
+                        referenceString = "<td><img src='/img/icons/warning.svg' alt='!' title='Element entfernt!'>"
 
                     } else if(currentChildData.referenceState === "outdated") {
 
-                        referenceString = "<td><img src='/img/warning.svg' alt='!' title='Nicht mehr auf aktuellem Stand!'>"
+                        referenceString = "<td><img src='/img/icons/warning.svg' alt='!' title='Nicht mehr auf aktuellem Stand!'>"
 
                     } else if(currentChildData.referenceState === "template" && !currentElement.isTemplate) {
 
-                        referenceString = "<td><img src='/img/warning.svg' alt='!' title='Kein zu referenzierendes Element bestimmt!'>"
+                        referenceString = "<td><img src='/img/icons/warning.svg' alt='!' title='Kein zu referenzierendes Element bestimmt!'>"
 
                     }
 
@@ -757,10 +757,10 @@ function printElement() {
                         referenceString +
                         "<td class='table_buttons'>" +
                             (currentElement.writingPermission ? (
-                            "<button class='button_square negative table_big'><img src='/img/delete.svg' alt='X'></button>" +
-                            "<button class='button_square positive table_big' onclick='event.stopPropagation(); editTestDialog.openEdit(" + currentChildData.testID + ")'><img src='/img/edit.svg' alt='.'></button>"
+                            "<button class='button_square negative table_big'><img src='/img/icons/delete.svg' alt='X'></button>" +
+                            "<button class='button_square positive table_big' onclick='event.stopPropagation(); editTestDialog.openEdit(" + currentChildData.testID + ")'><img src='/img/icons/edit.svg' alt='.'></button>"
                             ) : "") +
-                            "<button class='button_square neutral' onclick='event.stopPropagation(); testInfoDialog.open(" + currentChildData.testID + ")'><img src='/img/info.svg' alt='i'></button>" +
+                            "<button class='button_square neutral' onclick='event.stopPropagation(); testInfoDialog.open(" + currentChildData.testID + ")'><img src='/img/icons/info.svg' alt='i'></button>" +
                         "</td>" +
                     "</tr>";
 
@@ -912,8 +912,8 @@ function printElement() {
 
                         return (
                             "<td class='studentTable_buttons'>" +
-                                "<button class='button_square positive table_big' onclick='event.stopPropagation(); editStudentMarkDialog.open(" + studentID + ")'><img src='/img/edit.svg' alt='.'></button>" +
-                                "<button class='button_square neutral' onclick='event.stopPropagation(); studentInfoDialog.open(" + studentID + ", true)'><img src='/img/info.svg' alt='i'></button>" +
+                                "<button class='button_square positive table_big' onclick='event.stopPropagation(); editStudentMarkDialog.open(" + studentID + ")'><img src='/img/icons/edit.svg' alt='.'></button>" +
+                                "<button class='button_square neutral' onclick='event.stopPropagation(); studentInfoDialog.open(" + studentID + ", true)'><img src='/img/icons/info.svg' alt='i'></button>" +
                             "</td>"
                         );
 
@@ -925,7 +925,7 @@ function printElement() {
 
                         return (
                             "<td class='studentTable_buttons'>" +
-                                "<button class='button_square neutral' onclick='event.stopPropagation(); studentInfoDialog.open(" + studentID + ", true)'><img src='/img/info.svg' alt='i'></button>" +
+                                "<button class='button_square neutral' onclick='event.stopPropagation(); studentInfoDialog.open(" + studentID + ", true)'><img src='/img/icons/info.svg' alt='i'></button>" +
                             "</td>"
                         );
 
@@ -1455,8 +1455,8 @@ function printElement() {
                     "<td class='table_name'>" + escapeHTML(currentChildData.name) + "</td>" +
                     "<td>" + escapeHTML(currentChildData.userName) + "</td>" +
                     "<td class='table_buttons'>" +
-                        "<button class='button_square positive table_big'><img src='/img/save.svg' alt='S'></button>" +
-                        "<button class='button_square neutral' onclick='event.stopPropagation(); semesterInfoDialog.open(" + currentChildData.semesterID + ")'><img src='/img/info.svg' alt='i'></button>" +
+                        "<button class='button_square positive table_big'><img src='/img/icons/save.svg' alt='S'></button>" +
+                        "<button class='button_square neutral' onclick='event.stopPropagation(); semesterInfoDialog.open(" + currentChildData.semesterID + ")'><img src='/img/icons/info.svg' alt='i'></button>" +
                     "</td>" +
                 "</tr>";
 
@@ -1559,9 +1559,9 @@ function printElement() {
                 "<tr onclick='select(TYPE_CLASS, " + (currentChildData.referenceID ? currentChildData.referenceID : currentChildData.classID) + ", false, true)'>" +
                     "<td class='table_name'>" + escapeHTML(currentChildData.name) + "</td>" +
                     "<td class='table_buttons'>" +
-                        "<button class='button_square negative table_big'><img src='/img/delete.svg' alt='X'></button>" +
-                        "<button class='button_square positive table_big' onclick='event.stopPropagation(); editClassDialog.openEdit(" + currentChildData.classID + ")'><img src='/img/edit.svg' alt='.'></button>" +
-                        "<button class='button_square neutral' onclick='event.stopPropagation(); classInfoDialog.open(" + currentChildData.classID + ")'><img src='/img/info.svg' alt='i'></button>" +
+                        "<button class='button_square negative table_big'><img src='/img/icons/delete.svg' alt='X'></button>" +
+                        "<button class='button_square positive table_big' onclick='event.stopPropagation(); editClassDialog.openEdit(" + currentChildData.classID + ")'><img src='/img/icons/edit.svg' alt='.'></button>" +
+                        "<button class='button_square neutral' onclick='event.stopPropagation(); classInfoDialog.open(" + currentChildData.classID + ")'><img src='/img/icons/info.svg' alt='i'></button>" +
                     "</td>" +
                 "</tr>";
 
@@ -1600,8 +1600,8 @@ function printElement() {
                     "<td class='table_name'>" + escapeHTML(currentChildData.name) + "</td>" +
                     "<td>" + escapeHTML(currentChildData.userName) + "</td>" +
                     "<td class='table_buttons'>" +
-                        "<button class='button_square positive table_big'><img src='/img/save.svg' alt='S'></button>" +
-                        "<button class='button_square neutral' onclick='event.stopPropagation(); classInfoDialog.open(" + currentChildData.classID + ")'><img src='/img/info.svg' alt='i'></button>" +
+                        "<button class='button_square positive table_big'><img src='/img/icons/save.svg' alt='S'></button>" +
+                        "<button class='button_square neutral' onclick='event.stopPropagation(); classInfoDialog.open(" + currentChildData.classID + ")'><img src='/img/icons/info.svg' alt='i'></button>" +
                     "</td>" +
                 "</tr>";
 
@@ -1668,10 +1668,10 @@ function printElement() {
                     "<td>" + escapeHTML(currentChildData.userName) + "</td>" +
                     "<td class='table_buttons'>" +
                         (currentElement.writingPermission ? (
-                            "<button class='button_square negative table_big'><img src='/img/delete.svg' alt='X'></button>" +
-                            "<button class='button_square positive table_big' onclick='editStudentDialog.openEdit(" + currentChildData.studentID + ")'><img src='/img/edit.svg' alt='.'></button>"
+                            "<button class='button_square negative table_big'><img src='/img/icons/delete.svg' alt='X'></button>" +
+                            "<button class='button_square positive table_big' onclick='editStudentDialog.openEdit(" + currentChildData.studentID + ")'><img src='/img/icons/edit.svg' alt='.'></button>"
                         ) : "") +
-                        "<button class='button_square neutral' onclick='event.stopPropagation(); studentInfoDialog.open(" + currentChildData.studentID + ")'><img src='/img/info.svg' alt='i'></button>" +
+                        "<button class='button_square neutral' onclick='event.stopPropagation(); studentInfoDialog.open(" + currentChildData.studentID + ")'><img src='/img/icons/info.svg' alt='i'></button>" +
                     "</td>" +
                 "</tr>";
 
@@ -2075,8 +2075,8 @@ function printTestInfo(elementPrefix, testData) {
 
     }
 
-    document.getElementById(elementPrefix + "_isHiddenIcon").src = "/img/" + (testData.isHidden ? "checked.svg" : "cross.svg");
-    document.getElementById(elementPrefix + "_markCountsIcon").src = "/img/" + (testData.markCounts ? "checked.svg" : "cross.svg");
+    document.getElementById(elementPrefix + "_isHiddenIcon").src = "/img/icons/" + (testData.isHidden ? "checked.svg" : "cross.svg");
+    document.getElementById(elementPrefix + "_markCountsIcon").src = "/img/icons/" + (testData.markCounts ? "checked.svg" : "cross.svg");
 
     if(testData.round === null) {
 
@@ -2305,7 +2305,7 @@ function printAdditionalTestInfo(elementPrefix, testData) {
                         "<tr>" +
                             "<td>" + escapeHTML(currentPermission.userName) + "</td>" +
                             "<td>" + escapeHTML(currentPermission.firstName + " " + currentPermission.lastName) + "</td>" +
-                            "<td><img src=\"/img/" + (currentPermission.writingPermission ? "edit_black.svg" : "view.svg") + "\"></td>" +
+                            "<td><img src=\"/img/icons/" + (currentPermission.writingPermission ? "edit_black.svg" : "view.svg") + "\"></td>" +
                         "</tr>";
 
                 }
@@ -2352,7 +2352,7 @@ function printAdditionalTestInfo(elementPrefix, testData) {
 
         }
 
-        loadMoreButton.innerHTML = "<img src=\"/img/info.svg\">Mehr laden";
+        loadMoreButton.innerHTML = "<img src=\"/img/icons/info.svg\">Mehr laden";
         loadMoreButton.disabled = false;
         loadMoreButton.style.display = "inline-block";
 
@@ -2367,7 +2367,7 @@ function loadMoreTestInfo() {
 
     var loadMoreButton = document.getElementById("tests_testInfo_loadMoreButton");
 
-    loadMoreButton.innerHTML = "<img src=\"/img/loading.svg\">Laden...";
+    loadMoreButton.innerHTML = "<img src=\"/img/icons/loading.svg\">Laden...";
     loadMoreButton.disabled = true;
 
     var testID = currentElement.data.testID;
@@ -2719,7 +2719,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         }
 
-        document.getElementById("semesterInfoDialog_isHiddenIcon").src = "/img/" + (this.semesterData.isHidden ? "checked.svg" : "cross.svg");
+        document.getElementById("semesterInfoDialog_isHiddenIcon").src = "/img/icons/" + (this.semesterData.isHidden ? "checked.svg" : "cross.svg");
 
         if(this.semesterData.notes === null) {
 
@@ -2903,7 +2903,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         permissionsString +=
                             "<tr>" +
                                 "<td>" + escapeHTML(currentPermission.userName) + "</td>" +
-                                "<td><img src=\"/img/" + (currentPermission.writingPermission ? "edit_black.svg" : "view.svg") + "\"></td>" +
+                                "<td><img src=\"/img/icons/" + (currentPermission.writingPermission ? "edit_black.svg" : "view.svg") + "\"></td>" +
                             "</tr>";
 
                     }
@@ -2929,7 +2929,7 @@ document.addEventListener("DOMContentLoaded", function () {
             refContainer.style.display = "none";
             classNameContainer.style.display = "none";
 
-            loadMoreButton.innerHTML = "<img src=\"/img/info.svg\">Mehr laden";
+            loadMoreButton.innerHTML = "<img src=\"/img/icons/info.svg\">Mehr laden";
             loadMoreButton.disabled = false;
             loadMoreButton.style.display = "inline-block";
 
@@ -2944,7 +2944,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         var loadMoreButton = document.getElementById("semesterInfoDialog_loadMoreButton");
 
-        loadMoreButton.innerHTML = "<img src=\"/img/loading.svg\">Laden...";
+        loadMoreButton.innerHTML = "<img src=\"/img/icons/loading.svg\">Laden...";
         loadMoreButton.disabled = true;
 
         var semesterID = this.semesterData.semesterID;
@@ -3078,7 +3078,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         var loadMoreButton = document.getElementById("testInfoDialog_loadMoreButton");
 
-        loadMoreButton.innerHTML = "<img src=\"/img/loading.svg\">Laden...";
+        loadMoreButton.innerHTML = "<img src=\"/img/icons/loading.svg\">Laden...";
         loadMoreButton.disabled = true;
 
         var testID = this.testData.testID;
@@ -5208,7 +5208,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 "<tr>" +
                     "<td>" + escapeHTML(currentPermission.userName) + "</td>" +
                     "<td>" + (currentPermission.lastName === undefined ? "" : ((currentPermission.firstName === undefined ? "" : escapeHTML(currentPermission.firstName)) + " " + escapeHTML(currentPermission.lastName))) + "</td>" +
-                    "<td><img src='" + (currentPermission.writingPermission ? "/img/edit_black.svg" : "/img/view.svg") + "' /></td>" +
+                    "<td><img src='" + (currentPermission.writingPermission ? "/img/icons/edit_black.svg" : "/img/icons/view.svg") + "' /></td>" +
                     "<td>" +
                         "<label class='checkboxSwitch'>" +
                             "<input type='checkbox' " + (currentPermission.writingPermission ? "checked" : "") + " onchange='permissionsDialog.changeWritingPermission(" + i + ", this);' />" +
@@ -5216,7 +5216,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         "</label>" +
                     "</td>" +
                     "<td>" +
-                        "<button class='button_square negative' onclick='permissionsDialog.deletePermission(" + i + ", this);'><img src='/img/delete.svg' /></button>" +
+                        "<button class='button_square negative' onclick='permissionsDialog.deletePermission(" + i + ", this);'><img src='/img/icons/delete.svg' /></button>" +
                     "</td>" +
                 "</tr>";
 
@@ -5244,7 +5244,7 @@ document.addEventListener("DOMContentLoaded", function () {
         
         this.data[rowNumber].writingPermission = element.checked;
 
-        element.parentNode.parentNode.previousElementSibling.children[0].src = element.checked ? "/img/edit_black.svg" : "/img/view.svg";
+        element.parentNode.parentNode.previousElementSibling.children[0].src = element.checked ? "/img/icons/edit_black.svg" : "/img/icons/view.svg";
 
         var cancelButton = document.getElementById("permissionsDialog_cancelButton");
 
@@ -5459,7 +5459,7 @@ document.addEventListener("DOMContentLoaded", function () {
         var rowString =
         "<td>" + escapeHTML(inputElement.value) + "</td>" +
         "<td></td>" +
-        "<td><img src='/img/view.svg' /></td>" +
+        "<td><img src='/img/icons/view.svg' /></td>" +
         "<td>" +
             "<label class='checkboxSwitch'>" +
                 "<input type='checkbox' onchange='permissionsDialog.changeWritingPermission(" + newIndex + ", this);' />" +
@@ -5467,7 +5467,7 @@ document.addEventListener("DOMContentLoaded", function () {
             "</label>" +
         "</td>" +
         "<td>" +
-            "<button class='button_square negative' onclick='permissionsDialog.deletePermission(" + newIndex + ", this);'><img src='/img/delete.svg' /></button>" +
+            "<button class='button_square negative' onclick='permissionsDialog.deletePermission(" + newIndex + ", this);'><img src='/img/icons/delete.svg' /></button>" +
         "</td>";
 
         var rowElement = document.createElement("tr");

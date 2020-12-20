@@ -13,11 +13,11 @@ include("phpScripts/login.php");
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
         <title>Notentabelle - App</title>
-        <link rel="stylesheet" href="css/basicStylesheet.css">
-        <link rel="stylesheet" href="dialog/dialogStylesheet.css">
-        <link rel="stylesheet" href="loading/loadingStylesheet.css">
-        <link rel="stylesheet" href="buttonSelect/buttonSelectStylesheet.css">
-        <link rel="stylesheet" href="css/stylesheet.css">
+        <link rel="stylesheet" href="/css/basicStylesheet.css">
+        <link rel="stylesheet" href="/modules/dialog/dialogStylesheet.css">
+        <link rel="stylesheet" href="/modules/loading/loadingStylesheet.css">
+        <link rel="stylesheet" href="/modules/buttonSelect/buttonSelectStylesheet.css">
+        <link rel="stylesheet" href="/css/stylesheet.css">
 
         <!-- Icons -->
         <link rel="icon" type="image/png" href="img/logo/logo_low.png">
@@ -26,15 +26,15 @@ include("phpScripts/login.php");
 
         <meta name="apple-mobile-web-app-capable" content="yes">
 
-        <script language="javascript" type="text/javascript" src="dialog/dialogScript.js"></script>
-        <script language="javascript" type="text/javascript" src="dialog/alertScript.js"></script>
-        <script language="javascript" type="text/javascript" src="loading/loadingScript.js"></script>
-        <script language="javascript" type="text/javascript" src="buttonSelect/buttonSelectScript.js"></script>
-        <script language="javascript" type="text/javascript" src="js/editDialog.js"></script>
-        <script language="javascript" type="text/javascript" src="js/app/app.js"></script>
+        <script language="javascript" type="text/javascript" src="/modules/dialog/dialogScript.js"></script>
+        <script language="javascript" type="text/javascript" src="/modules/dialog/alertScript.js"></script>
+        <script language="javascript" type="text/javascript" src="/modules/loading/loadingScript.js"></script>
+        <script language="javascript" type="text/javascript" src="/modules/buttonSelect/buttonSelectScript.js"></script>
+        <script language="javascript" type="text/javascript" src="/js/editDialog.js"></script>
+        <script language="javascript" type="text/javascript" src="/js/app/app.js"></script>
 
         <?php if($_SESSION["isTeacher"]) { ?>
-            <script language="javascript" type="text/javascript" src="js/app/appTeacher.js"></script>
+            <script language="javascript" type="text/javascript" src="/js/app/appTeacher.js"></script>
         <?php } ?>
         
         <script>
@@ -48,8 +48,8 @@ include("phpScripts/login.php");
 
         <noscript><meta http-equiv="refresh" content="0; error?error=1&origin=app"></noscript>
 
-        <link rel="preload" href="/img/loading.svg" as="image">
-        <link rel="prefetch" href="/img/loading.svg">
+        <link rel="preload" href="/img/icons/loading.svg" as="image">
+        <link rel="prefetch" href="/img/icons/loading.svg">
 
         <style id="parentTypeStyles"></style>
         <style id="typeStyles"></style>
@@ -61,7 +61,7 @@ include("phpScripts/login.php");
     <body>
         <?php include("phpScripts/preload.php"); ?>
         <nav>
-            <img id="returnButton" src="/img/arrow_back.svg" alt="<" tabindex="0">
+            <img id="returnButton" src="/img/icons/arrow_back.svg" alt="<" tabindex="0">
             <div id="header">
                 <h1 id="title">Semesterauswahl</h1>
             </div>
@@ -125,8 +125,8 @@ include("phpScripts/login.php");
                 <button class="button_big positive">Gelöschte Elemente</button>
 
                 <div class="buttonGroup" id="semesters_controlButtons">
-                    <button class="button_medium positive withImage" id="semesters_editButton"><img src="/img/edit.svg" alt="">Ordner umbenennen</button>
-                    <button class="button_medium negative withImage" id="semesters_deleteButton"><img src="/img/delete.svg" alt="">Ordner löschen</button>
+                    <button class="button_medium positive withImage" id="semesters_editButton"><img src="/img/icons/edit.svg" alt="">Ordner umbenennen</button>
+                    <button class="button_medium negative withImage" id="semesters_deleteButton"><img src="/img/icons/delete.svg" alt="">Ordner löschen</button>
                 </div>
             </div>
         </div>
@@ -228,7 +228,7 @@ include("phpScripts/login.php");
                         <table>
                             <tr>
                                 <td>Ausgeblendet:</td>
-                                <td><img id="tests_testInfo_isHiddenIcon" src="/img/checked.svg"></td>
+                                <td><img id="tests_testInfo_isHiddenIcon" src="/img/icons/checked.svg"></td>
                             </tr>
                         </table>
                     </div>
@@ -236,7 +236,7 @@ include("phpScripts/login.php");
                         <table>
                             <tr>
                                 <td>Zählt:</td>
-                                <td><img id="tests_testInfo_markCountsIcon" src="/img/checked.svg"></td>
+                                <td><img id="tests_testInfo_markCountsIcon" src="/img/icons/checked.svg"></td>
                             </tr>
                         </table>
                     </div>
@@ -301,7 +301,7 @@ include("phpScripts/login.php");
                 </table>
 
                 <div class="buttonGroup mediumMargin">
-                    <button id="tests_testInfo_loadMoreButton" class="button_medium neutral withImage"><img src="/img/info.svg">Mehr laden</button>
+                    <button id="tests_testInfo_loadMoreButton" class="button_medium neutral withImage"><img src="/img/icons/info.svg">Mehr laden</button>
                     <button id="tests_testInfo_visibilityButton" class="button_medium positive">Ausblenden</button>
                 </div>
                 <div class="buttonGroup noMargin" style="margin-bottom: -40px;">
@@ -355,20 +355,20 @@ include("phpScripts/login.php");
                 <button id="tests_deletedButton" class="button_big positive">Gelöschte Elemente</button>
 
                 <div id="tests_semesterButtons" style="display: block;">
-                    <button class="button_big neutral withMargin withImage" id="tests_semesterInfoButton"><img src="/img/info.svg" alt=""><span class="parentType_semester">Semester</span><span class="parentType_template">Vorlage</span>-Eigenschaften</button>
+                    <button class="button_big neutral withMargin withImage" id="tests_semesterInfoButton"><img src="/img/icons/info.svg" alt=""><span class="parentType_semester">Semester</span><span class="parentType_template">Vorlage</span>-Eigenschaften</button>
 
                     <div class="buttonGroup noMargin" id="tests_semesterControlButtons">
-                        <button class="button_medium positive withImage" id="tests_editSemesterButton"><img src="/img/edit.svg" alt=""><span class="parentType_semester">Semester</span><span class="parentType_template">Vorlage</span> bearbeiten</button>
-                        <button class="button_medium negative withImage" id="tests_deleteSemesterButton"><img src="/img/delete.svg" alt=""><span class="parentType_semester">Semester</span><span class="parentType_template">Vorlage</span> löschen</button>
+                        <button class="button_medium positive withImage" id="tests_editSemesterButton"><img src="/img/icons/edit.svg" alt=""><span class="parentType_semester">Semester</span><span class="parentType_template">Vorlage</span> bearbeiten</button>
+                        <button class="button_medium negative withImage" id="tests_deleteSemesterButton"><img src="/img/icons/delete.svg" alt=""><span class="parentType_semester">Semester</span><span class="parentType_template">Vorlage</span> löschen</button>
                     </div>
                 </div>
 
                 <div id="tests_elementButtons" style="display: none;">
-                    <button class="button_big neutral withMargin withImage" id="tests_elementInfoButton"><img src="/img/info.svg" alt=""><span class="type_subject">Fach</span><span class="type_folder">Ordner</span><span class="type_test">Prüfungs</span><span class="type_ref">Verknüpfungs</span>-Eigenschaften</button>
+                    <button class="button_big neutral withMargin withImage" id="tests_elementInfoButton"><img src="/img/icons/info.svg" alt=""><span class="type_subject">Fach</span><span class="type_folder">Ordner</span><span class="type_test">Prüfungs</span><span class="type_ref">Verknüpfungs</span>-Eigenschaften</button>
 
                     <div class="buttonGroup noMargin" id="tests_elementControlButtons">
-                        <button class="button_medium positive withImage" id="tests_editElementButton"><img src="/img/edit.svg" alt=""><span class="type_subject">Fach</span><span class="type_folder">Ordner</span><span class="type_test">Prüfung</span><span class="type_ref">Verknüpfung</span> bearbeiten</button>
-                        <button class="button_medium negative withImage" id="tests_deleteElementButton"><img src="/img/delete.svg" alt=""><span class="type_subject">Fach<br></span><span class="type_folder">Ordner</span><span class="type_test">Prüfung</span><span class="type_ref">Verknüpfung</span> löschen</button>
+                        <button class="button_medium positive withImage" id="tests_editElementButton"><img src="/img/icons/edit.svg" alt=""><span class="type_subject">Fach</span><span class="type_folder">Ordner</span><span class="type_test">Prüfung</span><span class="type_ref">Verknüpfung</span> bearbeiten</button>
+                        <button class="button_medium negative withImage" id="tests_deleteElementButton"><img src="/img/icons/delete.svg" alt=""><span class="type_subject">Fach<br></span><span class="type_folder">Ordner</span><span class="type_test">Prüfung</span><span class="type_ref">Verknüpfung</span> löschen</button>
                     </div>
                 </div>
 
@@ -500,11 +500,11 @@ include("phpScripts/login.php");
                 <button id="students_visibilityButton" class="button_big positive">Versteckte Schüler/innen <span>anzeigen</span></button>
                 <button class="button_big positive">Gelöschte Schüler/innen</button>
 
-                <button class="button_big neutral withMargin withImage" id="students_classInfoButton"><img src="/img/info.svg" alt="">Klasseninfo</button>
+                <button class="button_big neutral withMargin withImage" id="students_classInfoButton"><img src="/img/icons/info.svg" alt="">Klasseninfo</button>
 
                 <div class="buttonGroup noMargin" id="students_classControlButtons">
-                    <button class="button_medium positive withImage" id="students_editClassButton"><img src="/img/edit.svg" alt="">Klasse bearbeiten</button>
-                    <button class="button_medium negative withImage" id="students_deleteClassButton"><img src="/img/delete.svg" alt="">Klasse löschen</button>
+                    <button class="button_medium positive withImage" id="students_editClassButton"><img src="/img/icons/edit.svg" alt="">Klasse bearbeiten</button>
+                    <button class="button_medium negative withImage" id="students_deleteClassButton"><img src="/img/icons/delete.svg" alt="">Klasse löschen</button>
                 </div>
             </div>
         </div>
@@ -566,7 +566,7 @@ include("phpScripts/login.php");
         </div>
         
         <div class="panel" id="error_div" style="display: none;">
-            <img id="error" src="/img/error.svg" alt="">
+            <img id="error" src="/img/icons/error.svg" alt="">
 
             <div id="error_other">
                 <h2>Fehler</h2>
@@ -627,7 +627,7 @@ include("phpScripts/login.php");
                 <table class="mediumMargin">
                     <tr>
                         <td>Ausgeblendet:</td>
-                        <td><img id="semesterInfoDialog_isHiddenIcon" src="/img/checked.svg"></td>
+                        <td><img id="semesterInfoDialog_isHiddenIcon" src="/img/icons/checked.svg"></td>
                     </tr>
                 </table>
 
@@ -654,7 +654,7 @@ include("phpScripts/login.php");
                 </table>
 
                 <div class="buttonGroup mediumMargin">
-                    <button id="semesterInfoDialog_loadMoreButton" class="button_medium neutral withImage"><img src="/img/info.svg">Mehr laden</button>
+                    <button id="semesterInfoDialog_loadMoreButton" class="button_medium neutral withImage"><img src="/img/icons/info.svg">Mehr laden</button>
                     <button id="semesterInfoDialog_visibilityButton" class="button_medium positive">Ausblenden</button>
                 </div>
                 <div class="buttonGroup noMargin">
@@ -662,8 +662,8 @@ include("phpScripts/login.php");
                     <button id="semesterInfoDialog_otherButton" class="button_medium positive">Anderes</button>
                 </div>
                 <div id="semesterInfoDialog_controlButtons" class="buttonGroup noMargin">
-                    <button id="semesterInfoDialog_editButton" class="button_medium positive withImage"><img src="/img/edit.svg">Bearbeiten</button>
-                    <button id="semesterInfoDialog_deleteButton" class="button_medium negative withImage"><img src="/img/delete.svg">Löschen</button>
+                    <button id="semesterInfoDialog_editButton" class="button_medium positive withImage"><img src="/img/icons/edit.svg">Bearbeiten</button>
+                    <button id="semesterInfoDialog_deleteButton" class="button_medium negative withImage"><img src="/img/icons/delete.svg">Löschen</button>
                 </div>
 
                 <button id="semesterInfoDialog_closeButton" class="button_big negative smallMargin">Schliessen</button>
@@ -723,7 +723,7 @@ include("phpScripts/login.php");
                         <table>
                             <tr>
                                 <td>Ausgeblendet:</td>
-                                <td><img id="testInfoDialog_isHiddenIcon" src="/img/checked.svg"></td>
+                                <td><img id="testInfoDialog_isHiddenIcon" src="/img/icons/checked.svg"></td>
                             </tr>
                         </table>
                     </div>
@@ -731,7 +731,7 @@ include("phpScripts/login.php");
                         <table>
                             <tr>
                                 <td>Zählt:</td>
-                                <td><img id="testInfoDialog_markCountsIcon" src="/img/checked.svg"></td>
+                                <td><img id="testInfoDialog_markCountsIcon" src="/img/icons/checked.svg"></td>
                             </tr>
                         </table>
                     </div>
@@ -796,7 +796,7 @@ include("phpScripts/login.php");
                 </table>
 
                 <div class="buttonGroup mediumMargin">
-                    <button id="testInfoDialog_loadMoreButton" class="button_medium neutral withImage"><img src="/img/info.svg">Mehr laden</button>
+                    <button id="testInfoDialog_loadMoreButton" class="button_medium neutral withImage"><img src="/img/icons/info.svg">Mehr laden</button>
                     <button id="testInfoDialog_visibilityButton" class="button_medium positive">Ausblenden</button>
                 </div>
                 <div class="buttonGroup noMargin">
@@ -804,8 +804,8 @@ include("phpScripts/login.php");
                     <button id="testInfoDialog_otherButton" class="button_medium positive">Anderes</button>
                 </div>
                 <div id="testInfoDialog_controlButtons" class="buttonGroup noMargin">
-                    <button id="testInfoDialog_editButton" class="button_medium positive withImage"><img src="/img/edit.svg">Bearbeiten</button>
-                    <button id="testInfoDialog_deleteButton" class="button_medium negative withImage"><img src="/img/delete.svg">Löschen</button>
+                    <button id="testInfoDialog_editButton" class="button_medium positive withImage"><img src="/img/icons/edit.svg">Bearbeiten</button>
+                    <button id="testInfoDialog_deleteButton" class="button_medium negative withImage"><img src="/img/icons/delete.svg">Löschen</button>
                 </div>
                 
                 <button id="testInfoDialog_closeButton" class="button_big negative smallMargin">Schliessen</button>
@@ -835,7 +835,7 @@ include("phpScripts/login.php");
                 <table class="mediumMargin">
                     <tr>
                         <td>Ausgeblendet:</td>
-                        <td><img id="classInfoDialog_isHiddenIcon" src="/img/checked.svg"></td>
+                        <td><img id="classInfoDialog_isHiddenIcon" src="/img/icons/checked.svg"></td>
                     </tr>
                 </table>
 
@@ -851,7 +851,7 @@ include("phpScripts/login.php");
                 </div>
 
                 <div class="buttonGroup mediumMargin">
-                    <button id="classInfoDialog_loadMoreButton" class="button_medium neutral withImage"><img src="/img/info.svg">Mehr laden</button>
+                    <button id="classInfoDialog_loadMoreButton" class="button_medium neutral withImage"><img src="/img/icons/info.svg">Mehr laden</button>
                     <button id="classInfoDialog_visibilityButton" class="button_medium positive">Ausblenden</button>
                 </div>
                 <div class="buttonGroup noMargin">
@@ -859,8 +859,8 @@ include("phpScripts/login.php");
                     <button id="classInfoDialog_action2Button" class="button_medium positive">Übertragen</button>
                 </div>
                 <div id="classInfoDialog_controlButtons" class="buttonGroup noMargin">
-                    <button id="classInfoDialog_editButton" class="button_medium positive withImage"><img src="/img/edit.svg">Bearbeiten</button>
-                    <button id="classInfoDialog_deleteButton" class="button_medium negative withImage"><img src="/img/delete.svg">Löschen</button>
+                    <button id="classInfoDialog_editButton" class="button_medium positive withImage"><img src="/img/icons/edit.svg">Bearbeiten</button>
+                    <button id="classInfoDialog_deleteButton" class="button_medium negative withImage"><img src="/img/icons/delete.svg">Löschen</button>
                 </div>
 
                <button id="classInfoDialog_closeButton" class="button_big negative smallMargin">Schliessen</button>
@@ -899,7 +899,7 @@ include("phpScripts/login.php");
                 <table class="mediumMargin">
                     <tr>
                         <td>Ausgeblendet:</td>
-                        <td><img id="studentInfoDialog_isHiddenIcon" src="/img/checked.svg"></td>
+                        <td><img id="studentInfoDialog_isHiddenIcon" src="/img/icons/checked.svg"></td>
                     </tr>
                 </table>
 
@@ -932,8 +932,8 @@ include("phpScripts/login.php");
                 </div>
 
                 <div id="studentInfoDialog_controlButtons" class="buttonGroup noMargin">
-                    <button id="studentInfoDialog_editButton" class="button_medium positive withImage"><img src="/img/edit.svg">Bearbeiten</button>
-                    <button id="studentInfoDialog_deleteButton" class="button_medium negative withImage"><img src="/img/delete.svg">Löschen</button>
+                    <button id="studentInfoDialog_editButton" class="button_medium positive withImage"><img src="/img/icons/edit.svg">Bearbeiten</button>
+                    <button id="studentInfoDialog_deleteButton" class="button_medium negative withImage"><img src="/img/icons/delete.svg">Löschen</button>
                 </div>
 
                <button id="studentInfoDialog_closeButton" class="button_big negative smallMargin">Schliessen</button>

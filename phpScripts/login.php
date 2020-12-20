@@ -25,7 +25,7 @@ if($error !== 0 && false) {
     include($_SERVER["DOCUMENT_ROOT"] . "/phpScripts/autoLogin.php");
 	
     session_start();
-    $error = login(); // Wird spaeter eingefuegt: Automatischer Login-Prozess
+    // $error = login(); // Wird spaeter eingefuegt: Automatischer Login-Prozess
 
 }
 

@@ -446,7 +446,7 @@ document.addEventListener("DOMContentLoaded", function() {
     classInfoDialog.printInfo = function() {
 
         document.getElementById("classInfoDialog_name").innerHTML = escapeHTML(this.classData.name);
-        document.getElementById("classInfoDialog_isHiddenIcon").src = "/img/" + (this.classData.isHidden ? "checked.svg" : "cross.svg");
+        document.getElementById("classInfoDialog_isHiddenIcon").src = "/img/icons/" + (this.classData.isHidden ? "checked.svg" : "cross.svg");
 
         if(this.classData.notes === null) {
 
@@ -573,7 +573,7 @@ document.addEventListener("DOMContentLoaded", function() {
                         permissionsString +=
                             "<tr>" +
                                 "<td>" + escapeHTML(currentPermission.userName) + "</td>" +
-                                "<td><img src=\"/img/" + (currentPermission.writingPermission ? "edit_black.svg" : "view.svg") + "\"></td>" +
+                                "<td><img src=\"/img/icons/" + (currentPermission.writingPermission ? "edit_black.svg" : "view.svg") + "\"></td>" +
                             "</tr>";
 
                     }
@@ -598,7 +598,7 @@ document.addEventListener("DOMContentLoaded", function() {
             permissionsContainer.style.display = "none";
             refContainer.style.display = "none";
 
-            loadMoreButton.innerHTML = "<img src=\"/img/info.svg\">Mehr laden";
+            loadMoreButton.innerHTML = "<img src=\"/img/icons/info.svg\">Mehr laden";
             loadMoreButton.disabled = false;
             loadMoreButton.style.display = "inline-block";
 
@@ -613,7 +613,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
         var loadMoreButton = document.getElementById("classInfoDialog_loadMoreButton");
 
-        loadMoreButton.innerHTML = "<img src=\"/img/loading.svg\">Laden...";
+        loadMoreButton.innerHTML = "<img src=\"/img/icons/loading.svg\">Laden...";
         loadMoreButton.disabled = true;
 
         var classID = this.classData.classID;
@@ -729,7 +729,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
         }
 
-        document.getElementById("studentInfoDialog_isHiddenIcon").src = "/img/" + (this.studentData.isHidden ? "checked.svg" : "cross.svg");
+        document.getElementById("studentInfoDialog_isHiddenIcon").src = "/img/icons/" + (this.studentData.isHidden ? "checked.svg" : "cross.svg");
 
         var editButton = document.getElementById("studentInfoDialog_editButton");
         var deleteButton = document.getElementById("studentInfoDialog_deleteButton");

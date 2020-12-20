@@ -41,7 +41,7 @@
 			<img src="/img/logo/logo.svg" alt="" id="logo">
 		</nav>
 		
-		<img id="img_error" src="/img/error.svg" alt="">
+		<img id="img_error" src="/img/icons/error.svg" alt="">
 		
 		<?php
             
