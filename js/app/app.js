@@ -2304,7 +2304,7 @@ function printAdditionalTestInfo(elementPrefix, testData) {
                     permissionsString +=
                         "<tr>" +
                             "<td>" + escapeHTML(currentPermission.userName) + "</td>" +
-                            "<td>" + escapeHTML(currentPermission.firstName + " " + currentPermission.lastName) + "</td>" +
+                            "<td>" + escapeHTML(currentPermission.firstName) + " " + escapeHTML(currentPermission.lastName) + "</td>" +
                             "<td><img src=\"/img/icons/" + (currentPermission.writingPermission ? "edit_black.svg" : "view.svg") + "\"></td>" +
                         "</tr>";
 
@@ -2558,7 +2558,7 @@ function updateErrors(errorObj, errorContainer, button, keepButtonSelectable) {
 // Wird aufgerufen, wenn DOM-Baum vollstaendig geladen
 document.addEventListener("DOMContentLoaded", function () {
 
-    if (typeof (localStorage) !== undefined && localStorage.getItem("path") !== null) {
+    if (typeof (localStorage) !== undefined && localStorage.getItem("path") != null) {
 
         path = JSON.parse(localStorage.getItem("path"));
 
@@ -3847,7 +3847,7 @@ document.addEventListener("DOMContentLoaded", function () {
         // Formel / Notenberechnung
         if(this.testData.formula !== null) {
 
-            document.getElementById("editTestDialog_formulaContainer").style.display = "inline-block";
+            document.getElementById("editTestDialog_formulaContainer").style.display = "block";
             document.getElementById("editTestDialog_formula").value = this.testData.formula;
 
         } else {

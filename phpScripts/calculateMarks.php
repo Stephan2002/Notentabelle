@@ -153,7 +153,8 @@ function calculateMark(array &$element, array &$subElements, bool $isTest = true
                 if($subTest["round"] != 0) {
 
                     //$sumMarks += $subTest["weight"] * roundMark($subTest["mark"], $subTest["round"]);
-                    $sumMarks = bcadd($sumMarks, bcmul($subTest["weight"], roundMark($subTest["mark"], $subTest["round"]), 6), 6);
+                    $sumMarks = bcadd($sumMarks, bcmul($subTest["weight"],
+                    roundMark($subTest["mark"], $subTest["round"]), 6), 6);
 
                 } else {
 

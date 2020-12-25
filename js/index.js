@@ -1,1 +1,0 @@
-// Javascript für index.php

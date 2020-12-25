@@ -183,11 +183,16 @@ if(isset($_GET["error"]) && is_numeric($_GET["error"])) {
 		<link rel="stylesheet" href="/css/indexStylesheet.css">
 		
 		<!-- Icons -->
-		<link rel="icon" type="image/png" href="img/logo/logo_low.png">
-		<link rel="icon" type="image/vnd.microsoft.icon" href="img/logo/logo.ico">
-		<link rel="apple-touch-icon" href="img/logo/logo_white.png">
+		<link rel="icon" href="img/logo/logo.ico" sizes="48x48">
+        <link rel="icon" type="image/png" href="img/logo/logo_192x192.png" sizes="192x192">
+		<link rel="icon" type="image/svg+xml" href="img/logo/logo.svg">
+        <link rel="apple-touch-icon" href="img/logo/logo_white_180x180.png">
 		
 		<title>Notentabelle</title>
+
+		<script>
+            if("serviceWorker" in navigator && navigator.serviceWorker.controller) navigator.serviceWorker.oncontrollerchange = function() { alert("Updates wurden durchgeführt. Die Webapp wird neugeladen, damit sie richtig funktioniert."); window.location.reload(); };
+        </script>
 	</head>
 	
 	<body>

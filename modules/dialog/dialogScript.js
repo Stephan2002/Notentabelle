@@ -444,7 +444,7 @@ class Dialog {
 }
 
 Dialog.visibleCounter = 0;
-Dialog.URL = "dialog";
+Dialog.URL = "/modules/dialog";
 
 
 window.addEventListener("resize", Dialog.resizeAll);

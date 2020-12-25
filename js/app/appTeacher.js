@@ -573,6 +573,7 @@ document.addEventListener("DOMContentLoaded", function() {
                         permissionsString +=
                             "<tr>" +
                                 "<td>" + escapeHTML(currentPermission.userName) + "</td>" +
+                                "<td>" + escapeHTML(currentPermission.firstName) + " " + escapeHTML(currentPermission.lastName) + "</td>" +
                                 "<td><img src=\"/img/icons/" + (currentPermission.writingPermission ? "edit_black.svg" : "view.svg") + "\"></td>" +
                             "</tr>";
 

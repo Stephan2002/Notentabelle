@@ -1,0 +1,1 @@
+<!-- Aendert Kontotyp (Schueler/Lehrperson), verlinkt wieder auf account.php -->

@@ -1,0 +1,22 @@
+{
+    "scope": "/",
+    "start_url": "/app",
+    "name": "Notentabelle",
+    "short_name": "Notentabelle",
+    "decription": "App zur Notenerfassung",
+    "display": "standalone",
+    "background_color": "#646464",
+    "theme_color": "#4caf50",
+    "icons": [
+        {
+            "src": "/img/logo/logo_192x192.png",
+            "type": "image/png",
+            "sizes": "192x192"
+        },
+        {
+            "src": "/img/logo/logo_512x512.png",
+            "type": "image/png",
+            "sizes": "512x512"
+        }
+    ]
+}

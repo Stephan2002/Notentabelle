@@ -8,9 +8,10 @@
 		<link rel="stylesheet" href="/css/stylesheet.css">
 
         <!-- Icons -->
-		<link rel="icon" type="image/png" href="/img/logo/logo_low.png">
-		<link rel="icon" type="image/vnd.microsoft.icon" href="/img/logo/logo.ico">
-		<link rel="apple-touch-icon-precomposed" href="/img/logo/apple-touch-icon-57x57-precomposed.png">
+		<link rel="icon" href="img/logo/logo.ico" sizes="48x48">
+        <link rel="icon" type="image/png" href="img/logo/logo_192x192.png" sizes="192x192">
+		<link rel="icon" type="image/svg+xml" href="img/logo/logo.svg">
+        <link rel="apple-touch-icon" href="img/logo/logo_white_180x180.png">
 
 		<title>Notentabelle</title>
 		<style>
@@ -46,7 +47,7 @@
 		<?php
             
             /*
-
+				-1: Kein Internet
                 0: Unbekannter Fehler
                 1: Benoetigt Javascript
                 2: Benoetigt Cookies
@@ -66,7 +67,15 @@
 
 			}
 			
-			if($error === 1) {
+			if($error === -1) {
+				
+				echo 	"<h2>Kein Internet!</h2>" .
+						"<div class='text'>" . 
+							"<p>Sie sind offline.</p>" .
+							"<p>Sie könnnen deshalb Notentabelle nicht nutzen.</p>" .
+						"</div>";
+				
+			} else if($error === 1) {
 				
 				echo 	"<h2>Benötigt Javascript!</h2>" .
 						"<div class='text'>" . 
@@ -136,9 +145,12 @@
 				
 			}
 		
-		
+			if($error >= 0) {
+
+				echo "<a href='/index'><button class='button_small positive' style='margin-bottom:40px;'>Zurück zur Startseite</button></a></p>";
+
+			}
+
 		?>
-		
-		<a href="/index"><button class="button_small positive" style="margin-bottom:40px;">Zurück zur Startseite</button></a></p>
 	</body>
 </html>

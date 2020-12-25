@@ -1,1 +1,0 @@
-<!-- Wandelt Schueler-Account in Lehrer-Account und verlinkt wieder auf account.php -->

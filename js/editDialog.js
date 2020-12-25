@@ -16,8 +16,8 @@ class EditDialog extends Dialog {
 
             if(this.warnings) {
                 
-                updateErrors(this.warnings, document.getElementById(this.id + "_warningContainer"), undefined);
                 delete this.warnings[type];
+                updateErrors(this.warnings, document.getElementById(this.id + "_warningContainer"), undefined);
 
             }
 

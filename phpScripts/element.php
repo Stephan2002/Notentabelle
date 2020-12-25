@@ -388,7 +388,7 @@ function getSemester(int $semesterID, int $userID, bool $isTeacher, bool $checkO
 
         $publicTemplateData = $stmt->get_result()->fetch_assoc();
 
-        if(!is_null($studentData)) {
+        if(!is_null($publicTemplateData)) {
 
             $stmt->close();
             return new Semester(0, Element::ACCESS_PUBLIC, false, $data);
@@ -511,7 +511,7 @@ function getTest(int $testID, int $userID, bool $isTeacher, bool $checkOnlyForTe
 
         $publicTemplateData = $stmt->get_result()->fetch_assoc();
 
-        if(!is_null($studentData)) {
+        if(!is_null($publicTemplateData)) {
 
             $stmt->close();
             return new Test(0, Element::ACCESS_PUBLIC, false, $data);
