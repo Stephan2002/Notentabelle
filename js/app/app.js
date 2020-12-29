@@ -80,11 +80,10 @@ var currentElement;
 
 var semesterInfoDialog;
 var testInfoDialog;
-
 var editSemesterDialog;
 var editTestDialog;
-
 var permissionsDialog;
+var selectDialog;
 
 var additionalTestInfoRequest;
 
@@ -434,14 +433,14 @@ function printElement() {
 
         if (currentElement.isRoot) {
 
-            document.getElementById("semesters_controlButtons").style.display = "none";
+            document.getElementById("semesters_folderButtons").style.display = "none";
             document.getElementById("title").innerHTML = "Semesterauswahl";
             document.getElementsByTagName("TITLE")[0].innerHTML = "Notentabelle - App";
             document.getElementById("returnButton").style.display = "none";
 
         } else {
 
-            document.getElementById("semesters_controlButtons").style.display = "block";
+            document.getElementById("semesters_folderButtons").style.display = "block";
             document.getElementById("title").innerHTML = escapeHTML(currentElement.data.name);
             document.getElementsByTagName("TITLE")[0].innerHTML = "Notentabelle - " + escapeHTML(currentElement.data.name);
 
@@ -490,7 +489,7 @@ function printElement() {
                 document.getElementById("tests_addSubjectButtons").style.display = "block";
                 document.getElementById("tests_deletedButton").style.display = "inline-block";
 
-                document.getElementById("tests_empty_templateButton").style.display = "inline-block";
+                //document.getElementById("tests_empty_templateButton").style.display = "inline-block";
                 document.getElementById("tests_empty_instruction").style.display = "block";
 
             } else {
@@ -541,7 +540,7 @@ function printElement() {
 
                 document.getElementById("tests_addFolderButtons").style.display = "block";
 
-                if(currentElement.data.round === null) {
+                /*if(currentElement.data.round === null) {
 
                     document.getElementById("tests_empty_templateButton").style.display = "none";
                     document.getElementById("tests_empty_instruction").style.display = "none";
@@ -551,7 +550,7 @@ function printElement() {
                     document.getElementById("tests_empty_templateButton").style.display = "inline-block";
                     document.getElementById("tests_empty_instruction").style.display = "block";
 
-                }
+                }*/
 
             } else {
 
@@ -842,11 +841,12 @@ function printElement() {
 
                 } else {
 
+                    document.getElementById("tests_editMarksButton").style.display = "none";
                     document.getElementById("tests_studentButtons").style.display = "block";
 
                     if(tableString !== "") {
 
-                        document.getElementById("tests_markPaperButton").style.display = "inline-block";
+                        //document.getElementById("tests_markPaperButton").style.display = "inline-block";
 
                     } else {
 
@@ -888,7 +888,7 @@ function printElement() {
 
                 if(tableString !== "") {
 
-                    document.getElementById("tests_markPaperButton").style.display = "inline-block";
+                    //document.getElementById("tests_markPaperButton").style.display = "inline-block";
 
                 } else {
 
@@ -1383,7 +1383,7 @@ function printElement() {
 
             if(tableString !== "") {
 
-                document.getElementById("tests_markPaperButton").style.display = "inline-block";
+                //document.getElementById("tests_markPaperButton").style.display = "inline-block";
 
             } else {
 
@@ -1412,7 +1412,7 @@ function printElement() {
                     
                     if(tableString !== "") {
                     
-                        document.getElementById("tests_calculatorButton").style.display = "inline-block";
+                        //document.getElementById("tests_calculatorButton").style.display = "inline-block";
 
                     } else {
 
@@ -1455,7 +1455,7 @@ function printElement() {
                     "<td class='table_name'>" + escapeHTML(currentChildData.name) + "</td>" +
                     "<td>" + escapeHTML(currentChildData.userName) + "</td>" +
                     "<td class='table_buttons'>" +
-                        "<button class='button_square positive table_big'><img src='/img/icons/save.svg' alt='S'></button>" +
+                        "<button class='button_square positive table_big' onclick='event.stopPropagation(); selectDialog.openSelectActionLocation(TYPE_SEMESTER, selectDialog.ACTION_REF, undefined, TYPE_SEMESTER, undefined, true, " + currentChildData.semesterID + ");'><img src='/img/icons/save.svg' alt='S'></button>" +
                         "<button class='button_square neutral' onclick='event.stopPropagation(); semesterInfoDialog.open(" + currentChildData.semesterID + ")'><img src='/img/icons/info.svg' alt='i'></button>" +
                     "</td>" +
                 "</tr>";
@@ -1600,7 +1600,7 @@ function printElement() {
                     "<td class='table_name'>" + escapeHTML(currentChildData.name) + "</td>" +
                     "<td>" + escapeHTML(currentChildData.userName) + "</td>" +
                     "<td class='table_buttons'>" +
-                        "<button class='button_square positive table_big'><img src='/img/icons/save.svg' alt='S'></button>" +
+                        "<button class='button_square positive table_big' onclick='event.stopPropagation(); selectDialog.openSelectActionLocation(TYPE_CLASS, selectDialog.ACTION_REF, undefined, TYPE_CLASS, undefined, true, " + currentChildData.classID + ");'><img src='/img/icons/save.svg' alt='S'></button>" +
                         "<button class='button_square neutral' onclick='event.stopPropagation(); classInfoDialog.open(" + currentChildData.classID + ")'><img src='/img/icons/info.svg' alt='i'></button>" +
                     "</td>" +
                 "</tr>";
@@ -1793,7 +1793,7 @@ function loadElementAndPrint() {
 
         if(pathElement.isRoot) {
 
-            if (!cache.semesters[pathElement.ID]) {
+            if (!cache.semesters[pathElement.ID] || !cache.semesters[pathElement.ID].withMarks) {
 
                 var requestObject = { semesterID: pathElement.ID, withMarks: true };
 
@@ -1834,7 +1834,7 @@ function loadElementAndPrint() {
 
             }
 
-            if (!cache.tests[pathElement.ID]) {
+            if (!cache.tests[pathElement.ID] || !cache.tests[pathElement.ID].withMarks) {
 
                 var requestObject = { testID: pathElement.ID, withMarks: true };
 
@@ -2583,10 +2583,12 @@ document.addEventListener("DOMContentLoaded", function () {
     editSemesterDialog      = new EditDialog(document.getElementById("editSemesterDialog"), false, false, function() { editSemesterDialog.save(); }, function() { editSemesterDialog.close(); }, "editSemesterDialog");
     editTestDialog          = new EditDialog(document.getElementById("editTestDialog"),     false, false, function() { editTestDialog.save(); }, function() { editTestDialog.close(); }, "editTestDialog");
 
-    permissionsDialog       = new Dialog(document.getElementById("permissionsDialog"),  false, false, function() { permissionsDialog.save(); }, function() { permissionsDialog.close();}, "permissionsDialog")
-
+    permissionsDialog       = new Dialog(document.getElementById("permissionsDialog"),  false, false, function() { permissionsDialog.save(); }, function() { permissionsDialog.close();}, "permissionsDialog");
+    selectDialog            = new Dialog(document.getElementById("selectDialog"),       false, false, function() { selectDialog.save(); }, function() { selectDialog.close();}, "selectDialog");
 
     semesterInfoDialog.open = function(arg) {
+
+        if(isBlocked) return;
 
         if(typeof(arg) === "number") {
 
@@ -2972,6 +2974,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
     testInfoDialog.open = function(arg) {
 
+        if(isBlocked) return;
+
         if(typeof(arg) === "number") {
 
             var len = currentElement.childrenData.length;
@@ -3106,6 +3110,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
     editSemesterDialog.openEdit = function(arg) {
 
+        if(isBlocked) return;
+
         if(editMarks) {
 
             confirmMarkCancel(this.openEdit.bind(this, arg));
@@ -3185,7 +3191,7 @@ document.addEventListener("DOMContentLoaded", function () {
         } else if(this.semesterData.referenceID !== null) {
 
             document.getElementById("editSemesterDialog_permissionsButton").style.display = "none";
-            document.getElementById("editSemesterDialog_refTestButton").style.display = "inline-block";
+            // document.getElementById("editSemesterDialog_refTestButton").style.display = "inline-block";
 
             if(this.semesterData.templateType === null) {
 
@@ -3250,6 +3256,8 @@ document.addEventListener("DOMContentLoaded", function () {
     };
 
     editSemesterDialog.openAdd = function(isFolder, isTemplate) {
+
+        if(isBlocked) return;
 
         this.errors = { name: false };
         this.warnings = {};
@@ -3318,6 +3326,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 if(user.isTeacher) {
 
                     document.getElementById("editSemesterDialog_semesterType").style.display = "flex";
+                    
                     this.updateSemesterType(this.semesterTypeSelect.getSelected());
 
                 } else {
@@ -3433,6 +3442,16 @@ document.addEventListener("DOMContentLoaded", function () {
         this.semesterData = undefined;
         this.siblingData = undefined;
         this.permissionsData = undefined;
+
+        if(this.isNew) {
+
+            this.templateID = undefined;
+            this.realTemplateID = undefined;
+
+            this.copyTeacherID = undefined;
+            this.realCopyTeacherID = undefined;
+
+        }
 
         if(this.nameCheckRequest !== undefined) {
 
@@ -3623,15 +3642,15 @@ document.addEventListener("DOMContentLoaded", function () {
     editSemesterDialog.saveAdd = function(properties) {
 
         if(this.templateID !== undefined) properties.templateID = this.templateID;
-
-        if(this.semesterData.templateType !== null) {
-
+        
+        if(this.semesterData.templateType === null) {
+            
             if(this.semesterTypeSelect.getState(1)) {
                 // Klassensemester
+                
+                properties.classID = this.realClassID;
 
-                properties.classID = this.classID;
-
-                if(this.copyTeacherID !== undefined) properties.copyTeacherID = this.copyTeacherID;
+                if(this.copyTeacherID !== undefined) properties.copyTeacherID = this.realCopyTeacherID;
 
             }
 
@@ -3647,7 +3666,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         properties.parentID = this.semesterData.parentID;
         properties.isFolder = this.semesterData.isFolder;
-
+        
         loadData("/phpScripts/create/createSemester.php", properties, function(result) {
 
             properties.semesterID = result.newID;
@@ -3676,10 +3695,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
         Loading.show(null, "semi-transparent");
 
-        this.classID = undefined;
-        this.templateID = undefined;
-        this.copyTeacherID = undefined;
-
         this.close();
 
     };
@@ -3694,7 +3709,7 @@ document.addEventListener("DOMContentLoaded", function () {
         } else {
 
             document.getElementById("editSemesterDialog_classButton").style.display = "inline-block";
-            document.getElementById("editSemesterDialog_teacherButton").style.display = "inline-block";
+            // document.getElementById("editSemesterDialog_teacherButton").style.display = "inline-block";
 
         }
 
@@ -3707,6 +3722,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
     editTestDialog.openEdit = function(arg) {
+
+        if(isBlocked) return;
 
         if(editMarks) {
 
@@ -3948,6 +3965,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
     editTestDialog.openAdd = function(isFolder, isReference) {
 
+        if(isBlocked) return;
+
         if(editMarks) {
 
             confirmMarkCancel(this.openAdd.bind(this, isFolder, isReference));
@@ -4104,6 +4123,13 @@ document.addEventListener("DOMContentLoaded", function () {
         this.testData = undefined;
         this.referenceID = undefined;
         this.permissionsData = undefined;
+
+        if(this.isNew) {
+
+            this.templateID = undefined;
+            this.realTemplateID = undefined;
+
+        }
 
         if(this.nameCheckRequest !== undefined) {
 
@@ -4501,6 +4527,32 @@ document.addEventListener("DOMContentLoaded", function () {
 
         }
 
+        if(this.testData.referenceState !== null) {
+
+            if(checkAll || ID === "referenceID") {
+
+                if(currentElement.accessType !== ACCESS_OWNER) {
+
+                    if(this.testData.referenceID != null && this.referenceID === undefined) {
+
+                        this.warnings.referenceID = "Es kann sein, dass Sie die Verknüpfung mit dem aktuell noch referenzierten Element nicht selbst wiederherstellen können, wenn sie sie jetzt auflösen.";
+
+                    } else if(this.testData.referenceID != this.referenceID) {
+
+                        this.warnings.referenceID = "Vergewissern Sie sich, dass auch der Besitzer des Semesters Zugriff auf das neu referenzierte Element haben muss. Ansonsten können Sie nicht erfolgreich speichern.";
+
+                    }
+
+                } else {
+
+                    delete this.warnings.referenceID;
+
+                }
+
+            }
+
+        }
+
         if(callErrorUpdate) {
 
             this.updateWarnings();
@@ -4871,7 +4923,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     editTestDialog.saveAdd = function(properties) {
 
-        if(this.templateID !== undefined) properties.templateID = this.templateID;
+        if(this.templateID !== undefined && this.typeSelect.getState(0)) properties.templateID = this.realTemplateID;
         
         if(this.testData.parentID === null) {
             
@@ -4886,7 +4938,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
         
         properties.isFolder = this.testData.isFolder;
-
+        console.log(properties.templateID); return;
         loadData("/phpScripts/create/createTest.php", properties, function(result) {
 
             properties.testID = result.newID;
@@ -4947,8 +4999,6 @@ document.addEventListener("DOMContentLoaded", function () {
         delete properties.permissions;
 
         Loading.show(null, "semi-transparent");
-
-        this.templateID = undefined;
 
         this.close();
 
@@ -5012,6 +5062,12 @@ document.addEventListener("DOMContentLoaded", function () {
             document.getElementById("editTestDialog_formulaContainer").style.display = "none";
             document.getElementById("editTestDialog_maxPointsContainer").style.display = "none";
 
+            if(this.testData.isFolder) {
+
+                document.getElementById("editTestDialog_templateButton").style.display = "inline-block";
+
+            }
+
         } else {
 
             if(currentElement.data.classID === null && !currentElement.isTemplate) {
@@ -5048,6 +5104,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
             document.getElementById("editTestDialog_formulaContainer").style.display = "block";
             document.getElementById("editTestDialog_maxPointsContainer").style.display = "block";
+
+            document.getElementById("editTestDialog_templateButton").style.display = "none";
 
         }
 
@@ -5124,7 +5182,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         } else {
 
-            var contentElement = document.getElementById("permissionsDialog_content");
+            var contentElement = document.getElementById("permissionsDialog_innerContent");
 
             var requestObj = {};
             var requestTarget;
@@ -5191,7 +5249,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     permissionsDialog.showContent = function() {
 
-        var contentElement = document.getElementById("permissionsDialog_content");
+        var contentElement = document.getElementById("permissionsDialog_innerContent");
 
         contentElement.style.opacity = "1";
         contentElement.style.visibility = "visible";
@@ -5541,6 +5599,1599 @@ document.addEventListener("DOMContentLoaded", function () {
     };
 
 
+    selectDialog.MODE_SELECTION = 1;
+    selectDialog.MODE_PERMISSION_COPY = 2;
+    selectDialog.MODE_LOCATION_SELECT = 3;
+
+    selectDialog.ACTION_COPY = 1;
+    selectDialog.ACTION_MOVE = 2;
+    selectDialog.ACTION_REF = 3;
+    selectDialog.ACTION_TEMPLATE = 4;
+
+    selectDialog.SEM_RESTRICTION_NONE = 0;
+    selectDialog.SEM_RESTRICTION_SEMESTER_TEMPLATE = 1;
+    selectDialog.SEM_RESTRICTION_SUBJECT_TEMPLATE = 2;
+    selectDialog.SEM_RESTRICTION_PRIVATE_SEM = 3;
+    selectDialog.SEM_RESTRICTION_CLASS_SEM = 4;
+    selectDialog.SEM_RESTRICTION_SPECIFIC_CLASS_SEM = 5;
+    selectDialog.SEM_RESTRICTION_OWN = 6;
+
+    selectDialog.TEST_RESTRICTION_NONE = 0;
+    selectDialog.TEST_RESTRICTION_MARK = 1;
+    selectDialog.TEST_RESTRICTION_POINTS = 2;
+
+    selectDialog.openSelection = function(type, semRestriction, testRestriction, classID, notAllowedID, locationType, locationID, isRoot, selectedID, realSelectedID, semesterFolderID) {
+        
+        this.errors = {};
+
+        this.type = type;
+        this.mode = this.MODE_SELECTION;
+        this.semRestriction = semRestriction;
+        this.testRestriction = testRestriction;
+        this.classID = classID;
+        this.notAllowedID = notAllowedID;
+
+        this.semesterFolderID = semesterFolderID;
+
+        this.selectedID = selectedID;
+        this.realSelectedID = realSelectedID;
+
+        this.currentElement = {};
+
+        var title;
+
+        var deselectButton = document.getElementById("selectDialog_deselectButton");
+        var selectFolderButton = document.getElementById("selectDialog_selectFolderButton");
+        var OKButton = document.getElementById("selectDialog_OKButton");
+
+        document.getElementById("selectDialog_newName").style.display = "none";
+
+        if(type === TYPE_SEMESTER) {
+
+            if(semRestriction === selectDialog.SEM_RESTRICTION_CLASS_SEM) {
+
+                title = "Lehrpersonen übernehmen aus...";
+
+            } else {
+
+                title = "Vorlage auswählen";
+
+            }
+
+            deselectButton.style.display = "inline-block";
+            selectFolderButton.style.display = "none";
+
+        } else if(type === TYPE_TEST) {
+
+            title = "Zu referenzierendes Element wählen";
+
+            deselectButton.style.display = "inline-block";
+
+        } else if(type === TYPE_CLASS) {
+
+            title = "Klasse auswählen";
+            deselectButton.style.display = "none";
+            selectFolderButton.style.display = "none";
+
+        }
+
+        if(selectedID === undefined) {
+
+            deselectButton.disabled = true;
+            deselectButton.innerHTML = "Nichts ausgewählt";
+
+        } else {
+
+            deselectButton.disabled = false;
+            deselectButton.innerHTML = "Auswahl aufheben";
+
+        }
+
+        document.getElementById("selectDialog_header").innerHTML = title;
+
+        document.getElementById("selectDialog_errorContainer").style.display = "none";
+
+        OKButton.disabled = false;
+        OKButton.innerHTML = "OK";
+        OKButton.onclick = this.saveSelection.bind(this);
+
+        this.selectLocation(locationType, locationID, isRoot, true);
+
+        this.show();
+
+    };
+
+    selectDialog.openPermissionCopy = function() {
+
+        this.show();
+
+    };
+
+    selectDialog.openSelectActionLocation = function(type, actionType, notAllowedID, locationType, locationID, isRoot, originalArg, semesterFolderID) {
+
+        this.errors = {};
+
+        this.type = type;
+        this.mode = this.MODE_LOCATION_SELECT;
+        this.actionType = actionType;
+        this.notAllowedID = notAllowedID;
+
+        this.semesterFolderID = semesterFolderID;
+
+        if(typeof(originalArg) === "object") {
+
+            this.originalData = originalArg;
+
+        } else {
+            
+            if(this.type === TYPE_SEMESTER) {
+
+                var len = currentElement.childrenData.length;
+                var found = false;
+
+                for(var i = 0; i < len; i++) {
+                    
+                    if(currentElement.childrenData[i].semesterID === originalArg) {
+
+                        this.originalData = currentElement.childrenData[i];
+                        found = true;
+                        break;
+
+                    }
+
+                }
+                
+                if(!found) return;
+
+            } else if(this.type === TYPE_CLASS) {
+
+                var len = currentElement.childrenData.length;
+                var found = false;
+
+                for(var i = 0; i < len; i++) {
+                    
+                    if(currentElement.childrenData[i].classID === originalArg) {
+
+                        this.originalData = currentElement.childrenData[i];
+                        found = true;
+                        break;
+
+                    }
+
+                }
+                
+                if(!found) return;
+
+            }
+
+        }
+
+        this.currentElement = {};
+
+        var OKButton = document.getElementById("selectDialog_OKButton");
+        var inputElement = document.getElementById("selectDialog_newName");
+
+        document.getElementById("selectDialog_newName").style.display = "inline-block";
+
+        document.getElementById("selectDialog_deselectButton").style.display = "none";
+        document.getElementById("selectDialog_selectFolderButton").style.display = "none";
+        document.getElementById("selectDialog_elementTable").style.display = "none";
+        document.getElementById("selectDialog_noElements").style.display = "none";
+
+        var buttonText = "";
+        var title;
+        var titleFragment;
+
+        switch(this.type) {
+
+            case TYPE_SEMESTER:     titleFragment = "Semester/Vorlage"; break;
+            case TYPE_TEST:         titleFragment = "Element";          break;
+            case TYPE_CLASS:        titleFragment = "Klasse";           break;
+
+        }
+
+        switch(this.actionType) {
+
+            case this.ACTION_COPY:       buttonText = "Hierhin kopieren";       title = titleFragment + " kopieren";    break;
+            case this.ACTION_MOVE:       buttonText = "Hierhin verschieben";    title = titleFragment + " verschieben"; break;
+            case this.ACTION_REF:        buttonText = "Hier erstellen";         title = "Verknüpfung erstellen";        break;
+            case this.ACTION_TEMPLATE:   buttonText = "Hier erstellen";         title = "Vorlage erstellen";            break;
+
+        }
+
+        if(this.type === TYPE_CLASS && this.actionType === this.ACTION_REF) {
+
+            buttonText = "Erstellen";
+
+        }
+
+        document.getElementById("selectDialog_header").innerHTML = title;
+
+        OKButton.disabled = false;
+        OKButton.innerHTML = buttonText;
+        OKButton.onclick = this.executeAction.bind(this, undefined);
+
+        inputElement.value = this.originalData.name;
+        inputElement.classList.remove("error");
+
+        document.getElementById("selectDialog_errorContainer").style.display = "none";
+
+        this.selectLocation(locationType, locationID, isRoot, true);
+
+        this.show();
+
+    };
+
+    selectDialog.showLoadingOrPrint = function() {
+
+        if(this.isLoading) {
+    
+            Loading.show(this.contentElement, "transparent");
+    
+        } else {
+    
+            this.printElement();
+    
+        }
+    
+    };
+    
+    selectDialog.hideLoading = function() {
+    
+        this.isLoading = false;
+    
+        if(Loading.isVisible(this.contentElement)) {
+    
+            Loading.hide(this.contentElement);
+            setTimeout(this.printElement.bind(this), 200);
+    
+        }
+    
+    };
+    
+    selectDialog.hideInnerContentAndPrint = function() {
+    
+        this.isBlocked = true;
+    
+        document.getElementById("selectDialog_innerContent").style.opacity = "0";
+    
+        setTimeout(this.showLoadingOrPrint.bind(this), 200);
+    
+    };
+    
+    selectDialog.loadingError = function(elementID, errorCode) {
+        
+        this.hideLoading();
+
+        this.currentElement = {
+            error: errorCode,
+            type: TYPE_TEST,
+            isRoot: true
+        };
+
+    };
+
+    selectDialog.printElement = function() {
+        
+        this.isLoading = false;
+        this.isBlocked = false;
+
+        document.getElementById("selectDialog_folderError").style.display = "none";
+
+        var nameElement = document.getElementById("selectDialog_name");
+
+        var parentFolderElement = document.getElementById("selectDialog_parentFolder");
+        var noFoldersElement = document.getElementById("selectDialog_noFolders");
+        var folderTable = document.getElementById("selectDialog_folderTable");
+
+        var noElementsElement = document.getElementById("selectDialog_noElements");
+        var elementTable = document.getElementById("selectDialog_elementTable");
+
+        var selectFolderButton = document.getElementById("selectDialog_selectFolderButton");
+
+        var folderErrorElement = document.getElementById("selectDialog_folderError");
+        var errorContainer = document.getElementById("selectDialog_errorContainer");
+
+        if(this.currentElement.error === ERROR_FORBIDDEN) {
+            // Kein Zugriff (mehr)
+
+            this.errors.folderError = false;
+
+            folderErrorElement.innerHTML = "Dieses Element existiert nicht (mehr) oder Sie haben keinen Zugriff (mehr) darauf"
+            nameElement.innerHTML = "Fehler";
+
+            folderErrorElement.style.display = "block";
+            parentFolderElement.style.display = "block";
+
+            folderTable.style.display = "none";
+            noFoldersElement.style.display = "none";
+            elementTable.style.display = "none";
+            noElementsElement.style.display = "none";
+            selectFolderButton.style.display = "none";
+
+        } else if(this.currentElement.error !== ERROR_NONE) {
+            // Anderer Fehler
+            
+            showErrorMessage(TEXT_ERROR_OCCURED + "\n\nFehlercode: " + this.currentElement.error, true);
+
+        } else {
+            // Kein Fehler
+
+            delete this.errors.folderError;
+
+            // Aufteilung nach Typ des anzuzeigenden Elements, nicht nach Typ des zu selektierenden Elements
+            if(this.currentElement.type === TYPE_SEMESTER) {
+
+                var folderTableString = "";
+                var elementTableString = "";
+
+                var len = this.currentElement.childrenData.length;
+                
+                for(var i = 0; i < len; i++) {
+
+                    var currentSemesterData = this.currentElement.childrenData[i];
+
+                    if(!currentSemesterData.isHidden) {
+
+                        if(currentSemesterData.isFolder) {
+
+                            folderTableString +=
+                                "<tr onclick='selectDialog.selectLocation(TYPE_SEMESTER, " + currentSemesterData.semesterID + ", false);'>" +
+                                    "<td></td>" +
+                                    "<td>" + escapeHTML(currentSemesterData.name) + "</td>" +
+                                    "<td></td>" +
+                                "</tr>";
+
+                        } else {
+
+                            if(this.mode === this.MODE_LOCATION_SELECT) continue;
+
+                            if(this.type === TYPE_SEMESTER && currentSemesterData.semesterID === this.notAllowedID) continue;
+
+                            if(this.semRestriction === this.SEM_RESTRICTION_SEMESTER_TEMPLATE) {
+
+                                if(currentSemesterData.templateType !== "semesterTemplate") continue;
+
+                            } else if(this.semRestriction === this.SEM_RESTRICTION_SUBJECT_TEMPLATE) {
+
+                                if(currentSemesterData.templateType !== "subjectTemplate") continue;
+
+                            } else if(this.semRestriction === this.SEM_RESTRICTION_PRIVATE_SEM) {
+
+                                if((currentSemesterData.classID !== null && currentSemesterData.referenceID === null) || currentSemesterData.templateType !== null) continue;
+                                
+                            } else if(this.semRestriction === this.SEM_RESTRICTION_CLASS_SEM || this.semRestriction === this.SEM_RESTRICTION_SPECIFIC_CLASS_SEM) {
+
+                                if(currentSemesterData.referenceID !== null) {
+
+                                    if(currentSemesterData.templateType !== null) continue;
+
+                                } else {
+
+                                    if(currentSemesterData.classID === null) continue;
+
+                                    if(this.semRestriction === this.SEM_RESTRICTION_SPECIFIC_CLASS_SEM) {
+
+                                        if(currentSemesterData.classID !== this.classID) continue;
+            
+                                    }
+
+                                }
+
+                            } else if(this.semRestriction === this.SEM_RESTRICTION_OWN) {
+
+                                if(currentSemesterData.referenceID !== null) continue;
+
+                            }
+
+                            if(this.type === TYPE_SEMESTER) {
+
+                                elementTableString +=
+                                    "<tr" + (currentSemesterData.semesterID === this.selectedID ? " class='selected'" : "") + " onclick='selectDialog.selectElement(this, " + currentSemesterData.semesterID + ");'>" +
+                                        "<td></td>" +
+                                        "<td>" + escapeHTML(currentSemesterData.name) + "</td>" +
+                                        "<td><img src='/img/icons/checked.svg' alt='O'></td>" +
+                                    "</tr>";
+
+                            } else {
+
+                                elementTableString +=
+                                    "<tr onclick='selectDialog.selectLocation(TYPE_TEST, " + (currentSemesterData.referenceID === null ? currentSemesterData.semesterID : currentSemesterData.referenceID) + ", true);'>" +
+                                        "<td></td>" +
+                                        "<td>" + escapeHTML(currentSemesterData.name) + "</td>" +
+                                        "<td></td>" +
+                                    "</tr>";
+
+                            }
+
+                        }
+
+                    }
+
+                }
+
+                folderTable.innerHTML = folderTableString;
+
+                if(folderTableString === "") {
+
+                    folderTable.style.display = "none";
+                    noFoldersElement.style.display = "block";
+
+                    noFoldersElement.innerHTML = "Keine Ordner vorhanden";
+
+                } else {
+
+                    folderTable.style.display = "table";
+                    noFoldersElement.style.display = "none";
+
+                }
+
+                if(this.currentElement.isRoot) {
+
+                    parentFolderElement.style.display = "none";
+
+                } else {
+
+                    parentFolderElement.style.display = "block";
+
+                }
+
+                elementTable.innerHTML = elementTableString;
+
+                if(this.mode === this.MODE_LOCATION_SELECT) {
+                    
+                    elementTable.style.display = "none";
+                    noElementsElement.style.display = "none";
+
+                } else if(elementTableString === "") {
+
+                    elementTable.style.display = "none";
+                    noElementsElement.style.display = "block";
+
+                    noElementsElement.innerHTML = "Keine passenden Elemente vorhanden";
+
+                } else {
+
+                    elementTable.style.display = "table";
+                    noElementsElement.style.display = "none";
+
+                }
+
+                nameElement.style.display = "block";
+                nameElement.innerHTML = this.currentElement.isRoot ? "Hauptordner" : escapeHTML(this.currentElement.data.name);
+
+                if(this.mode === this.MODE_SELECTION) {
+
+                    selectFolderButton.style.display = "none";
+
+                } else if(this.mode === this.MODE_LOCATION_SELECT) {
+
+                    if(this.notAllowedID !== undefined) {
+
+                        document.getElementById("OKButton").disabled = this.currentElement.data.semesterID === this.notAllowedID;
+
+                    }
+
+                }
+
+            } else if(this.currentElement.type === TYPE_TEST) {
+                // Funktioniert aktuell nur fuer MODE_SELECTION
+
+                var errorText = "";
+
+                // Ueberpruefung des Typs bei Semester-Verknuepfungen
+                if(this.currentElement.referenceID !== null && (
+                    this.semRestriction === this.SEM_RESTRICTION_PRIVATE_SEM ||
+                    this.semRestriction === this.SEM_RESTRICTION_CLASS_SEM ||
+                    this.semRestriction === this.SEM_RESTRICTION_SPECIFIC_CLASS_SEM
+                )) {
+
+                    var onlyOneMark = this.currentElement.data.classID === null || this.currentElement.accessType === ACCESS_STUDENT;
+
+                    if(this.semRestriction === this.SEM_RESTRICTION_PRIVATE_SEM && !onlyOneMark) {
+
+                        errorText = "Dies ist ein Klassensemester mit Noten/Punkten von mehreren Schülern. Jedoch können hier nur Elemente mit nur einer Noten bzw. Punktzahl ausgewählt werden.";
+
+                    } else if((this.semRestriction === this.SEM_RESTRICTION_CLASS_SEM || this.semRestriction === this.SEM_RESTRICTION_SPECIFIC_CLASS_SEM) && onlyOneMark) {
+
+                        errorText = "Dies ist kein Semester, bei dem Sie Zugriff auf Noten von mehreren Schülern haben. Jedoch können hier nur Elemente ausgewählt werden, die in einem Klassensemester sind und bei denen Sie Zugriff auf Noten/Punkte von mehreren Schülern haben.";
+
+                    } else if(this.semRestriction === this.SEM_RESTRICTION_SPECIFIC_CLASS_SEM && this.currentElement.data.classID !== this.classID) {
+
+                        errorText = "Dieses Semester gehört zu einer anderen Klassen. Sie können nur Elemente auswählen, die die selbe Klasse haben."
+
+                    }
+
+                }
+
+                if(errorText !== "") {
+
+                    this.errors.folderError = false;
+
+                    folderErrorElement.innerHTML = errorText;
+
+                    folderErrorElement.style.display = "block";
+
+                    folderTable.style.display = "none";
+                    noFoldersElement.style.display = "none";
+                    elementTable.style.display = "none";
+                    noElementsElement.style.display = "none";
+                    selectFolderButton.style.display = "none";
+
+                } else {
+
+                    delete this.errors.folderError;
+
+                    var folderTableString = "";
+                    var elementTableString = "";
+
+                    var len = this.currentElement.childrenData.length;
+
+                    if(this.testRestriction === this.TEST_RESTRICTION_MARK) {
+                        
+                        if(this.currentElement.data.formula == null) {
+
+                            for(var i = 0; i < len; i++) {
+
+                                var currentTestData = this.currentElement.childrenData[i];
+
+                                if(!currentTestData.isHidden) {
+
+                                    if(currentTestData.isFolder) {
+
+                                        folderTableString +=
+                                            "<tr onclick='selectDialog.selectLocation(TYPE_TEST, " + currentTestData.testID + ", false);'>" +
+                                                "<td></td>" +
+                                                "<td>" + escapeHTML(currentTestData.name) + "</td>" +
+                                                "<td></td>" +
+                                            "</tr>";
+
+                                    } else {
+
+                                        if(currentTestData.testID === this.notAllowedID) continue;
+
+                                        elementTableString +=
+                                            "<tr" + (currentTestData.testID === this.selectedID ? " class='selected'" : "") + " onclick='selectDialog.selectElement(this, " + currentTestData.testID + ");'>" +
+                                                "<td></td>" +
+                                                "<td>" + escapeHTML(currentTestData.name) + "</td>" +
+                                                "<td><img src='/img/icons/checked.svg' alt='O'></td>" +
+                                            "</tr>";
+
+                                    }
+
+                                }
+
+                            }
+
+                            folderTable.innerHTML = folderTableString;
+
+                            if(folderTableString === "") {
+            
+                                folderTable.style.display = "none";
+                                noFoldersElement.style.display = "block";
+                                
+                                if(this.currentElement.isRoot) {
+
+                                    noFoldersElement.innerHTML = "Keine Fächer vorhanden";
+
+                                } else {
+
+                                    noFoldersElement.innerHTML = "Keine Ordner vorhanden";
+
+                                }
+            
+                            } else {
+            
+                                folderTable.style.display = "table";
+                                noFoldersElement.style.display = "none";
+            
+                            }
+            
+                            elementTable.innerHTML = elementTableString;
+            
+                            if(elementTableString === "") {
+            
+                                elementTable.style.display = "none";
+                                noElementsElement.style.display = "block";
+            
+                                noElementsElement.innerHTML = "Keine passenden Elemente vorhanden";
+            
+                            } else {
+            
+                                elementTable.style.display = "table";
+                                noElementsElement.style.display = "none";
+            
+                            }
+
+                        } else {
+
+                            folderTable.innerHTML = "";
+
+                            folderTable.style.display = "none";
+                            noFoldersElement.style.display = "block";
+            
+                            noFoldersElement.innerHTML = "Elemente ab dieser Ebene enthalten nur noch Punkte.";
+            
+                            elementTable.innerHTML = "";
+                            elementTable.style.display = "none";
+                            noElementsElement.style.display = "none";
+
+                        }
+
+                        if(this.currentElement.isRoot || this.currentElement.data.testID === this.notAllowedID) {
+
+                            selectFolderButton.style.display = "none";
+
+                        } else {
+
+                            selectFolderButton.style.display = "inline-block";
+
+                            if(this.currentElement.data.testID === this.selectedID) {
+
+                                selectFolderButton.disabled = true;
+                                selectFolderButton.innerHTML = "Ordner ausgewählt";
+
+                            } else {
+
+                                selectFolderButton.disabled = false;
+                                selectFolderButton.innerHTML = "Diesen Ordner auswählen";
+
+                            }
+
+                        }
+
+                    } else {
+
+                        var allHavePoints = this.currentElement.data.formula != null || this.currentElement.data.round === null;
+                        
+                        for(var i = 0; i < len; i++) {
+
+                            var currentTestData = this.currentElement.childrenData[i];
+
+                            if(!currentTestData.isHidden) {
+
+                                if(currentTestData.isFolder) {
+
+                                    folderTableString +=
+                                        "<tr onclick='selectDialog.selectLocation(TYPE_TEST, " + currentTestData.testID + ", false);'>" +
+                                            "<td></td>" +
+                                            "<td>" + escapeHTML(currentTestData.name) + "</td>" +
+                                            "<td></td>" +
+                                        "</tr>";
+
+                                } else {
+
+                                    if(currentTestData.testID === this.notAllowedID) continue;
+
+                                    if(allHavePoints || currentTestData.formula !== null) {
+
+                                        elementTableString +=
+                                            "<tr" + (currentTestData.testID === this.selectedID ? " class='selected'" : "") + " onclick='selectDialog.selectElement(this, " + currentTestData.testID + ");'>" +
+                                                "<td></td>" +
+                                                "<td>" + escapeHTML(currentTestData.name) + "</td>" +
+                                                "<td><img src='/img/icons/checked.svg' alt='O'></td>" +
+                                            "</tr>";
+
+                                    }
+
+                                }
+
+                            }
+
+                        }
+
+                        folderTable.innerHTML = folderTableString;
+
+                        if(folderTableString === "") {
+
+                            folderTable.style.display = "none";
+                            noFoldersElement.style.display = "block";
+
+                            if(this.currentElement.isRoot) {
+
+                                noFoldersElement.innerHTML = "Keine Fächer vorhanden";
+
+                            } else {
+
+                                noFoldersElement.innerHTML = "Keine Ordner vorhanden";
+
+                            }
+
+                        } else {
+
+                            folderTable.style.display = "table";
+                            noFoldersElement.style.display = "none";
+
+                        }
+
+                        elementTable.innerHTML = elementTableString;
+
+                        if(elementTableString === "") {
+
+                            elementTable.style.display = "none";
+                            noElementsElement.style.display = "block";
+
+                            noElementsElement.innerHTML = "Keine passenden Elemente vorhanden";
+
+                        } else {
+
+                            elementTable.style.display = "table";
+                            noElementsElement.style.display = "none";
+
+                        }
+
+                        if(allHavePoints && this.currentElement.data.testID !== this.notAllowedID) {
+
+                            selectFolderButton.style.display = "inline-block";
+
+                            if(this.currentElement.data.testID === this.selectedID) {
+
+                                selectFolderButton.disabled = true;
+                                selectFolderButton.innerHTML = "Ordner ausgewählt";
+
+                            } else {
+
+                                selectFolderButton.disabled = false;
+                                selectFolderButton.innerHTML = "Diesen Ordner auswählen";
+
+                            }
+
+                        } else {
+
+                            selectFolderButton.style.display = "none";
+
+                        }
+
+                    }
+
+                    folderErrorElement.style.display = "none";
+
+                }
+
+                parentFolderElement.style.display = "block";
+                nameElement.style.display = "block";
+                nameElement.innerHTML = escapeHTML(this.currentElement.data.name);
+
+            } else if(this.currentElement.type === TYPE_CLASS) {
+
+                parentFolderElement.style.display = "none";
+                noFoldersElement.style.display = "none";
+                folderTable.style.display = "none";
+
+                if(this.mode === this.MODE_SELECTION) {
+
+                    var elementTableString = "";
+
+                    var len = this.currentElement.childrenData.length;
+                    
+                    for(var i = 0; i < len; i++) {
+
+                        var currentClassData = this.currentElement.childrenData[i];
+
+                        if(!currentClassData.isHidden) {
+
+                            elementTableString +=
+                                "<tr" + (currentClassData.classID === this.selectedID ? " class='selected'" : "") + " onclick='selectDialog.selectElement(this, " + currentClassData.classID + ");'>" +
+                                    "<td></td>" +
+                                    "<td>" + escapeHTML(currentClassData.name) + "</td>" +
+                                    "<td><img src='/img/icons/checked.svg' alt='O'></td>" +
+                                "</tr>";
+
+                        }
+
+                    }
+
+                    elementTable.innerHTML = elementTableString;
+
+                    if(elementTableString === "") {
+
+                        elementTable.style.display = "none";
+                        noElementsElement.style.display = "block";
+                        noElementsElement.innerHTML = "Keine Klasse vorhanden";
+
+                    } else {
+
+                        elementTable.style.display = "table";
+                        noElementsElement.style.display = "none";
+
+                    }
+
+                } else {
+
+                    elementTable.style.display = "none";
+                    noElementsElement.style.display = "none"; 
+
+                }
+
+                nameElement.style.display = "none";
+
+            }
+
+        }
+
+        
+        Loading.hide(this.contentElement);
+
+        this.resize();
+
+        document.getElementById("selectDialog_innerContent").style.opacity = "1";
+
+    };
+
+    selectDialog.selectLocation = function(elementType, elementID, isRoot, isFirst) {
+        
+        if(this.isBlocked) return;
+
+        if(elementType === TYPE_SEMESTER) {
+            // Semesterauswahl
+
+            if(elementID == undefined) {
+                // Hauptordner
+    
+                if (!cache.rootSemesters) {
+                    
+                    this.navigationRequest = loadData("/phpScripts/get/getSemesters.php", {}, function (data) {
+                        
+                        selectDialog.currentElement = data;
+                        cache.rootSemesters = data;
+    
+                        selectDialog.hideLoading();
+    
+                    }, this.loadingError.bind(this, elementID));
+    
+                    this.isLoading = true;
+    
+                } else {
+    
+                    this.currentElement = cache.rootSemesters;
+    
+                    this.isLoading = false;
+    
+                }
+    
+            } else {
+                // Im Semesterordner
+            
+                if (!cache.semesters[elementID]) {
+                    
+                    this.navigationRequest = loadData("/phpScripts/get/getSemesters.php", { semesterID: elementID }, function (data) {
+                        
+                        selectDialog.currentElement = data;
+                        cache.semesters[elementID] = data;
+
+                        selectDialog.hideLoading();
+
+                    }, this.loadingError.bind(this, elementID));
+
+                    this.isLoading = true;
+
+                } else {
+
+                    this.currentElement = cache.semesters[elementID];
+
+                    this.isLoading = false;
+
+                }
+
+            }
+
+        } else if(elementType === TYPE_TEST) {
+            // Im Semester
+
+            if(isRoot) {
+                
+                if(this.currentElement.type === TYPE_SEMESTER) {
+                    
+                    this.semesterFolderID = this.currentElement.data ? this.currentElement.data.semesterID : undefined;
+
+                }
+
+                if (!cache.semesters[elementID]) {
+                
+                    this.navigationRequest = loadData("/phpScripts/get/getTests.php", { semesterID: elementID }, function (data) {
+                        
+                        selectDialog.currentElement = data;
+                        cache.semesters[elementID] = data;
+    
+                        selectDialog.hideLoading();
+    
+                    }, this.loadingError.bind(this, elementID));
+    
+                    this.isLoading = true;
+    
+                } else {
+    
+                    this.currentElement = cache.semesters[elementID];
+    
+                    this.isLoading = false;
+    
+                }
+
+            } else {
+
+                if (!cache.tests[elementID]) {
+                
+                    this.navigationRequest = loadData("/phpScripts/get/getTests.php", { testID: elementID }, function (data) {
+                        
+                        selectDialog.currentElement = data;
+                        cache.tests[elementID] = data;
+    
+                        selectDialog.hideLoading();
+    
+                    }, this.loadingError.bind(this, elementID));
+    
+                    this.isLoading = true;
+    
+                } else {
+    
+                    this.currentElement = cache.tests[elementID];
+    
+                    this.isLoading = false;
+    
+                }
+
+            }
+
+        } else {
+
+            if (!cache.rootClasses) {
+                
+                this.navigationRequest = loadData("/phpScripts/get/getClasses.php", {}, function (data) {
+                    
+                    selectDialog.currentElement = data;
+                    cache.rootClasses = data;
+
+                    selectDialog.hideLoading();
+
+                }, this.loadingError.bind(this, elementID));
+
+                this.isLoading = true;
+
+            } else {
+
+                this.currentElement = cache.rootClasses;
+
+                this.isLoading = false;
+
+            }
+
+        }
+
+        if(isFirst) {
+
+            this.isBlocked = true;
+            this.showLoadingOrPrint();
+
+        } else {
+
+            this.hideInnerContentAndPrint();
+
+        }
+
+    };
+
+    selectDialog.returnFolder = function() {
+
+        if(this.isBlocked) return;
+
+        if(this.currentElement.type === TYPE_SEMESTER) {
+
+            if(this.currentElement.data.parentID === null) {
+
+                this.selectLocation(TYPE_SEMESTER, undefined, true);
+
+            } else {
+
+                this.selectLocation(TYPE_SEMESTER, this.currentElement.data.parentID, false);
+
+            }
+
+        } else if(this.currentElement.type === TYPE_TEST) {
+
+            if(this.currentElement.isRoot) {
+
+                this.selectLocation(TYPE_SEMESTER, this.semesterFolderID, true);
+
+            } else if(this.currentElement.data.parentID === null) {
+
+                this.selectLocation(TYPE_TEST, this.currentElement.data.semesterID, true);
+
+            } else {
+
+                this.selectLocation(TYPE_TEST, this.currentElement.data.parentID, false);
+
+            }
+
+        }
+
+    };
+
+    selectDialog.selectElement = function(rowElement, selectedID) {
+
+        if(this.isBlocked) return;
+
+        if(this.selectedID === selectedID) return;
+
+        if(this.selectedID === undefined) {
+
+            document.getElementById("selectDialog_deselectButton").disabled = false;
+            document.getElementById("selectDialog_deselectButton").innerHTML = "Auswahl aufheben";
+
+        }
+
+        this.selectedID = selectedID;
+        this.realSelectedID = selectedID;
+
+        var mustCheck = false;
+
+        var rowIMG = rowElement.getElementsByTagName("img")[0];
+
+        if(this.selectionCheckRequest) {
+
+            this.selectionCheckRequest.abort();
+            this.selectionCheckRequest = undefined;
+
+        }
+
+        if(this.type === TYPE_SEMESTER || this.type === TYPE_CLASS) {
+
+            var len = this.currentElement.childrenData.length;
+            var currentChildData;
+
+            if(this.type === TYPE_SEMESTER) {
+
+                for(var i = 0; i < len; i++) {
+
+                    if(this.currentElement.childrenData[i].semesterID === selectedID) {
+
+                        currentChildData = this.currentElement.childrenData[i];
+                        break;
+
+                    }
+        
+                }
+
+                if(currentChildData.referenceID !== null) {
+                    // Ueberpruefung nach richtigem Typ noetig
+
+                    this.realSelectedID = currentChildData.referenceID;
+                    mustCheck = true;
+    
+                    if(!cache.semesters[currentChildData.referenceID]) {
+
+                        this.selectionCheckRequest = loadData("/phpScripts/get/getTests.php", { semesterID: currentChildData.referenceID }, function(data) {
+                            
+                            cache.semesters[currentChildData.referenceID] = data;
+
+                            rowIMG.src = "/img/icons/checked.svg";
+
+                            selectDialog.checkSelection(true, data);
+                            
+                        }, function(errorCode) {
+
+                            rowIMG.src = "/img/icons/checked.svg";
+                            
+                            if(errorCode === ERROR_FORBIDDEN) {
+
+                                selectDialog.checkSelection(false);
+
+                            } else {
+
+                                showErrorMessage(TEXT_ERROR_OCCURED + "\n\nFehlercode: " + errorCode, true);
+
+                            }
+
+                        });
+
+                    } else {
+
+                        this.checkSelection(true, cache.semesters[currentChildData.referenceID]);
+
+                    }
+    
+                }
+
+            } else {
+
+                for(var i = 0; i < len; i++) {
+
+                    if(this.currentElement.childrenData[i].classID === selectedID) {
+
+                        currentChildData = this.currentElement.childrenData[i];
+                        break;
+
+                    }
+        
+                }
+
+                if(currentChildData.referenceID !== null) {
+                    // Ueberpruefung nach richtigem Typ noetig
+
+                    this.realSelectedID = currentChildData.referenceID;
+                    mustCheck = true;
+    
+                    if(!cache.classes[currentChildData.referenceID]) {
+
+                        this.selectionCheckRequest = loadData("/phpScripts/get/getStudents.php", { classID: currentChildData.referenceID }, function(data) {
+                            
+                            cache.classes[currentChildData.referenceID] = data;
+
+                            rowIMG.src = "/img/icons/checked.svg";
+
+                            selectDialog.checkSelection(true, data);
+                            
+                        }, function(errorCode) {
+
+                            rowIMG.src = "/img/icons/checked.svg";
+                            
+                            if(errorCode === ERROR_FORBIDDEN) {
+
+                                selectDialog.checkSelection(false);
+
+                            } else {
+
+                                showErrorMessage(TEXT_ERROR_OCCURED + "\n\nFehlercode: " + errorCode, true);
+
+                            }
+
+                        });
+
+                    } else {
+
+                        this.checkSelection(true, cache.semesters[currentChildData.referenceID]);
+
+                    }
+    
+                }
+
+            }
+
+        }
+
+        var rows = rowElement.parentElement.children;
+
+        for(var i = 0; i < rows.length; i++) {
+
+            if(rows[i] !== rowElement) {
+
+                rows[i].classList.remove("selected");
+
+            }
+
+        }
+
+        rowElement.classList.add("selected");
+
+        if(mustCheck) {
+
+            if(this.selectionCheckRequest !== undefined) {
+
+                rowIMG.src = "/img/icons/loading_black.svg";
+
+                if(this.mode === this.MODE_SELECTION) {
+                    
+                    document.getElementById("selectDialog_OKButton").disabled = true;
+
+                } else {
+
+                    
+
+                }
+
+            } else {
+
+                rowIMG.src = "/img/icons/checked.svg";
+
+            }
+
+        } else {
+
+            delete this.errors.elementError;
+            this.updateErrors();
+
+        }
+
+    };
+
+    selectDialog.selectCurrentFolder = function() {
+
+        if(this.isBlocked) return;
+
+        if(this.selectedID === undefined) {
+
+            document.getElementById("selectDialog_deselectButton").disabled = false;
+            document.getElementById("selectDialog_deselectButton").innerHTML = "Auswahl aufheben";
+
+        }
+
+        if(this.currentElement.type === TYPE_SEMESTER) {
+
+            this.selectedID = this.currentElement.data.semesterID;
+
+        } else {
+
+            this.selectedID = this.currentElement.data.testID;
+
+        }
+
+        this.realSelectedID = this.selectedID;
+
+        if(this.selectionCheckRequest) {
+
+            this.selectionCheckRequest.abort();
+            this.selectionCheckRequest = undefined;
+
+        }
+
+        delete this.errors.elementError;
+
+        var rows = document.getElementById("selectDialog_elementTable").getElementsByTagName("tr");
+
+        for(var i = 0; i < rows.length; i++) {
+
+            rows[i].classList.remove("selected");
+
+        }
+
+        document.getElementById("selectDialog_selectFolderButton").disabled = true;
+        document.getElementById("selectDialog_selectFolderButton").innerHTML = "Ordner ausgewählt";
+
+        this.updateErrors();
+
+    };
+
+    selectDialog.deselect = function() {
+
+        if(this.isBlocked) return;
+
+        this.selectedID = undefined;
+        this.realSelectedID = undefined;
+
+        if(this.selectionCheckRequest) {
+
+            this.selectionCheckRequest.abort();
+            this.selectionCheckRequest = undefined;
+
+        }
+
+        delete this.errors.elementError;
+
+        var rows = document.getElementById("selectDialog_elementTable").getElementsByTagName("tr");
+
+        for(var i = 0; i < rows.length; i++) {
+
+            rows[i].classList.remove("selected");
+
+        }
+
+        document.getElementById("selectDialog_deselectButton").disabled = true;
+        document.getElementById("selectDialog_deselectButton").innerHTML = "Nichts ausgewählt";
+
+        document.getElementById("selectDialog_selectFolderButton").disabled = false;
+        document.getElementById("selectDialog_selectFolderButton").innerHTML = "Diesen Ordner auswählen";
+
+        this.updateErrors();
+
+    };
+
+    selectDialog.checkName = function() {
+
+        var inputElement = document.getElementById("selectDialog_newName");
+        var newName = inputElement.value;
+
+        if(newName.trim() === "") {
+
+            this.errors.name = "Der Name muss angegeben werden.";
+            inputElement.classList.add("error");
+
+        } else if(newName.length >= MAX_LENGTH_NAME) {
+
+            this.errors.name = "Der Name muss weniger als " + MAX_LENGTH_NAME + " Zeichen lang sein.";
+            inputElement.classList.add("error");
+
+        } else {
+
+            delete this.errors.name;
+            inputElement.classList.remove("error");
+
+        }
+
+        this.updateErrors();
+
+    };
+
+    selectDialog.checkSelection = function(noAccessError, data) {
+
+        if(noAccessError) {
+
+            delete this.errors.elementError;
+
+        } else {
+
+            this.errors.elementError = "Das referenzierte Element der ausgewählten Verknüpfung ist nicht (mehr) vorhanden oder Sie haben darauf keinen Zugriff (mehr).";
+
+        }
+
+        this.updateErrors();
+
+    };
+
+    selectDialog.updateErrors = function() {
+
+        var errorString = "";
+        var hasError = false;
+
+        var OKButton = document.getElementById("selectDialog_OKButton");
+        var errorContainer = document.getElementById("selectDialog_errorContainer");
+
+        if(this.mode === this.MODE_SELECTION) {
+
+            if(this.errors.elementError !== undefined) {
+
+                errorString += "<p class='blankLine_small'>" + this.errors.elementError + "</p>";
+                OKButton.disabled = true;
+
+            } else {
+
+                OKButton.disabled = false;
+
+            }
+ 
+        } else if(this.mode === this.MODE_LOCATION_SELECT) {
+
+            if(this.errors.name !== undefined) {
+
+                errorString += "<p class='blankLine_small'>" + this.errors.name + "</p>";
+                OKButton.disabled = true;
+
+            } else {
+
+                OKButton.disabled = false;
+
+            }
+
+        }
+
+        if(errorString === "") {
+
+            errorContainer.style.display = "none";
+
+        } else {
+
+            errorContainer.innerHTML = errorString;
+            errorContainer.style.display = "inline-block";
+
+        }
+
+        this.resize();
+
+    }
+
+    selectDialog.close = function() {
+
+        this.navigationRequest = undefined;
+
+        this.currentElement = undefined;
+
+        document.getElementById("selectDialog_innerContent").style.opacity = "0";
+        this.hide();
+
+    };
+
+    selectDialog.save = function() {
+
+        if(this.mode === selectDialog.MODE_SELECTION) {
+
+            this.saveSelection();
+
+        } else if(this.mode === selectDialog.MODE_LOCATION_SELECT) {
+
+            this.executeAction(undefined);
+
+        }
+
+    }
+
+    selectDialog.saveSelection = function() {
+
+        this.selectionCheckRequest = undefined;
+
+        if(this.type === TYPE_CLASS) {
+            
+            editSemesterDialog.classID = this.selectedID;
+            editSemesterDialog.realClassID = this.realSelectedID;
+
+            editSemesterDialog.check("class");
+
+        } else if(this.type === TYPE_SEMESTER) {
+
+            if(this.semRestriction === this.SEM_RESTRICTION_SEMESTER_TEMPLATE) {
+
+                editSemesterDialog.templateID = this.selectedID;
+                editSemesterDialog.realTemplateID = this.realSelectedID;
+            
+            } else {
+                
+                editTestDialog.templateID = this.selectedID;
+                editTestDialog.realTemplateID = this.realSelectedID;
+
+            }
+
+        } else {
+
+            editTestDialog.referenceID = this.selectedID;
+
+            editTestDialog.check("referenceID");
+
+        }
+
+        this.close();
+
+    };
+
+    selectDialog.copyPermissions = function() {
+
+        this.close();
+
+    };
+
+    selectDialog.executeAction = function(newName) {
+
+        if(newName === undefined) {
+
+            newName = document.getElementById("selectDialog_newName").value;
+
+            var len = this.currentElement.childrenData.length;
+
+            for(var i = 0; i < len; i++) {
+
+                if(newName === this.currentElement.childrenData[i].name) {
+
+                    var buttons = [
+                        {
+                            name: "Namen trotzdem beibehalten",
+                            color: "positive",
+                            action: this.executeAction.bind(this, newName)
+                        }
+                    ];
+                
+                    new Alert({
+                        title: "Name bereits benutzt",
+                        icon: "warning",
+                        type: "options",
+                        description: "Es existiert bereits ein Element mit gleichem Namen.\nDen Namen trotzdem beibehalten?",
+                        buttons: buttons,
+                        hasCancelButton: true
+                
+                    });
+
+                    return;
+
+                }
+
+            }
+
+        }
+
+        if(this.actionType === this.ACTION_REF) {
+
+            if(this.type === TYPE_SEMESTER) {
+
+                var properties = {
+                    isFolder: false,
+                    parentID: this.currentElement.isRoot ? null : this.currentElement.data.semesterID,
+                    templateType: this.originalData.templateType,
+                    name: newName,
+                    referenceID: this.originalData.semesterID
+                }
+
+                loadData("/phpScripts/create/createSemester.php", properties, function(result) {
+
+                    properties.semesterID = result.newID;
+
+                    if(properties.parentID === null) {
+
+                        cache.rootSemesters.childrenData.push(properties);
+
+                    } else {
+
+                        cache.semesters[properties.parentID].childrenData.push(properties);
+
+                    }
+
+                    hidePanelsAndPrint();
+
+                }, function(errorCode) {
+            
+                    showErrorMessage(TEXT_ERROR_NO_CHANGE + errorCode, true);
+        
+                });
+
+                properties.isFolder = 0;
+                properties.classID = null;
+                properties.isHidden = 0;
+                properties.notes = null;
+                properties.referenceTestID = null;
+                properties.deleteTimestamp = null;
+
+                Loading.show();
+
+            } else if(this.type === TYPE_CLASS) {
+
+                var properties = {
+                    name: newName,
+                    referenceID: this.originalData.classID
+                }
+
+                loadData("/phpScripts/create/createClass.php", properties, function(result) {
+
+                    properties.classID = result.newID;
+
+                    cache.rootClasses.childrenData.push(properties);
+
+                    hidePanelsAndPrint();
+
+                }, function(errorCode) {
+            
+                    showErrorMessage(TEXT_ERROR_NO_CHANGE + errorCode, true);
+        
+                });
+
+                properties.isHidden = 0;
+                properties.notes = null;
+                properties.deleteTimestamp = null;
+
+                Loading.show();
+
+            }
+
+        }
+
+        this.close();
+
+    };
+
+
+    document.getElementById("editTestDialog_refTestButton").addEventListener("click", function() { 
+        
+        var semRestriction;
+        var classID;
+        var testRestriction;
+
+        var referenceID = editTestDialog.referenceID || undefined;
+
+        if(currentElement.data.classID === null) {
+
+            semRestriction = selectDialog.SEM_RESTRICTION_PRIVATE_SEM;
+            classID = undefined;
+
+        } else {
+
+            semRestriction = selectDialog.SEM_RESTRICTION_SPECIFIC_CLASS_SEM;
+            classID = currentElement.data.classID;
+
+        }
+
+        var withFormula =
+            editTestDialog.testData.round !== null && (
+                (editTestDialog.isNew && editTestDialog.typeSelect.getState(1)) ||
+                (!editTestDialog.isNew && editTestDialog.testData.formula !== null)
+            );
+
+        if(withFormula || editTestDialog.testData.round === null) {
+
+            testRestriction = selectDialog.TEST_RESTRICTION_POINTS;
+
+        } else {
+
+            testRestriction = selectDialog.TEST_RESTRICTION_MARK;
+
+        }
+
+        selectDialog.openSelection(TYPE_TEST, semRestriction, testRestriction, classID, editTestDialog.testData.testID, TYPE_SEMESTER, undefined, true, referenceID, referenceID);
+
+    });
+
     document.getElementById("semesterInfoDialog_closeButton").addEventListener("click", semesterInfoDialog.close.bind(semesterInfoDialog));
     document.getElementById("semesterInfoDialog_loadMoreButton").addEventListener("click", semesterInfoDialog.loadMore.bind(semesterInfoDialog));
 
@@ -5557,7 +7208,8 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("editSemesterDialog_permissionsButton") .addEventListener("click",  permissionsDialog.open.bind(permissionsDialog, TYPE_SEMESTER));
     document.getElementById("editSemesterDialog_cancelButton")      .addEventListener("click",  editSemesterDialog.close.bind(editSemesterDialog));
     document.getElementById("editSemesterDialog_OKButton")          .addEventListener("click",  editSemesterDialog.save.bind(editSemesterDialog));
-
+    document.getElementById("editSemesterDialog_classButton")       .addEventListener("click", function() { selectDialog.openSelection(TYPE_CLASS, undefined, undefined, undefined, undefined, TYPE_CLASS, undefined, true, editSemesterDialog.classID, editSemesterDialog.realClassID); });
+    document.getElementById("editSemesterDialog_templateButton")    .addEventListener("click", function() { selectDialog.openSelection(TYPE_SEMESTER, selectDialog.SEM_RESTRICTION_SEMESTER_TEMPLATE, undefined, undefined, undefined, TYPE_SEMESTER, undefined, true, editSemesterDialog.templateID, editSemesterDialog.realTemplateID); });
 
     editTestDialog.typeSelect = new ButtonSelect(document.getElementById("editTestDialog_type"), editTestDialog.updateType.bind(editTestDialog));
 
@@ -5576,7 +7228,7 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("editTestDialog_permissionsButton") .addEventListener("click",  permissionsDialog.open.bind(permissionsDialog, TYPE_TEST));
     document.getElementById("editTestDialog_cancelButton")      .addEventListener("click",  editTestDialog.close.bind(editTestDialog));
     document.getElementById("editTestDialog_OKButton")          .addEventListener("click",  editTestDialog.save.bind(editTestDialog));
-
+    document.getElementById("editTestDialog_templateButton")    .addEventListener("click", function() { selectDialog.openSelection(TYPE_SEMESTER, selectDialog.SEM_RESTRICTION_SUBJECT_TEMPLATE, undefined, undefined, undefined, TYPE_SEMESTER, undefined, true, editTestDialog.templateID, editTestDialog.realTemplateID); });
 
     document.getElementById("permissionsDialog_cancelButton")   .addEventListener("click",  permissionsDialog.close.bind(permissionsDialog));
     document.getElementById("permissionsDialog_addButton")      .addEventListener("click",  permissionsDialog.addPermission.bind(permissionsDialog));
@@ -5584,6 +7236,12 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("permissionsDialog_newName")        .addEventListener("input",  permissionsDialog.newNameInput.bind(permissionsDialog));
     document.getElementById("permissionsDialog_newName")        .addEventListener("change", permissionsDialog.newNameChange.bind(permissionsDialog));
 
+
+    document.getElementById("selectDialog_newName")             .addEventListener("input",  selectDialog.checkName.bind(selectDialog));
+    document.getElementById("selectDialog_parentFolder")        .addEventListener("click",  selectDialog.returnFolder.bind(selectDialog));
+    document.getElementById("selectDialog_deselectButton")      .addEventListener("click",  selectDialog.deselect.bind(selectDialog));
+    document.getElementById("selectDialog_selectFolderButton")  .addEventListener("click",  selectDialog.selectCurrentFolder.bind(selectDialog));
+    document.getElementById("selectDialog_cancelButton")        .addEventListener("click",  selectDialog.close.bind(selectDialog));
 
 
     document.getElementById("semesters_addSemesterButton")  .addEventListener("click", editSemesterDialog.openAdd.bind(editSemesterDialog, false, false));
@@ -5605,12 +7263,14 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("tests_editSemesterButton").addEventListener("click", editSemesterDialog.openEdit.bind(editSemesterDialog, undefined));
     document.getElementById("tests_editElementButton") .addEventListener("click", editTestDialog.openEdit.bind(editTestDialog, undefined));
 
+    document.getElementById("semesters_infoButton")    .addEventListener("click", semesterInfoDialog.open.bind(semesterInfoDialog));
+
     document.getElementById("tests_testInfo_loadMoreButton").addEventListener("click", loadMoreTestInfo);
 
     document.getElementById("semesters_visibilityButton")     .addEventListener("click", function() { changeVisibilty(this, "semesters"); });
     document.getElementById("tests_visibilityButton")         .addEventListener("click", function() { changeVisibilty(this, "tests"); });
 
-    // setTimeout(function() { editTestDialog.openEdit(1) }, 500);
+    // setTimeout(function() { selectDialog.openSelection(); }, 500);
 
     loadElementAndPrint();
 

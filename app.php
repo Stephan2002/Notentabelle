@@ -91,7 +91,7 @@ include("phpScripts/login.php");
                 </div>
                 
                 <div id="semesters_empty" class="info gray bigMargin">
-                    <p class="blankLine_small">Kein sichtbares Element vorhanden.</p>
+                    <p class="blankLine_small">Kein Element vorhanden.</p>
                     <p>Fügen Sie ein Semester, eine Vorlage oder einen Ordner mit den obigen Knöpfen ein.</p>
                 </div>
             </div>
@@ -127,19 +127,23 @@ include("phpScripts/login.php");
                     }
                 ?>
                 
-                <div class="buttonGroup" id="semesters_templateButtons">
+                <!--<div class="buttonGroup" id="semesters_templateButtons">
                     <button class="button_big positive">Öffentliche Vorlagen</button>
                     <button class="button_big positive">Eigene veröffentlichte Vorlagen</button>
-                </div>
+                </div>-->
 
                 <button id="semesters_foreignSemestersButton" class="button_big positive withMargin">Geteilte Semester / Vorlagen</button>
                 
                 <button id="semesters_visibilityButton" class="button_big positive bigMargin">Versteckte Elemente <span>anzeigen</span></button>
                 <button class="button_big positive">Gelöschte Elemente</button>
 
-                <div class="buttonGroup" id="semesters_controlButtons">
-                    <button class="button_medium positive withImage" id="semesters_editButton"><img src="/img/icons/edit.svg" alt="">Ordner umbenennen</button>
-                    <button class="button_medium negative withImage" id="semesters_deleteButton"><img src="/img/icons/delete.svg" alt="">Ordner löschen</button>
+                <div id="semesters_folderButtons" class="withMargin">
+                    <button class="button_big neutral withImage" id="semesters_infoButton"><img src="/img/icons/info.svg" alt="">Ordnereigenschaften</button>
+
+                    <div class="buttonGroup noMargin">
+                        <button class="button_medium positive withImage" id="semesters_editButton"><img src="/img/icons/edit.svg" alt="">Ordner umbenennen</button>
+                        <button class="button_medium negative withImage" id="semesters_deleteButton"><img src="/img/icons/delete.svg" alt="">Ordner löschen</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -168,10 +172,11 @@ include("phpScripts/login.php");
 
                 <div id="tests_empty">
                     <div class="info gray bigMargin">
-                        <p class="blankLine_small">Kein sichtbares Element vorhanden.</p>
-                        <p id="tests_empty_instruction">Fügen Sie <span class="type_root">ein Fach</span><span class="type_folder type_subject">einen Ordner</span>, eine Prüfung oder eine Verknüpfung mit den obigen Knöpfen ein oder benutzen Sie eine Vorlage.</p>
+                        <p class="blankLine_small">Kein Element vorhanden.</p>
+                        <p id="tests_empty_instruction">Fügen Sie <span class="type_root">ein Fach</span><span class="type_folder type_subject">einen Ordner</span>, eine Prüfung oder eine Verknüpfung mit den obigen Knöpfen ein</p>
+                        <!--<p id="tests_empty_templateInstruction">oder benutzen Sie eine Vorlage.</p>-->
                     </div>
-                    <button id="tests_empty_templateButton" class="button_big positive withMargin">Vorlage verwenden</button>
+                    <button id="tests_empty_templateButton" class="button_big positive withMargin notImplemented">Vorlage verwenden</button>
                 </div>
             </div>
 
@@ -385,8 +390,8 @@ include("phpScripts/login.php");
                     </div>
                 </div>
 
-                <button id="tests_calculatorButton" class="button_big positive bigMargin">Notenrechner</button>
-                <button id="tests_markPaperButton" class="button_big positive withMargin">Notenblatt</button>
+                <button id="tests_calculatorButton" class="button_big positive bigMargin notImplemented">Notenrechner</button>
+                <button id="tests_markPaperButton" class="button_big positive withMargin notImplemented">Notenblatt</button>
             </div>
 
             <div id="averageFooter">
@@ -465,7 +470,7 @@ include("phpScripts/login.php");
 
                 <div id="classes_empty">
                     <div class="info gray bigMargin">
-                        <p class="blankLine_small">Keine sichtbare Klasse vorhanden.</p>
+                        <p class="blankLine_small">Keine Klasse vorhanden.</p>
                         <p>Fügen Sie eine Klasse oder eine Verknüpfung mit den obigen Knöpfen ein.</p>
                     </div>
                 </div>
@@ -490,7 +495,7 @@ include("phpScripts/login.php");
 
                 <div id="students_empty">
                     <div class="info gray bigMargin">
-                        <p class="blankLine_small">Keine sichtbaren Schüler/innen vorhanden.</p>
+                        <p class="blankLine_small">Keine Schüler/innen vorhanden.</p>
                         <p id="students_empty_instruction">Fügen Sie eine/n Schüler/in mit dem obigen Knopf ein.</p>
                     </div>
                 </div>
@@ -513,7 +518,7 @@ include("phpScripts/login.php");
                 <button id="students_visibilityButton" class="button_big positive">Versteckte Schüler/innen <span>anzeigen</span></button>
                 <button class="button_big positive">Gelöschte Schüler/innen</button>
 
-                <button class="button_big neutral withMargin withImage" id="students_classInfoButton"><img src="/img/icons/info.svg" alt="">Klasseninfo</button>
+                <button class="button_big neutral withMargin withImage" id="students_classInfoButton"><img src="/img/icons/info.svg" alt="">Klassen-Eigenschaften</button>
 
                 <div class="buttonGroup noMargin" id="students_classControlButtons">
                     <button class="button_medium positive withImage" id="students_editClassButton"><img src="/img/icons/edit.svg" alt="">Klasse bearbeiten</button>
@@ -594,7 +599,7 @@ include("phpScripts/login.php");
             <div id="error_forbidden">
                 <h2>Kein Zugriff</h2>
                 <div class="text">
-                    <p>Das Element existiert nicht (mehr) oder Sie haben keinen Zugriff (mehr) darauf.</p>
+                    <p>Dieses Element existiert nicht (mehr) oder Sie haben keinen Zugriff (mehr) darauf.</p>
                 </div>
             </div>
 
@@ -974,11 +979,11 @@ include("phpScripts/login.php");
                 </div>
 
                 <button class="button_big positive withMargin" id="editSemesterDialog_classButton">Klasse auswählen</button>
-                <button class="button_big positive" id="editSemesterDialog_teacherButton">Lehrpersonen kopieren aus...</button>
+                <button class="button_big positive notImlemented" id="editSemesterDialog_teacherButton">Lehrpersonen kopieren aus...</button>
 
                 <button class="button_big positive withMargin" id="editSemesterDialog_templateButton">Vorlage auswählen</button>
 
-                <button class="button_big positive withMargin" id="editSemesterDialog_refTestButton">Einstiegspunkt festlegen</button>
+                <button class="button_big positive withMargin notImplemented" id="editSemesterDialog_refTestButton">Einstiegspunkt festlegen</button>
 
                 <label><input type="checkbox" id="editSemesterDialog_with_notes"/>Notizen</label>
                 <textarea id="editSemesterDialog_notes" placeholder="Notizen"></textarea>
@@ -1087,19 +1092,48 @@ include("phpScripts/login.php");
             <div class="dialogBlocker"></div>
             <div class="dialogContent">
                 <h2 id="permissionsDialog_header">Zugriffsberechtigungen</h2>
-                <div id="permissionsDialog_content">
-                    <p id="permissionsDialog_noPermission">Keine Zugriffsberechtigungen erteilt</p>
+                <div id="permissionsDialog_innerContent">
+                    <p id="permissionsDialog_noPermission" class="mediumMargin">Keine Zugriffsberechtigungen erteilt</p>
                     <table id="permissionsDialog_table" class="dialogTable mediumMargin" style="display: none;"></table>
 
                     <input type="text" placeholder="Benutzername von neuer Person" class="mediumMargin" id="permissionsDialog_newName">
                     <div class="info red" id="permissionsDialog_errorContainer"></div>
                     <button id="permissionsDialog_addButton" class="button_big positive smallMargin">Hinzufügen</button>
 
-                    <button id="permissionsDialog_copyButton" class="button_big positive withMargin">Von anderem Element übernehmen</button>
+                    <!--<button id="permissionsDialog_copyButton" class="button_big positive withMargin">Von anderem Element übernehmen</button>-->
                 </div>
-                <div class="buttonGroup noMargin">
+                <!--<div class="buttonGroup noMargin">--><div class="buttonGroup withMargin">
                     <button class="button_medium negative" id="permissionsDialog_cancelButton">Abbrechen</button>
                     <button class="button_medium positive" id="permissionsDialog_OKButton">OK</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="selectDialog" class="dialog" style="display: none;">
+            <div class="dialogBlocker"></div>
+            <div class="dialogContent">
+                <h2 id="selectDialog_header"></h2>
+                <div id="selectDialog_innerContent" style="opacity: 0;">
+                    <h3 id="selectDialog_name"></h3>
+                    <p id="selectDialog_parentFolder" class="withMargin">Ebene nach oben</p>
+                    <p id="selectDialog_noFolders"></p>
+                    <p id="selectDialog_folderError">.</p>
+                    <table id="selectDialog_folderTable" class="dialogTable"></table>
+
+                    <p id="selectDialog_noElements" class="mediumMargin"></p>
+                    <table id="selectDialog_elementTable" class="dialogTable mediumMargin"></table>
+
+                    <div class="withMargin">
+                        <button id="selectDialog_deselectButton" class="button_big negative">Auswahl aufheben</button>
+                        <button id="selectDialog_selectFolderButton" class="button_big positive">Diesen Ordner auswählen</button>
+                    </div>
+
+                    <input type="text" placeholder="Neuer Name" class="mediumMargin" id="selectDialog_newName">
+                    <div class="info red" id="selectDialog_errorContainer"></div>
+                </div>
+                <div class="buttonGroup withMargin">
+                    <button class="button_medium negative" id="selectDialog_cancelButton">Abbrechen</button>
+                    <button class="button_medium positive" id="selectDialog_OKButton">OK</button>
                 </div>
             </div>
         </div>

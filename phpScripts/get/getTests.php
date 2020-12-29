@@ -94,10 +94,15 @@ function getTests(Element &$test, bool $withMarks = false) : int {
 
             $stmt->bind_param("i", $test->data["testID"]);
 
-        } else {
+        } else if($test->isRoot) {
 
             $stmt = $mysqli->prepare("SELECT * FROM tests WHERE parentID IS NULL AND semesterID = ? AND deleteTimestamp IS NULL ORDER BY isHidden, NOT isFolder, date, NOT markCounts, name");
             $stmt->bind_param("i", $test->data["semesterID"]);
+
+        } else {
+
+            $stmt = $mysqli->prepare("SELECT * FROM tests WHERE parentID = ? AND deleteTimestamp IS NULL ORDER BY isHidden, NOT isFolder, date, NOT markCounts, name");
+            $stmt->bind_param("i", $test->data["testID"]);
 
         }
 

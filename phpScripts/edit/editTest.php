@@ -366,7 +366,7 @@ function editTest(Test $test, array &$data, int $userID, bool $isTeacher, bool $
 
             if($reference->error !== ERROR_NONE) {
 
-                return $reference->error;
+                return array("error" => ERROR_UNSUITABLE_INPUT);
 
             }
 

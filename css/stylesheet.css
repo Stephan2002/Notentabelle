@@ -197,10 +197,15 @@ h2 {
 
 }
 
-.mainTable tr:hover:not(.noSelect) {
+.mainTable tr:not(.noSelect), #selectDialog tr:not(.selected), #selectDialog_parentFolder {
+
+	cursor: pointer;
+
+}
+
+.mainTable tr:hover:not(.noSelect), #selectDialog tr:hover:not(.selected) {
 
 	background-color: rgb(230, 230, 230);
-	cursor: pointer;
 
 }
 
@@ -301,20 +306,31 @@ h2 {
 	
 }
 
-#permissionsDialog_table td {
+.dialogTable td {
 
 	padding-top: 4px;
 	padding-bottom: 4px;
+	height: 30px;
 
 }
 
-#permissionsDialog_table td:nth-child(1) {
+.dialogTable td:nth-child(1) {
 
 	padding-left: 15px;
 
 }
 
-#permissionsDialog_table td:nth-last-child(3) {
+.dialogTable td:nth-last-child(1) {
+
+	padding-right: 15px;
+
+}
+
+
+#permissionsDialog_table td:nth-last-child(3),
+#permissionsDialog_table td:nth-last-child(1),
+#selectDialog_elementTable td:nth-child(1),
+#selectDialog_elementTable td:nth-last-child(1) {
 
 	width: 30px;
 
@@ -326,34 +342,71 @@ h2 {
 
 }
 
-#permissionsDialog_table td:nth-last-child(1) {
+#selectDialog_elementTable tr:not(.selected) img {
 
-	width: 30px;
-	padding-right: 15px;
+	visibility: hidden;
 
 }
 
 
 
-#permissionsDialog_content {
+
+
+#permissionsDialog_innerContent, #selectDialog_innerContent {
 
 	transition: opacity 0.2s;
 	opacity: 1;
 
 }
 
-#permissionsDialog_noPermission {
+#permissionsDialog_innerContent> p, #selectDialog_innerContent > p {
 
 	font-style: italic;
-	background-color: rgb(230, 230, 230);
 	border-top: 1px solid black;
-	border-bottom: 1px solid black;
-	padding: 8px 3px;
+	padding: 10px 15px;
 	font-size: 16px;
 	text-align: center;
-	margin: 25px -15px 0px -15px
+	margin-left: -15px;
+	margin-right: -15px;
+	transition: background-color 0.4s;
 
 }
+
+#permissionsDialog_noPermission, #selectDialog_noElements, #selectDialog_noFolders {
+
+	background-color: rgb(230, 230, 230);
+	border-bottom: 1px solid black;
+
+}
+
+
+#selectDialog_parentFolder {
+
+	background-color: rgb(217, 217, 217);
+
+}
+
+#selectDialog_folderError {
+
+	border-top: 1px solid black;
+	background-color: rgba(255,0,0,0.125);
+	border-bottom: 1px solid red;
+	color: red;
+
+}
+
+#selectDialog_parentFolder:hover {
+
+	background-color: rgb(200, 200, 200);
+
+}
+
+#selectDialog_elementTable tr.selected {
+
+	background-color: rgb(217, 217, 217);
+
+}
+
 	
 
 
@@ -703,5 +756,12 @@ table .button_square {
 {
 
 	display: none;
+
+}
+
+
+.notImplemented {
+
+	display: none !important;
 
 }

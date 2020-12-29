@@ -1,0 +1,22 @@
+<svg viewBox="-100 -100 200 200" xmlns="http://www.w3.org/2000/svg" stroke="black" stroke-width="18" stroke-linecap="round">
+    <g>
+        <line x1="0" y1="-90" x2="0" y2="-50" transform="rotate(0, 0, 0)"   stroke-opacity="0.4"/>
+        <line x1="0" y1="-90" x2="0" y2="-50" transform="rotate(36, 0, 0)"  stroke-opacity="0.4"/>
+        <line x1="0" y1="-90" x2="0" y2="-50" transform="rotate(72, 0, 0)"  stroke-opacity="0.4"/>
+        <line x1="0" y1="-90" x2="0" y2="-50" transform="rotate(108, 0, 0)" stroke-opacity="0.4"/>
+        <line x1="0" y1="-90" x2="0" y2="-50" transform="rotate(144, 0, 0)" stroke-opacity="0.5"/>
+        <line x1="0" y1="-90" x2="0" y2="-50" transform="rotate(180, 0, 0)" stroke-opacity="0.6"/>
+        <line x1="0" y1="-90" x2="0" y2="-50" transform="rotate(216, 0, 0)" stroke-opacity="0.7"/>
+        <line x1="0" y1="-90" x2="0" y2="-50" transform="rotate(252, 0, 0)" stroke-opacity="0.8"/>
+        <line x1="0" y1="-90" x2="0" y2="-50" transform="rotate(288, 0, 0)" stroke-opacity="0.9"/>
+        <line x1="0" y1="-90" x2="0" y2="-50" transform="rotate(324, 0, 0)" stroke-opacity="1"/>
+        <animateTransform
+            attributeName="transform"
+            type="rotate"
+            values="0; 36; 72; 108; 144; 180; 216; 252; 288; 324"
+            calcMode="discrete"
+            repeatCount="indefinite"
+            dur="1s"
+        />
+    </g>
+</svg>
