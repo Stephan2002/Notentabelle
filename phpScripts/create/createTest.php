@@ -454,6 +454,12 @@ function createTest(Element $test, array &$data, int $userID, bool $isTeacher) :
 
     if(isset($data["templateID"])) {
 
+        if(!isset($properties["round"]) || isset($properties["formula"])) {
+
+            return array("error" => ERROR_FORBIDDEN_FIELD);
+
+        }
+
         $templateSemester = getSemester($data["templateID"], $userID, $isTeacher);
 
         if($templateSemester->error !== ERROR_NONE || !$templateSemester->isTemplate) {
@@ -461,8 +467,6 @@ function createTest(Element $test, array &$data, int $userID, bool $isTeacher) :
             return array("error" => ERROR_UNSUITABLE_INPUT);
 
         }
-
-        // TODO: Vorlagentyp (mit oder ohne Punkte/Noten) ueberpruefen
 
     }
 
@@ -603,10 +607,15 @@ function createTest(Element $test, array &$data, int $userID, bool $isTeacher) :
 
     $newID = $mysqli->query("SELECT LAST_INSERT_ID()")->fetch_row()[0];
 
+    $properties["testID"] = $newID;
 
     if(isset($data["templateID"])) {
 
-        // TODO: Vorlage benutzen
+        include($_SERVER["DOCUMENT_ROOT"] . "/phpScripts/copyFunctions.php");
+
+        $newTest = new Test(ERROR_NONE, Element::ACCESS_UNDEFINED, false, $properties);
+        
+        copyContent($templateSemester, $newTest);
 
     }
 

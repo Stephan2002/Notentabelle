@@ -405,10 +405,16 @@ function createSemester(Semester $semesterFolder, array &$data, int $userID, boo
 
     $newID = $mysqli->query("SELECT LAST_INSERT_ID()")->fetch_row()[0];
 
+    $properties["semesterID"] = $newID;
+
 
     if(isset($data["templateID"])) {
 
-        // TODO: Vorlage benutzen
+        include($_SERVER["DOCUMENT_ROOT"] . "/phpScripts/copyFunctions.php");
+
+        $newSemester = new Semester(ERROR_NONE, Element::ACCESS_OWNER, false, $properties);
+        
+        copyContent($templateSemester, $newSemester);
 
     }
 

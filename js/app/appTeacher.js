@@ -464,25 +464,25 @@ document.addEventListener("DOMContentLoaded", function() {
         var loadMoreButton = document.getElementById("classInfoDialog_loadMoreButton");
         var visibilityButton = document.getElementById("classInfoDialog_visibilityButton");
         var actionButton = document.getElementById("classInfoDialog_actionButton");
-        var action2Button = document.getElementById("classInfoDialog_action2Button");
+        // var action2Button = document.getElementById("classInfoDialog_action2Button");
 
         if(this.classData.referenceID === null) {
 
             document.getElementById("dialogTypeStyles").innerHTML = ".dialogType_class { display: inline; }";
 
-            action2Button.style.display = "inline-block";
+            // action2Button.style.display = "inline-block";
 
-            actionButton.classList.remove("button_big");
-            actionButton.classList.add("button_medium");
+            // actionButton.classList.remove("button_big");
+            // actionButton.classList.add("button_medium");
 
         } else {
 
             document.getElementById("dialogTypeStyles").innerHTML = ".dialogType_classRef { display: inline; }";
 
-            action2Button.style.display = "none";
+            // action2Button.style.display = "none";
 
-            actionButton.classList.remove("button_medium");
-            actionButton.classList.add("button_big");
+            // actionButton.classList.remove("button_medium");
+            // actionButton.classList.add("button_big");
 
         }
     
@@ -491,9 +491,24 @@ document.addEventListener("DOMContentLoaded", function() {
             loadMoreButton.classList.remove("button_big");
             loadMoreButton.classList.add("button_medium");
 
+            if(this.classData.isHidden) {
+
+                visibilityButton.innerHTML = "Wieder anzeigen";
+                visibilityButton.classList.remove("withImage");
+    
+            } else {
+    
+                visibilityButton.innerHTML = "<img src='/img/icons/archive.svg'>Archivieren";
+                visibilityButton.classList.add("withImage");
+    
+            }
+
             visibilityButton.style.display = "inline-block";
 
             document.getElementById("classInfoDialog_controlButtons").style.display = "block";
+
+            // temp
+            actionButton.style.display = "none";
 
         } else {
 
@@ -505,6 +520,10 @@ document.addEventListener("DOMContentLoaded", function() {
             document.getElementById("classInfoDialog_controlButtons").style.display = "none";
 
             loadMoreButton.style.display = "none";
+
+            // temp
+            actionButton.style.display = "inline-block";
+            actionButton.onclick = function() { selectDialog.openSelectActionLocation(TYPE_CLASS, selectDialog.ACTION_REF, undefined, TYPE_CLASS, undefined, true, classInfoDialog.classData ); };
 
         }
 
@@ -863,6 +882,18 @@ document.addEventListener("DOMContentLoaded", function() {
             document.getElementById("studentInfoDialog_controlButtons").style.display = "block";
 
             if(!this.asMarkInfo) {
+
+                if(this.studentData.isHidden) {
+
+                    visibilityButton.innerHTML = "Wieder anzeigen";
+                    visibilityButton.classList.remove("withImage");
+        
+                } else {
+        
+                    visibilityButton.innerHTML = "<img src='/img/icons/archive.svg'>Archivieren";
+                    visibilityButton.classList.add("withImage");
+        
+                }
 
                 visibilityButton.style.display = "inline-block";
 
@@ -2271,7 +2302,8 @@ document.addEventListener("DOMContentLoaded", function() {
 
     document.getElementById("classes_visibilityButton")         .addEventListener("click", function() { changeVisibilty(this, "classes"); });
     document.getElementById("students_visibilityButton")        .addEventListener("click", function() { changeVisibilty(this, "students"); });
-    
+    document.getElementById("foreignClasses_visibilityButton")  .addEventListener("click", function() { changeVisibilty(this, "foreignClasses"); });
+
     document.getElementById("tests_studentVisibilityButton")    .addEventListener("click", function() { changeVisibilty(this, "studentMarks"); });
     document.getElementById("tests_studentMarkVisibiltyButton") .addEventListener("click", changeStudentMarkVisibility);
     document.getElementById("tests_editMarksButton")            .addEventListener("click", startMarkEdit);

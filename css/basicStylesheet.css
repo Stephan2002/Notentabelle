@@ -188,6 +188,21 @@ button.withImage {
 	
 }
 
+.negativeNeutral {
+
+	background-color: #ce692c;
+	border-color: #ce692c;
+
+}
+
+.negativeNeutral:hover, .negativeNeutral:focus {
+
+	background-color: #a55524;
+	border-color: #a55524;
+	outline: none;
+
+}
+
 
 .deactivated, button:disabled {
 

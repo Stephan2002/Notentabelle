@@ -71,7 +71,9 @@ var showHidden = {
     tests: false,
     students: false,
     classes: false,
-    studentMarks: false
+    studentMarks: false,
+    foreignSemesters: !user.isTeacher,
+    foreignClasses: false
 
 };
 
@@ -366,7 +368,7 @@ function printElement() {
                 "<tr onclick='select(" + (currentChildData.isFolder ? TYPE_SEMESTER : TYPE_TEST) + ", " + (currentChildData.referenceTestID ? (currentChildData.referenceTestID + ", false, true") : ((currentChildData.referenceID ? currentChildData.referenceID : currentChildData.semesterID) + ", " + !currentChildData.isFolder + ", " + currentChildData.isFolder)) + ")'>" +
                     "<td class='table_name'>" + escapeHTML(currentChildData.name) + "</td>" +
                     "<td class='table_buttons'>" +
-                        "<button class='button_square negative table_big'><img src='/img/icons/delete.svg' alt='X'></button>" +
+                        (currentChildData.isHidden ? "<button class='button_square negative table_big'><img src='/img/icons/delete.svg' alt='X'></button>" : "<button class='button_square negativeNeutral table_big'><img src='/img/icons/archive.svg' alt='A'></button>") +
                         "<button class='button_square positive table_big' onclick='event.stopPropagation(); editSemesterDialog.openEdit(" + currentChildData.semesterID + ")'><img src='/img/icons/edit.svg' alt='.'></button>" +
                         "<button class='button_square neutral' onclick='event.stopPropagation(); semesterInfoDialog.open(" + currentChildData.semesterID + ")'><img src='/img/icons/info.svg' alt='i'></button>" + 
                     "</td>" +
@@ -440,6 +442,22 @@ function printElement() {
 
         } else {
 
+            var deleteButton = document.getElementById("semesters_deleteButton");
+
+            if(currentElement.data.isHidden) {
+
+                deleteButton.innerHTML = "<img src='/img/icons/delete.svg' alt=' '>Ordner löschen";
+                deleteButton.classList.remove("negativeNeutral");
+                deleteButton.classList.add("negative");
+
+            } else {
+
+                deleteButton.innerHTML = "<img src='/img/icons/archive.svg' alt=' '>Ordner archivieren";
+                deleteButton.classList.remove("negative");
+                deleteButton.classList.add("negativeNeutral");
+
+            }
+
             document.getElementById("semesters_folderButtons").style.display = "block";
             document.getElementById("title").innerHTML = escapeHTML(currentElement.data.name);
             document.getElementsByTagName("TITLE")[0].innerHTML = "Notentabelle - " + escapeHTML(currentElement.data.name);
@@ -474,7 +492,6 @@ function printElement() {
 
         if(currentElement.isRoot) {
 
-            document.getElementById("tests_addFolderButtons").style.display = "none";
             document.getElementById("tests_followRefButton").style.display = "none";
 
             document.getElementById("tests_elementButtons").style.display = "none";
@@ -486,7 +503,18 @@ function printElement() {
 
             if(currentElement.writingPermission) {
 
-                document.getElementById("tests_addSubjectButtons").style.display = "block";
+                if(currentElement.data.templateType === "subjectTemplate") {
+
+                    document.getElementById("tests_addFolderButtons").style.display = "block";
+                    document.getElementById("tests_addSubjectButtons").style.display = "none";
+                
+                } else {
+
+                    document.getElementById("tests_addFolderButtons").style.display = "none";
+                    document.getElementById("tests_addSubjectButtons").style.display = "block";
+
+                }
+
                 document.getElementById("tests_deletedButton").style.display = "inline-block";
 
                 //document.getElementById("tests_empty_templateButton").style.display = "inline-block";
@@ -495,6 +523,7 @@ function printElement() {
             } else {
 
                 document.getElementById("tests_addSubjectButtons").style.display = "none";
+                document.getElementById("tests_addFolderButtons").style.display = "none";
                 document.getElementById("tests_deletedButton").style.display = "none";
 
                 document.getElementById("tests_empty_templateButton").style.display = "none";
@@ -522,6 +551,22 @@ function printElement() {
             if(currentElement.accessType === ACCESS_OWNER) {
 
                 document.getElementById("tests_semesterControlButtons").style.display = "block";
+
+                var deleteButton = document.getElementById("tests_deleteSemesterButton");
+
+                if(currentElement.data.isHidden) {
+
+                    deleteButton.innerHTML = "<img src='/img/icons/delete.svg' alt=' '><span class='parentType_semester'>Semester</span><span class='parentType_template'>Vorlage</span> löschen</span>";
+                    deleteButton.classList.remove("negativeNeutral");
+                    deleteButton.classList.add("negative");
+
+                } else {
+
+                    deleteButton.innerHTML = "<img src='/img/icons/archive.svg' alt=' '><span class='parentType_semester'>Semester</span><span class='parentType_template'>Vorlage</span> archivieren</span>";
+                    deleteButton.classList.remove("negative");
+                    deleteButton.classList.add("negativeNeutral");
+
+                }
 
             } else {
 
@@ -563,13 +608,11 @@ function printElement() {
             document.getElementById("averageFooter_plusPoints_big").style.display = "none";
             document.getElementById("tests_followRefButton").style.display = "none";
 
-            document.getElementById("typeStyles").innerHTML = ".type_subject { display: inline; }";
-
             if(currentElement.isFolder) {
 
                 document.getElementById("tests_followRefButton").style.display = "none";
 
-                if(currentElement.data.parentID === null) {
+                if(currentElement.data.parentID === null && currentElement.data.templateType !== "subjectTemplate") {
 
                     document.getElementById("typeStyles").innerHTML = ".type_subject { display: inline; }";
 
@@ -1450,6 +1493,12 @@ function printElement() {
 
             var currentChildData = currentElement.childrenData[i];
 
+            if(!showHidden.foreignSemesters && currentChildData.isHidden) {
+
+                continue;
+
+            }
+
             var currentString = 
                 "<tr onclick='select(TYPE_TEST, " + currentChildData.semesterID + ", true, true)'>" +
                     "<td class='table_name'>" + escapeHTML(currentChildData.name) + "</td>" +
@@ -1559,7 +1608,7 @@ function printElement() {
                 "<tr onclick='select(TYPE_CLASS, " + (currentChildData.referenceID ? currentChildData.referenceID : currentChildData.classID) + ", false, true)'>" +
                     "<td class='table_name'>" + escapeHTML(currentChildData.name) + "</td>" +
                     "<td class='table_buttons'>" +
-                        "<button class='button_square negative table_big'><img src='/img/icons/delete.svg' alt='X'></button>" +
+                    (currentChildData.isHidden ? "<button class='button_square negative table_big'><img src='/img/icons/delete.svg' alt='X'></button>" : "<button class='button_square negativeNeutral table_big'><img src='/img/icons/archive.svg' alt='A'></button>") +
                         "<button class='button_square positive table_big' onclick='event.stopPropagation(); editClassDialog.openEdit(" + currentChildData.classID + ")'><img src='/img/icons/edit.svg' alt='.'></button>" +
                         "<button class='button_square neutral' onclick='event.stopPropagation(); classInfoDialog.open(" + currentChildData.classID + ")'><img src='/img/icons/info.svg' alt='i'></button>" +
                     "</td>" +
@@ -1594,6 +1643,12 @@ function printElement() {
         for(var i = 0; i < currentElement.childrenData.length; i++) {
 
             var currentChildData = currentElement.childrenData[i];
+
+            if(!showHidden.foreignClasses && currentChildData.isHidden) {
+
+                continue;
+
+            }
 
             tableString += 
                 "<tr onclick='select(TYPE_CLASS, " + currentChildData.classID + ", false, true)'>" +
@@ -1668,7 +1723,7 @@ function printElement() {
                     "<td>" + escapeHTML(currentChildData.userName) + "</td>" +
                     "<td class='table_buttons'>" +
                         (currentElement.writingPermission ? (
-                            "<button class='button_square negative table_big'><img src='/img/icons/delete.svg' alt='X'></button>" +
+                            (currentChildData.isHidden ? "<button class='button_square negative table_big'><img src='/img/icons/delete.svg' alt='X'></button>" : "<button class='button_square negativeNeutral table_big'><img src='/img/icons/archive.svg' alt='A'></button>") +
                             "<button class='button_square positive table_big' onclick='editStudentDialog.openEdit(" + currentChildData.studentID + ")'><img src='/img/icons/edit.svg' alt='.'></button>"
                         ) : "") +
                         "<button class='button_square neutral' onclick='event.stopPropagation(); studentInfoDialog.open(" + currentChildData.studentID + ")'><img src='/img/icons/info.svg' alt='i'></button>" +
@@ -1698,6 +1753,22 @@ function printElement() {
 
             document.getElementById("students_empty").style.display = "none";
             document.getElementById("students_table").style.display = "table";
+
+        }
+
+        var deleteButton = document.getElementById("students_deleteClassButton");
+
+        if(currentElement.data.isHidden) {
+
+            deleteButton.innerHTML = "<img src='/img/icons/delete.svg' alt=' '>Klasse löschen";
+            deleteButton.classList.remove("negativeNeutral");
+            deleteButton.classList.add("negative");
+
+        } else {
+
+            deleteButton.innerHTML = "<img src='/img/icons/archive.svg' alt=' '>Klasse archivieren";
+            deleteButton.classList.remove("negative");
+            deleteButton.classList.add("negativeNeutral");
 
         }
 
@@ -2201,6 +2272,16 @@ function printTestInfo(elementPrefix, testData) {
         loadMoreButton.classList.remove("button_big");
         loadMoreButton.classList.add("button_medium");
 
+        if(testData.isHidden) {
+
+            visibilityButton.innerHTML = "Wieder anzeigen";
+
+        } else {
+
+            visibilityButton.innerHTML = "Ausblenden";
+
+        }
+
         visibilityButton.style.display = "inline-block";
 
     } else {
@@ -2220,7 +2301,7 @@ function printTestInfo(elementPrefix, testData) {
 
     } else {
 
-        document.getElementById(elementPrefix + "_testInfoDialog_markAndPointsContainer").style.display = "none";
+        document.getElementById(elementPrefix + "_markAndPointsContainer").style.display = "none";
 
     }
 
@@ -2751,29 +2832,32 @@ document.addEventListener("DOMContentLoaded", function () {
 
         var loadMoreButton = document.getElementById("semesterInfoDialog_loadMoreButton");
         var visibilityButton = document.getElementById("semesterInfoDialog_visibilityButton");
-        var otherButton = document.getElementById("semesterInfoDialog_otherButton");
+        // var otherButton = document.getElementById("semesterInfoDialog_otherButton");
         var actionButton = document.getElementById("semesterInfoDialog_actionButton");
         
         if(this.semesterData.isFolder) {
 
             loadMoreButton.style.display = "none";
             visibilityButton.style.display = "inline-block";
-            otherButton.style.display = "none";
+            // otherButton.style.display = "none";
 
-            actionButton.classList.remove("button_medium");
-            actionButton.classList.add("button_big");
+            // actionButton.classList.remove("button_medium");
+            // actionButton.classList.add("button_big");
 
             visibilityButton.classList.remove("button_medium");
             visibilityButton.classList.add("button_big");
 
             document.getElementById("semesterInfoDialog_controlButtons").style.display = "block";
 
+            // temp
+            actionButton.style.display = "none";
+
         } else {
 
-            otherButton.style.display = "inline-block";
+            // otherButton.style.display = "inline-block";
             
-            actionButton.classList.remove("button_big");
-            actionButton.classList.add("button_medium");
+            // actionButton.classList.remove("button_big");
+            // actionButton.classList.add("button_medium");
         
             if(currentElement.accessType === ACCESS_OWNER) {
 
@@ -2783,6 +2867,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 visibilityButton.style.display = "inline-block";
 
                 document.getElementById("semesterInfoDialog_controlButtons").style.display = "block";
+
+                // temp
+                actionButton.style.display = "none";
 
             } else {
 
@@ -2799,7 +2886,23 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 }
 
+                // temp
+                actionButton.style.display = "inline-block";
+                actionButton.onclick = function() { selectDialog.openSelectActionLocation(TYPE_SEMESTER, selectDialog.ACTION_REF, undefined, TYPE_SEMESTER, undefined, true, semesterInfoDialog.semesterData); };
+
             }
+
+        }
+
+        if(this.semesterData.isHidden) {
+
+            visibilityButton.innerHTML = "Wieder anzeigen";
+            visibilityButton.classList.remove("withImage");
+
+        } else {
+
+            visibilityButton.innerHTML = "<img src='/img/icons/archive.svg'>Archivieren";
+            visibilityButton.classList.add("withImage");
 
         }
 
@@ -3039,7 +3142,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             document.getElementById("dialogTypeStyles").innerHTML = ".dialogType_test { display: inline; }";
 
-        } else if(this.testData.parentID === null) {
+        } else if(this.testData.parentID === null && currentElement.data.templateType !== "subjectTemplate") {
 
             document.getElementById("dialogTypeStyles").innerHTML = ".dialogType_subject { display: inline; }";
 
@@ -3791,7 +3894,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             document.getElementById("dialogTypeStyles").innerHTML = ".dialogType_test { display: inline; }";
 
-        } else if(this.testData.parentID === null) {
+        } else if(this.testData.parentID === null && currentElement.data.templateType !== "subjectTemplate") {
 
             document.getElementById("dialogTypeStyles").innerHTML = ".dialogType_subject { display: inline; }";
 
@@ -3812,7 +3915,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         document.getElementById("editTestDialog_markCounts").checked = this.testData.markCounts;
 
-        if(this.testData.referenceState === null) {
+        if(this.testData.referenceState === null || currentElement.isTemplate) {
 
             document.getElementById("editTestDialog_refTestButton").style.display = "none";
 
@@ -3999,7 +4102,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             document.getElementById("dialogTypeStyles").innerHTML = ".dialogType_test { display: inline; }";
 
-        } else if(this.testData.parentID === null) {
+        } else if(this.testData.parentID === null && currentElement.data.templateType !== "subjectTemplate") {
 
             document.getElementById("dialogTypeStyles").innerHTML = ".dialogType_subject { display: inline; }";
 
@@ -4016,7 +4119,7 @@ document.addEventListener("DOMContentLoaded", function () {
         nameElement.classList.remove("warning");
 
         document.getElementById("editTestDialog_templateButton").style.display = this.testData.isFolder && this.testData.round !== null ? "inline-block" : "none";
-        document.getElementById("editTestDialog_refTestButton").style.display = this.testData.referenceState !== null ? "inline-block" : "none";
+        document.getElementById("editTestDialog_refTestButton").style.display = this.testData.referenceState !== null && !currentElement.isTemplate ? "inline-block" : "none";
         document.getElementById("editTestDialog_permissionsButton").style.display = (this.testData.parentID === null && currentElement.data.classID !== null) ? "inline-block" : "none";
         
         if(this.testData.round === null) {
@@ -4936,9 +5039,15 @@ document.addEventListener("DOMContentLoaded", function () {
             properties.isSubject = false;
 
         }
+
+        if(this.testData.referenceState !== null && properties.referenceID === undefined) {
+
+            properties.referenceID = null;
+
+        }
         
         properties.isFolder = this.testData.isFolder;
-        console.log(properties.templateID); return;
+        
         loadData("/phpScripts/create/createTest.php", properties, function(result) {
 
             properties.testID = result.newID;
@@ -7267,8 +7376,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
     document.getElementById("tests_testInfo_loadMoreButton").addEventListener("click", loadMoreTestInfo);
 
-    document.getElementById("semesters_visibilityButton")     .addEventListener("click", function() { changeVisibilty(this, "semesters"); });
-    document.getElementById("tests_visibilityButton")         .addEventListener("click", function() { changeVisibilty(this, "tests"); });
+    document.getElementById("semesters_visibilityButton")       .addEventListener("click", function() { changeVisibilty(this, "semesters"); });
+    document.getElementById("tests_visibilityButton")           .addEventListener("click", function() { changeVisibilty(this, "tests"); });
+    document.getElementById("foreignSemesters_visibilityButton").addEventListener("click", function() { changeVisibilty(this, "foreignSemesters"); });
 
     // setTimeout(function() { selectDialog.openSelection(); }, 500);
 

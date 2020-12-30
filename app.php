@@ -29,17 +29,6 @@ include("phpScripts/login.php");
 
         <meta name="apple-mobile-web-app-capable" content="yes">
 
-        <script language="javascript" type="text/javascript" src="/modules/dialog/dialogScript.js"></script>
-        <script language="javascript" type="text/javascript" src="/modules/dialog/alertScript.js"></script>
-        <script language="javascript" type="text/javascript" src="/modules/loading/loadingScript.js"></script>
-        <script language="javascript" type="text/javascript" src="/modules/buttonSelect/buttonSelectScript.js"></script>
-        <script language="javascript" type="text/javascript" src="/js/editDialog.js"></script>
-        <script language="javascript" type="text/javascript" src="/js/app/app.js"></script>
-
-        <?php if($_SESSION["isTeacher"]) { ?>
-            <script language="javascript" type="text/javascript" src="/js/app/appTeacher.js"></script>
-        <?php } ?>
-        
         <script>
             var user = {
                 userName: "<?php echo addslashes($_SESSION["username"]); ?>",
@@ -52,6 +41,17 @@ include("phpScripts/login.php");
                 navigator.serviceWorker.register("/serviceWorker.js");
             }
         </script>
+
+        <script language="javascript" type="text/javascript" src="/modules/dialog/dialogScript.js"></script>
+        <script language="javascript" type="text/javascript" src="/modules/dialog/alertScript.js"></script>
+        <script language="javascript" type="text/javascript" src="/modules/loading/loadingScript.js"></script>
+        <script language="javascript" type="text/javascript" src="/modules/buttonSelect/buttonSelectScript.js"></script>
+        <script language="javascript" type="text/javascript" src="/js/editDialog.js"></script>
+        <script language="javascript" type="text/javascript" src="/js/app/app.js"></script>
+
+        <?php if($_SESSION["isTeacher"]) { ?>
+            <script language="javascript" type="text/javascript" src="/js/app/appTeacher.js"></script>
+        <?php } ?>
 
         <script>
             window.addEventListener("pageshow", function(event) { if(event.persisted) window.location.reload()});
@@ -134,7 +134,7 @@ include("phpScripts/login.php");
 
                 <button id="semesters_foreignSemestersButton" class="button_big positive withMargin">Geteilte Semester / Vorlagen</button>
                 
-                <button id="semesters_visibilityButton" class="button_big positive bigMargin">Versteckte Elemente <span>anzeigen</span></button>
+                <button id="semesters_visibilityButton" class="button_big positive bigMargin">Archivierte Elemente <span>anzeigen</span></button>
                 <button class="button_big positive">Gelöschte Elemente</button>
 
                 <div id="semesters_folderButtons" class="withMargin">
@@ -320,11 +320,11 @@ include("phpScripts/login.php");
 
                 <div class="buttonGroup mediumMargin">
                     <button id="tests_testInfo_loadMoreButton" class="button_medium neutral withImage"><img src="/img/icons/info.svg">Mehr laden</button>
-                    <button id="tests_testInfo_visibilityButton" class="button_medium positive">Ausblenden</button>
+                    <button id="tests_testInfo_visibilityButton" class="button_medium negativeNeutral"></button>
                 </div>
                 <div class="buttonGroup noMargin" style="margin-bottom: -40px;">
-                    <button id="tests_testInfo_actionButton" class="button_medium positive">Verschieben</button>
-                    <button id="tests_testInfo_otherButton" class="button_medium positive">Anderes</button>
+                    <!--<button id="tests_testInfo_actionButton" class="button_medium positive">Verschieben</button>-->
+                    <!--<button id="tests_testInfo_otherButton" class="button_medium positive">Anderes</button>-->
                 </div>
             </div>
 
@@ -363,13 +363,13 @@ include("phpScripts/login.php");
                         <button id="tests_OKButton" class="button_medium positive">Veränderungen speichern</button>
                     </div>
                     
-                    <button id="tests_studentVisibilityButton" class="button_big positive withMargin">Versteckte Schüler/innen <span>anzeigen</span></button>
+                    <button id="tests_studentVisibilityButton" class="button_big positive withMargin">Archivierte Schüler/innen <span>anzeigen</span></button>
                     <button id="tests_studentMarkVisibiltyButton" class="button_big positive">Schüler/innen ohne Daten <span>anzeigen</span></button>
                 </div>
 
                 <?php } ?>
 
-                <button id="tests_visibilityButton" class="button_big positive withMargin">Versteckte Elemente <span>anzeigen</span></button>
+                <button id="tests_visibilityButton" class="button_big positive withMargin">Auszublendende Elemente <span>anzeigen</span></button>
                 <button id="tests_deletedButton" class="button_big positive">Gelöschte Elemente</button>
 
                 <div id="tests_semesterButtons" style="display: block;">
@@ -460,6 +460,10 @@ include("phpScripts/login.php");
                     </tbody>
                 </table>
             </div>
+
+            <div class="container">
+                <button id="foreignSemesters_visibilityButton" class="button_big positive withMargin">Archivierte Elemente <span><?php echo ($_SESSION["isTeacher"] ? "anzeigen" : "ausblenden") ?></span></button>
+            </div>
         </div>
 
         <?php if($_SESSION["isTeacher"]) { ?>
@@ -484,7 +488,7 @@ include("phpScripts/login.php");
             <div class="container">
                 <button id="classes_foreignClassesButton" class='button_big positive withMargin'>Geteilte Klassen</button>
 
-                <button id="classes_visibilityButton" class="button_big positive bigMargin">Versteckte / alte Klassen <span>anzeigen</span></button>
+                <button id="classes_visibilityButton" class="button_big positive bigMargin">Archivierte Klassen <span>anzeigen</span></button>
                 <button class="button_big positive">Gelöschte Klassen</button>
             </div>
         </div>
@@ -515,14 +519,14 @@ include("phpScripts/login.php");
             </table>
 
             <div class="container">
-                <button id="students_visibilityButton" class="button_big positive">Versteckte Schüler/innen <span>anzeigen</span></button>
+                <button id="students_visibilityButton" class="button_big positive">Archivierte Schüler/innen <span>anzeigen</span></button>
                 <button class="button_big positive">Gelöschte Schüler/innen</button>
 
-                <button class="button_big neutral withMargin withImage" id="students_classInfoButton"><img src="/img/icons/info.svg" alt="">Klassen-Eigenschaften</button>
+                <button class="button_big neutral withMargin withImage" id="students_classInfoButton"><img src="/img/icons/info.svg" alt=" ">Klassen-Eigenschaften</button>
 
                 <div class="buttonGroup noMargin" id="students_classControlButtons">
-                    <button class="button_medium positive withImage" id="students_editClassButton"><img src="/img/icons/edit.svg" alt="">Klasse bearbeiten</button>
-                    <button class="button_medium negative withImage" id="students_deleteClassButton"><img src="/img/icons/delete.svg" alt="">Klasse löschen</button>
+                    <button class="button_medium positive withImage" id="students_editClassButton"><img src="/img/icons/edit.svg" alt=" ">Klasse bearbeiten</button>
+                    <button class="button_medium negative withImage" id="students_deleteClassButton"><img src="/img/icons/delete.svg" alt=" ">Klasse löschen</button>
                 </div>
             </div>
         </div>
@@ -547,6 +551,10 @@ include("phpScripts/login.php");
                 <tbody id="foreignClasses_tableBody">
                 </tbody>
             </table>
+
+            <div class="container">
+                <button id="foreignClasses_visibilityButton" class="button_big positive withMargin">Archivierte Klassen <span>anzeigen</span></button>
+            </div>
         </div>
 
         <?php } ?>
@@ -644,7 +652,7 @@ include("phpScripts/login.php");
 
                 <table class="mediumMargin">
                     <tr>
-                        <td>Ausgeblendet:</td>
+                        <td>Archiviert / ausgeblendet:</td>
                         <td><img id="semesterInfoDialog_isHiddenIcon" src="/img/icons/checked.svg"></td>
                     </tr>
                 </table>
@@ -673,11 +681,12 @@ include("phpScripts/login.php");
 
                 <div class="buttonGroup mediumMargin">
                     <button id="semesterInfoDialog_loadMoreButton" class="button_medium neutral withImage"><img src="/img/icons/info.svg">Mehr laden</button>
-                    <button id="semesterInfoDialog_visibilityButton" class="button_medium positive">Ausblenden</button>
+                    <button id="semesterInfoDialog_visibilityButton" class="button_medium negativeNeutral withImage" style="display: inline-block;"><img src="/img/icons/archive.svg">Archivieren</button>
                 </div>
                 <div class="buttonGroup noMargin">
-                    <button id="semesterInfoDialog_actionButton" class="button_medium positive">Verschieben</button>
-                    <button id="semesterInfoDialog_otherButton" class="button_medium positive">Anderes</button>
+                    <button id="semesterInfoDialog_actionButton" class="button_big positive withImage"><img src="/img/icons/save.svg">Verknüpfung erstellen</button>
+                    <!--<button id="semesterInfoDialog_actionButton" class="button_medium positive">Verschieben</button>-->
+                    <!--<button id="semesterInfoDialog_otherButton" class="button_medium positive">Anderes</button>-->
                 </div>
                 <div id="semesterInfoDialog_controlButtons" class="buttonGroup noMargin">
                     <button id="semesterInfoDialog_editButton" class="button_medium positive withImage"><img src="/img/icons/edit.svg">Bearbeiten</button>
@@ -815,11 +824,11 @@ include("phpScripts/login.php");
 
                 <div class="buttonGroup mediumMargin">
                     <button id="testInfoDialog_loadMoreButton" class="button_medium neutral withImage"><img src="/img/icons/info.svg">Mehr laden</button>
-                    <button id="testInfoDialog_visibilityButton" class="button_medium positive">Ausblenden</button>
+                    <button id="testInfoDialog_visibilityButton" class="button_medium negativeNeutral"></button>
                 </div>
                 <div class="buttonGroup noMargin">
-                    <button id="testInfoDialog_actionButton" class="button_medium positive">Verschieben</button>
-                    <button id="testInfoDialog_otherButton" class="button_medium positive">Anderes</button>
+                    <!--<button id="testInfoDialog_actionButton" class="button_medium positive">Verschieben</button>-->
+                    <!--<button id="testInfoDialog_otherButton" class="button_medium positive">Anderes</button>-->
                 </div>
                 <div id="testInfoDialog_controlButtons" class="buttonGroup noMargin">
                     <button id="testInfoDialog_editButton" class="button_medium positive withImage"><img src="/img/icons/edit.svg">Bearbeiten</button>
@@ -852,7 +861,7 @@ include("phpScripts/login.php");
 
                 <table class="mediumMargin">
                     <tr>
-                        <td>Ausgeblendet:</td>
+                        <td>Archiviert / ausgeblendet:</td>
                         <td><img id="classInfoDialog_isHiddenIcon" src="/img/icons/checked.svg"></td>
                     </tr>
                 </table>
@@ -870,11 +879,12 @@ include("phpScripts/login.php");
 
                 <div class="buttonGroup mediumMargin">
                     <button id="classInfoDialog_loadMoreButton" class="button_medium neutral withImage"><img src="/img/icons/info.svg">Mehr laden</button>
-                    <button id="classInfoDialog_visibilityButton" class="button_medium positive">Ausblenden</button>
+                    <button id="classInfoDialog_visibilityButton" class="button_medium negativeNeutral"></button>
                 </div>
                 <div class="buttonGroup noMargin">
-                    <button id="classInfoDialog_actionButton" class="button_medium positive">Kopieren</button>
-                    <button id="classInfoDialog_action2Button" class="button_medium positive">Übertragen</button>
+                <button id="classInfoDialog_actionButton" class="button_big positive withImage"><img src="/img/icons/save.svg" alt=" ">Verknüpfung erstellen</button>
+                    <!--<button id="classInfoDialog_actionButton" class="button_medium positive">Kopieren</button>-->
+                    <!--<button id="classInfoDialog_action2Button" class="button_medium positive">Übertragen</button>-->
                 </div>
                 <div id="classInfoDialog_controlButtons" class="buttonGroup noMargin">
                     <button id="classInfoDialog_editButton" class="button_medium positive withImage"><img src="/img/icons/edit.svg">Bearbeiten</button>
@@ -916,7 +926,7 @@ include("phpScripts/login.php");
 
                 <table class="mediumMargin">
                     <tr>
-                        <td>Ausgeblendet:</td>
+                        <td>Archiviert / ausgeblendet:</td>
                         <td><img id="studentInfoDialog_isHiddenIcon" src="/img/icons/checked.svg"></td>
                     </tr>
                 </table>
@@ -946,7 +956,7 @@ include("phpScripts/login.php");
                 </div>
 
                 <div class="buttonGroup mediumMargin">
-                    <button id="studentInfoDialog_visibilityButton" class="button_big positive">Ausblenden</button>
+                    <button id="studentInfoDialog_visibilityButton" class="button_big negativeNeutral"></button>
                 </div>
 
                 <div id="studentInfoDialog_controlButtons" class="buttonGroup noMargin">
