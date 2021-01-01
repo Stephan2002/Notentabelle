@@ -135,7 +135,7 @@ include("phpScripts/login.php");
                 <button id="semesters_foreignSemestersButton" class="button_big positive withMargin">Geteilte Semester / Vorlagen</button>
                 
                 <button id="semesters_visibilityButton" class="button_big positive bigMargin">Archivierte Elemente <span>anzeigen</span></button>
-                <button class="button_big positive">Gelöschte Elemente</button>
+                <button id="semesters_deletedButton" class="button_big positive">Gelöschte Elemente</button>
 
                 <div id="semesters_folderButtons" class="withMargin">
                     <button class="button_big neutral withImage" id="semesters_infoButton"><img src="/img/icons/info.svg" alt="">Ordnereigenschaften</button>
@@ -349,10 +349,14 @@ include("phpScripts/login.php");
 
             <div class="container" style="margin-bottom: 100px;">
                 <?php if($_SESSION["isTeacher"]) { ?>
+
+                <div class="info red bigMargin" id="tests_noClass">
+                    <p class="blankLine_small">Die zu diesem Klassensemester gehörende Klasse ist gelöscht worden. Entsprechend sind alle Noten/Punkte der Schüler/innen auch gelöscht und Sie können keine Änderungen mehr vornehmen.</p>
+                </div>
                     
                 <div id="tests_studentButtons">
                     <div class="info gray bigMargin" id="tests_noMarks" style="display: none;">
-                        <p class="blankLine_small">Kein/e Schüler/in hat Noten oder Punkte.</p>
+                        <p class="blankLine_small">Kein/e Schüler/in hat Noten oder Punkte oder es gibt keine Schüler/innen in dieser Klasse.</p>
                         <p id="tests_noMarks_instruction">Fügen Sie Noten/Punkte hinzu, indem Sie Knopf unten benutzen.</p>
                     </div>
 
@@ -489,7 +493,7 @@ include("phpScripts/login.php");
                 <button id="classes_foreignClassesButton" class='button_big positive withMargin'>Geteilte Klassen</button>
 
                 <button id="classes_visibilityButton" class="button_big positive bigMargin">Archivierte Klassen <span>anzeigen</span></button>
-                <button class="button_big positive">Gelöschte Klassen</button>
+                <button id="classes_deletedButton" class="button_big positive">Gelöschte Klassen</button>
             </div>
         </div>
 
@@ -520,7 +524,7 @@ include("phpScripts/login.php");
 
             <div class="container">
                 <button id="students_visibilityButton" class="button_big positive">Archivierte Schüler/innen <span>anzeigen</span></button>
-                <button class="button_big positive">Gelöschte Schüler/innen</button>
+                <button id="students_deletedButton" class="button_big positive">Gelöschte Schüler/innen</button>
 
                 <button class="button_big neutral withMargin withImage" id="students_classInfoButton"><img src="/img/icons/info.svg" alt=" ">Klassen-Eigenschaften</button>
 
@@ -1145,6 +1149,26 @@ include("phpScripts/login.php");
                     <button class="button_medium negative" id="selectDialog_cancelButton">Abbrechen</button>
                     <button class="button_medium positive" id="selectDialog_OKButton">OK</button>
                 </div>
+            </div>
+        </div>
+
+        <div id="deleteDialog" class="dialog" style="display: none;">
+            <div class="dialogBlocker"></div>
+            <div class="dialogContent">
+                <h2 id="deleteDialog_header">Gelöschte Elemente</h2>
+
+                <p id="deleteDialog_noElements" class="mediumMargin">Keine gelöschte Elemente</p>
+                <table id="deleteDialog_table" class="dialogTable mediumMargin">
+                    <tr>
+                        <td>Name</td>
+                        <td>
+                            <button class="button_square positive"><img src='/img/icons/restore.svg'></button>
+                            <button class="button_square negative"><img src='/img/icons/delete.svg'></button>
+                        </td>
+                    </tr>
+                </table>
+
+                <button class="button_big negative mediumMargin" id="deleteDialog_cancelButton">Abbrechen</button>
             </div>
         </div>
 

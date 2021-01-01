@@ -53,7 +53,7 @@ if($semester->error !== ERROR_NONE) {
 $returnProperties = array();
 $returnProperties["error"] = ERROR_NONE;
 
-if($semester->data["classID"] !== NULL) {
+if($semester->data["classID"] !== NULL && $semester->data["classID"] > 0) {
 
     $stmt = $mysqli->prepare("SELECT name FROM classes WHERE classID = ?");
     $stmt->bind_param("i", $semester->data["classID"]);

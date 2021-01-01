@@ -256,6 +256,10 @@ class Loading {
 
 			}
 
+		} else if(event.key === "Enter" || event.key === "Escape") {
+
+			event.preventDefault();
+
 		}
 
 	}

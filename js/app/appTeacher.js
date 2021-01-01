@@ -2267,6 +2267,12 @@ document.addEventListener("DOMContentLoaded", function() {
 
     document.getElementById("classInfoDialog_closeButton")          .addEventListener("click", classInfoDialog.close.bind(classInfoDialog));
     document.getElementById("classInfoDialog_loadMoreButton")       .addEventListener("click", classInfoDialog.loadMore.bind(classInfoDialog));
+    document.getElementById("classInfoDialog_visibilityButton")     .addEventListener("click", function() { changeVisibility(TYPE_CLASS, classInfoDialog.classData.classID); });
+    document.getElementById("classInfoDialog_deleteButton")         .addEventListener("click", function() { deleteElement(TYPE_CLASS, classInfoDialog.classData.classID, true); });
+
+    document.getElementById("studentInfoDialog_closeButton")        .addEventListener("click", studentInfoDialog.close.bind(studentInfoDialog));
+    document.getElementById("studentInfoDialog_visibilityButton")   .addEventListener("click", function() { changeVisibility(TYPE_STUDENT, studentInfoDialog.studentData.studentID); });
+    document.getElementById("studentInfoDialog_deleteButton")       .addEventListener("click", function() { deleteElement(TYPE_STUDENT, studentInfoDialog.studentData.studentID, true); });
 
     document.getElementById("editClassDialog_with_notes")           .addEventListener("change", editClassDialog.updateCheckbox.bind(editClassDialog, "notes"));
     document.getElementById("editClassDialog_name")                 .addEventListener("input",  editClassDialog.check.bind(editClassDialog, "name"));
@@ -2292,19 +2298,19 @@ document.addEventListener("DOMContentLoaded", function() {
     document.getElementById("editStudentMarkDialog_cancelButton")   .addEventListener("click",  editStudentMarkDialog.close.bind(editStudentMarkDialog));
     document.getElementById("editStudentMarkDialog_OKButton")       .addEventListener("click",  editStudentMarkDialog.save.bind(editStudentMarkDialog));
 
-    document.getElementById("studentInfoDialog_closeButton")    .addEventListener("click", studentInfoDialog.close.bind(studentInfoDialog));
-
     document.getElementById("classes_addClassButton")           .addEventListener("click", editClassDialog.openAdd.bind(editClassDialog));
+    document.getElementById("classes_deletedButton")            .addEventListener("click", deleteDialog.loadAndOpen.bind(deleteDialog));
 
     document.getElementById("students_classInfoButton")         .addEventListener("click", classInfoDialog.open.bind(classInfoDialog));
     document.getElementById("students_editClassButton")         .addEventListener("click", editClassDialog.openEdit.bind(editClassDialog, undefined));
     document.getElementById("students_addStudentButton")        .addEventListener("click", editStudentDialog.openAdd.bind(editStudentDialog));
+    document.getElementById("students_deletedButton")           .addEventListener("click", deleteDialog.loadAndOpen.bind(deleteDialog));
 
-    document.getElementById("classes_visibilityButton")         .addEventListener("click", function() { changeVisibilty(this, "classes"); });
-    document.getElementById("students_visibilityButton")        .addEventListener("click", function() { changeVisibilty(this, "students"); });
-    document.getElementById("foreignClasses_visibilityButton")  .addEventListener("click", function() { changeVisibilty(this, "foreignClasses"); });
+    document.getElementById("classes_visibilityButton")         .addEventListener("click", function() { changeHiddenVisibility(this, "classes"); });
+    document.getElementById("students_visibilityButton")        .addEventListener("click", function() { changeHiddenVisibility(this, "students"); });
+    document.getElementById("foreignClasses_visibilityButton")  .addEventListener("click", function() { changeHiddenVisibility(this, "foreignClasses"); });
 
-    document.getElementById("tests_studentVisibilityButton")    .addEventListener("click", function() { changeVisibilty(this, "studentMarks"); });
+    document.getElementById("tests_studentVisibilityButton")    .addEventListener("click", function() { changeHiddenVisibility(this, "studentMarks"); });
     document.getElementById("tests_studentMarkVisibiltyButton") .addEventListener("click", changeStudentMarkVisibility);
     document.getElementById("tests_editMarksButton")            .addEventListener("click", startMarkEdit);
     document.getElementById("tests_cancelButton")               .addEventListener("click", stopMarkEdit);

@@ -160,7 +160,7 @@ function updatePermissions(Element $element, array &$permissions) : int {
         $stmt->execute();
 
 
-        // Elemente laden, auf die der Zugriff nun berechtigt ist.
+        // Elemente laden, bei denen der Zugriff nun berechtigt ist oder wäre.
 
         $arguments = array();
 
@@ -175,11 +175,11 @@ function updatePermissions(Element $element, array &$permissions) : int {
 
         if($element->type === Element::TYPE_SEMESTER) {
 
-            $stmt->prepare("SELECT tests.*, semesters.classID, semesters.userID FROM tests INNER JOIN semesters ON semesters.semesterID = tests.semesterID INNER JOIN tests AS tests2 ON (tests2.testID = tests.referenceID AND tests2.semesterID = ?) WHERE semesters.userID IN (" . $queryFragment . ") AND tests.referenceState = \"forbidden\" AND EXISTS (SELECT 1 FROM semesters AS semesters2 WHERE semesters2.semesterID = tests2.semesterID AND semesters2.classID <=> semesters.classID)");
+            $stmt->prepare("SELECT tests.*, semesters.classID, semesters.userID FROM tests INNER JOIN semesters ON semesters.semesterID = tests.semesterID INNER JOIN tests AS tests2 ON (tests2.testID = tests.referenceID AND tests2.semesterID = ?) WHERE semesters.userID IN (" . $queryFragment . ") AND (tests.referenceState = \"forbidden\" OR tests.referenceState = \"delForbidden\") AND EXISTS (SELECT 1 FROM semesters AS semesters2 WHERE semesters2.semesterID = tests2.semesterID AND semesters2.classID <=> semesters.classID)");
         
         } else {
 
-            $stmt->prepare("SELECT tests.*, semesters.classID, semesters.userID FROM tests INNER JOIN semesters ON semesters.semesterID = tests.semesterID INNER JOIN tests AS tests2 ON (tests2.testID = tests.referenceID AND ? IN(tests2.subjectID, tests2.testID)) WHERE semesters.userID IN (" . $queryFragment . ") AND tests.referenceState = \"forbidden\" AND EXISTS (SELECT 1 FROM semesters AS semesters2 WHERE semesters2.semesterID = tests2.semesterID AND semesters2.classID <=> semesters.classID)");
+            $stmt->prepare("SELECT tests.*, semesters.classID, semesters.userID FROM tests INNER JOIN semesters ON semesters.semesterID = tests.semesterID INNER JOIN tests AS tests2 ON (tests2.testID = tests.referenceID AND ? IN(tests2.subjectID, tests2.testID)) WHERE semesters.userID IN (" . $queryFragment . ") AND (tests.referenceState = \"forbidden\" OR tests.referenceState = \"delForbidden\") AND EXISTS (SELECT 1 FROM semesters AS semesters2 WHERE semesters2.semesterID = tests2.semesterID AND semesters2.classID <=> semesters.classID)");
 
         }
 
@@ -206,7 +206,7 @@ function updatePermissions(Element $element, array &$permissions) : int {
 
             }
 
-            $stmt->prepare("UPDATE tests SET tests.referenceState = \"ok\" WHERE tests.testID IN (" . $queryFragment . ")");
+            $stmt->prepare("UPDATE tests SET tests.referenceState = IF(tests.referenceState = \"forbidden\", \"ok\", \"delTemp\") WHERE tests.testID IN (" . $queryFragment . ")");
             $stmt->bind_param($parameterTypes, ...$arguments);
             $stmt->execute();
 
@@ -232,9 +232,13 @@ function updatePermissions(Element $element, array &$permissions) : int {
         
         foreach($changedRefs as &$currentRef) {
             
-            $currentRef["referenceState"] = "ok";
-            $currentTest = new Test(ERROR_NONE, -1, true, $currentRef);
-            updateMarks($currentTest);
+            if($currentRef["referenceState"] === "forbidden") {
+
+                $currentRef["referenceState"] = "ok";
+                $currentTest = new Test(ERROR_NONE, -1, true, $currentRef);
+                updateMarks($currentTest);
+
+            }
 
         }
 
@@ -270,14 +274,14 @@ function updatePermissions(Element $element, array &$permissions) : int {
 
         if($element->type === Element::TYPE_SEMESTER) {
 
-            $stmt->prepare("SELECT tests.testID, tests.referenceID, semesters.classID FROM tests INNER JOIN semesters ON (semesters.semesterID = tests.semesterID AND semesters.userID = ?) WHERE (tests.referenceState = \"ok\" OR tests.referenceState = \"outdated\") AND EXISTS (SELECT 1 FROM tests AS tests2 WHERE tests2.testID = tests.referenceID AND tests2.semesterID = ?)");
+            $stmt->prepare("SELECT tests.testID, tests.referenceID, semesters.classID FROM tests INNER JOIN semesters ON (semesters.semesterID = tests.semesterID AND semesters.userID = ?) WHERE (tests.referenceState = \"ok\" OR tests.referenceState = \"outdated\" OR tests.referenceState = \"delTemp\") AND EXISTS (SELECT 1 FROM tests AS tests2 WHERE tests2.testID = tests.referenceID AND tests2.semesterID = ?)");
 
             $skipSharedTest = true;
             $skipTeacherTest = false;
 
         } else {
 
-            $stmt->prepare("SELECT tests.testID, tests.referenceID, semesters.classID FROM tests INNER JOIN semesters ON (semesters.semesterID = tests.semesterID AND semesters.userID = ?) WHERE (tests.referenceState = \"ok\" OR tests.referenceState = \"outdated\") AND EXISTS (SELECT 1 FROM tests AS tests2 WHERE tests2.testID = tests.referenceID AND ? IN(tests2.subjectID, tests2.testID))");
+            $stmt->prepare("SELECT tests.testID, tests.referenceID, semesters.classID FROM tests INNER JOIN semesters ON (semesters.semesterID = tests.semesterID AND semesters.userID = ?) WHERE (tests.referenceState = \"ok\" OR tests.referenceState = \"outdated\" OR tests.referenceState = \"delTemp\") AND EXISTS (SELECT 1 FROM tests AS tests2 WHERE tests2.testID = tests.referenceID AND ? IN(tests2.subjectID, tests2.testID))");
 
             $skipSharedTest = false;
             $skipTeacherTest = true;
@@ -293,7 +297,7 @@ function updatePermissions(Element $element, array &$permissions) : int {
 
             foreach($result as &$refTestData) {
 
-                $test = getTest($refTestData["referenceID"], $currentPermission["userID"], $currentPermission["isTeacher"], false, true, $skipSharedTest, $skipTeacherTest);
+                $test = getTest($refTestData["referenceID"], $currentPermission["userID"], $currentPermission["isTeacher"], false, true, $skipSharedTest, $skipTeacherTest, true);
 
                 if($test->error !== ERROR_NONE || (!is_null($refTestData["classID"]) && $test->accessType === Element::ACCESS_STUDENT)) {
 
@@ -319,7 +323,7 @@ function updatePermissions(Element $element, array &$permissions) : int {
             $parameterTypes = str_repeat("i", count($refsToChange));
             $queryFragment = str_repeat("?, ", count($refsToChange) - 1) . "?";
 
-            $stmt->prepare("UPDATE tests SET referenceState = \"forbidden\" WHERE testID IN (" . $queryFragment . ")");
+            $stmt->prepare("UPDATE tests SET referenceState = IF(tests.referenceState = \"delTemp\", \"delForbidden\", \"forbidden\") WHERE testID IN (" . $queryFragment . ")");
             $stmt->bind_param($parameterTypes, ...$refsToChange);
             $stmt->execute();
 
@@ -334,7 +338,7 @@ function updatePermissions(Element $element, array &$permissions) : int {
             $parameterTypes = str_repeat("i", count($referencedTests));
             $queryFragment = str_repeat("?, ", count($referencedTests) - 1) . "?";
 
-            $stmt->prepare("UPDATE tests SET tests.isReferenced = 0 WHERE tests.testID IN (" . $queryFragment . ") AND tests.isReferenced = 1 AND NOT EXISTS (SELECT 1 FROM tests AS tests2 WHERE tests.testID = tests2.referenceID AND (tests2.referenceState = \"ok\" OR tests2.referenceState = \"outdated\"))");
+            $stmt->prepare("UPDATE tests SET tests.isReferenced = 0 WHERE tests.testID IN (" . $queryFragment . ") AND tests.isReferenced = 1 AND NOT EXISTS (SELECT 1 FROM tests AS tests2 WHERE tests.testID = tests2.referenceID AND (tests2.referenceState = \"ok\" OR tests2.referenceState = \"outdated\" OR tests2.referenceState = \"delTemp\"))");
             $stmt->bind_param($parameterTypes, ...$arguments);
             $stmt->execute();
 

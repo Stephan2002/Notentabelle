@@ -80,109 +80,122 @@ include_once($_SERVER["DOCUMENT_ROOT"] . "/phpScripts/calculateMarks.php");
 
 if(isset($test->data["classID"]) && $test->accessType !== Element::ACCESS_STUDENT) {
 
-    if(!is_null($test->data["formula"])) {
+    if($test->data["classID"] > 0) {
 
-        $stmt = $mysqli->prepare("SELECT students.studentID, students.isHidden, students.firstName, students.lastName, students.gender, marks.mark, marks.points, marks.notes AS studentNotes FROM students LEFT JOIN marks ON (marks.studentID = students.studentID AND marks.testID = ?) WHERE students.classID = ? AND students.deleteTimestamp IS NULL ORDER BY students.isHidden, students.lastName");
-        $stmt->bind_param("ii", $test->data["testID"], $test->data["classID"]);
+        if(!is_null($test->data["formula"])) {
 
-    } elseif(!is_null($test->data["round"])) {
+            $stmt = $mysqli->prepare("SELECT students.studentID, students.isHidden, students.firstName, students.lastName, students.gender, marks.mark, marks.points, marks.notes AS studentNotes FROM students LEFT JOIN marks ON (marks.studentID = students.studentID AND marks.testID = ?) WHERE students.classID = ? AND students.deleteTimestamp IS NULL ORDER BY students.isHidden, students.lastName");
+            $stmt->bind_param("ii", $test->data["testID"], $test->data["classID"]);
 
-        $stmt = $mysqli->prepare("SELECT students.studentID, students.isHidden, students.firstName, students.lastName, students.gender, marks.mark, marks.notes AS studentNotes FROM students LEFT JOIN marks ON (marks.studentID = students.studentID AND marks.testID = ?) WHERE students.classID = ? AND students.deleteTimestamp IS NULL ORDER BY students.isHidden, students.lastName");
-        $stmt->bind_param("ii", $test->data["testID"], $test->data["classID"]);
+        } elseif(!is_null($test->data["round"])) {
 
-    } else {
-
-        $stmt = $mysqli->prepare("SELECT students.studentID, students.isHidden, students.firstName, students.lastName, students.gender, marks.points, marks.notes AS studentNotes FROM students LEFT JOIN marks ON (marks.studentID = students.studentID AND marks.testID = ?) WHERE students.classID = ? AND students.deleteTimestamp IS NULL ORDER BY students.isHidden, students.lastName");
-        $stmt->bind_param("ii", $test->data["testID"], $test->data["classID"]);
-
-    }
-
-    $stmt->execute();
-
-    $result = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-    $test->data["students"] = $result;
-    $test->withStudents = true;
-
-    $stmt->close();
-
-    if(!is_null($test->data["round"])) {
-
-        $sum = 0;
-        $count = 0;
-
-        if($test->data["round"] != 0) {
-
-            foreach($test->data["students"] as &$student) {
-
-                if(!is_null($student["mark"])) {
-
-                    $student["mark_unrounded"] = $student["mark"];
-                    $student["mark"] = roundMark_float($student["mark"], $test->data["round"]);
-
-                    $count++;
-                    $sum += $student["mark"];
-
-                } else {
-
-                    unset($student["mark"]);
-
-                }
-
-            }
+            $stmt = $mysqli->prepare("SELECT students.studentID, students.isHidden, students.firstName, students.lastName, students.gender, marks.mark, marks.notes AS studentNotes FROM students LEFT JOIN marks ON (marks.studentID = students.studentID AND marks.testID = ?) WHERE students.classID = ? AND students.deleteTimestamp IS NULL ORDER BY students.isHidden, students.lastName");
+            $stmt->bind_param("ii", $test->data["testID"], $test->data["classID"]);
 
         } else {
 
-            foreach($test->data["students"] as &$student) {
+            $stmt = $mysqli->prepare("SELECT students.studentID, students.isHidden, students.firstName, students.lastName, students.gender, marks.points, marks.notes AS studentNotes FROM students LEFT JOIN marks ON (marks.studentID = students.studentID AND marks.testID = ?) WHERE students.classID = ? AND students.deleteTimestamp IS NULL ORDER BY students.isHidden, students.lastName");
+            $stmt->bind_param("ii", $test->data["testID"], $test->data["classID"]);
 
-                if(!is_null($student["mark"])) {
+        }
 
-                    $student["mark_unrounded"] = $student["mark"];
+        $stmt->execute();
 
-                    $count++;
-                    $sum += $student["mark"];
+        $result = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        $test->data["students"] = $result;
 
-                } else {
+        $stmt->close();
 
-                    unset($student["mark"]);
+    } else {
+
+        $test->data["students"] = array();
+
+    }
+
+    $test->withStudents = true;
+
+    if($test->data["classID"] > 0) {
+
+        if(!is_null($test->data["round"])) {
+
+            $sum = 0;
+            $count = 0;
+
+            if($test->data["round"] != 0) {
+
+                foreach($test->data["students"] as &$student) {
+
+                    if(!is_null($student["mark"])) {
+
+                        $student["mark_unrounded"] = $student["mark"];
+                        $student["mark"] = roundMark_float($student["mark"], $test->data["round"]);
+
+                        $count++;
+                        $sum += $student["mark"];
+
+                    } else {
+
+                        unset($student["mark"]);
+
+                    }
+
+                }
+
+            } else {
+
+                foreach($test->data["students"] as &$student) {
+
+                    if(!is_null($student["mark"])) {
+
+                        $student["mark_unrounded"] = $student["mark"];
+
+                        $count++;
+                        $sum += $student["mark"];
+
+                    } else {
+
+                        unset($student["mark"]);
+
+                    }
 
                 }
 
             }
 
-        }
+            if($count > 0) {
 
-        if($count > 0) {
-
-            $test->data["mark"] = $sum / $count;
-            $test->data["mark_unrounded"] = $test->data["mark"];
-
-        }
-
-    }
-
-    if(is_null($test->data["round"]) || !is_null($test->data["formula"])) {
-
-        $sum = 0;
-        $count = 0;
-
-        foreach($test->data["students"] as &$student) {
-
-            if(!is_null($student["points"])) {
-
-                $count++;
-                $sum += $student["points"];
-
-            } else {
-
-                unset($student["points"]);
+                $test->data["mark"] = $sum / $count;
+                $test->data["mark_unrounded"] = $test->data["mark"];
 
             }
 
         }
 
-        if($count > 0) {
+        if(is_null($test->data["round"]) || !is_null($test->data["formula"])) {
 
-            $test->data["points"] = $sum / $count;
+            $sum = 0;
+            $count = 0;
+
+            foreach($test->data["students"] as &$student) {
+
+                if(!is_null($student["points"])) {
+
+                    $count++;
+                    $sum += $student["points"];
+
+                } else {
+
+                    unset($student["points"]);
+
+                }
+
+            }
+
+            if($count > 0) {
+
+                $test->data["points"] = $sum / $count;
+
+            }
 
         }
 
@@ -265,6 +278,8 @@ if(isset($test->data["classID"]) && $test->accessType !== Element::ACCESS_STUDEN
     }
 
 }
+
+$test->withMarks = true;
 
 $test->sendResponse();
 

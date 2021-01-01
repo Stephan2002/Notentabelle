@@ -1,0 +1,14 @@
+<svg width="100mm" height="100mm" fill="white" stroke="white" version="1.1" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+ <g>
+  <g style="stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.7;stroke-width:2.1167">
+   <path d="m50 8.4219c-22.913 0-41.578 18.665-41.578 41.578h8.4668c0-18.337 14.774-33.111 33.111-33.111s33.111 14.774 33.111 33.111-14.774 33.111-33.111 33.111v8.4668c22.913 0 41.578-18.665 41.578-41.578s-18.665-41.578-41.578-41.578z" style="color-rendering:auto;dominant-baseline:auto;fill-rule:evenodd;image-rendering:auto;inline-size:0;isolation:auto;mix-blend-mode:normal;shape-margin:0;shape-padding:0;shape-rendering:auto;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.7;stroke-width:2.1167"/>
+   <g style="stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.7;stroke-width:2.1167">
+    <g style="stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.7;stroke-width:2.1167">
+     <path d="m12.655 59.771-8.4667-14.647h16.933z" style="color-rendering:auto;dominant-baseline:auto;fill-rule:evenodd;image-rendering:auto;inline-size:0;isolation:auto;mix-blend-mode:normal;shape-margin:0;shape-padding:0;shape-rendering:auto;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.7;stroke-width:2.1167;"/>
+     <path d="m2.2324 43.994 10.422 18.031 0.97852-1.6895 9.4453-16.342h-20.846zm3.9121 2.2578h13.021l-6.5098 11.262-6.5117-11.262z" style="color-rendering:auto;dominant-baseline:auto;fill-rule:evenodd;image-rendering:auto;inline-size:0;isolation:auto;mix-blend-mode:normal;shape-margin:0;shape-padding:0;shape-rendering:auto;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.7;stroke-width:2.1167;"/>
+    </g>
+   </g>
+  </g>
+  <path d="m47.354 26.064v2.6445 22.061l8.8438 13.932 1.416 2.2324 4.4688-2.834-1.418-2.2344-8.0176-12.635v-20.521-2.6445h-5.293z" style="color-rendering:auto;dominant-baseline:auto;image-rendering:auto;inline-size:0;isolation:auto;mix-blend-mode:normal;shape-margin:0;shape-padding:0;shape-rendering:auto;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.7;stroke-width:2.1167;"/>
+ </g>
+</svg>

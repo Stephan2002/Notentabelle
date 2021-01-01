@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Erstellungszeit: 25. Dez 2020 um 23:45
+-- Erstellungszeit: 01. Jan 2021 um 19:33
 -- Server-Version: 10.4.13-MariaDB
 -- PHP-Version: 7.4.7
 
@@ -143,7 +143,7 @@ CREATE TABLE `tests` (
   `round` decimal(7,3) DEFAULT 0.000,
   `notes` varchar(255) DEFAULT NULL,
   `referenceID` int(11) DEFAULT NULL,
-  `referenceState` enum('ok','template','removed','forbidden','outdated') DEFAULT NULL,
+  `referenceState` enum('ok','template','deleted','forbidden','outdated','delTemp','delForbidden') DEFAULT NULL,
   `isReferenced` tinyint(1) NOT NULL DEFAULT 0,
   `deleteTimestamp` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -183,7 +183,8 @@ CREATE TABLE `users` (
 --
 ALTER TABLE `classes`
   ADD PRIMARY KEY (`classID`),
-  ADD KEY `userID` (`userID`);
+  ADD KEY `userID` (`userID`),
+  ADD KEY `referenceID` (`referenceID`);
 
 --
 -- Indizes für die Tabelle `marks`
@@ -214,7 +215,9 @@ ALTER TABLE `semesters`
   ADD PRIMARY KEY (`semesterID`),
   ADD KEY `userID` (`userID`),
   ADD KEY `parentID` (`parentID`),
-  ADD KEY `classID` (`classID`);
+  ADD KEY `classID` (`classID`),
+  ADD KEY `referenceID` (`referenceID`),
+  ADD KEY `referenceTestID` (`referenceTestID`);
 
 --
 -- Indizes für die Tabelle `students`
@@ -313,8 +316,7 @@ ALTER TABLE `publictemplates`
 --
 ALTER TABLE `semesters`
   ADD CONSTRAINT `semesters_ibfk_1` FOREIGN KEY (`userID`) REFERENCES `users` (`userID`) ON DELETE CASCADE,
-  ADD CONSTRAINT `semesters_ibfk_2` FOREIGN KEY (`parentID`) REFERENCES `semesters` (`semesterID`) ON DELETE CASCADE,
-  ADD CONSTRAINT `semesters_ibfk_3` FOREIGN KEY (`classID`) REFERENCES `classes` (`classID`) ON DELETE CASCADE;
+  ADD CONSTRAINT `semesters_ibfk_2` FOREIGN KEY (`parentID`) REFERENCES `semesters` (`semesterID`) ON DELETE CASCADE;
 
 --
 -- Constraints der Tabelle `students`
@@ -329,8 +331,7 @@ ALTER TABLE `students`
 ALTER TABLE `tests`
   ADD CONSTRAINT `tests_ibfk_1` FOREIGN KEY (`parentID`) REFERENCES `tests` (`testID`) ON DELETE CASCADE,
   ADD CONSTRAINT `tests_ibfk_2` FOREIGN KEY (`semesterID`) REFERENCES `semesters` (`semesterID`) ON DELETE CASCADE,
-  ADD CONSTRAINT `tests_ibfk_3` FOREIGN KEY (`subjectID`) REFERENCES `tests` (`testID`) ON DELETE CASCADE,
-  ADD CONSTRAINT `tests_ibfk_4` FOREIGN KEY (`referenceID`) REFERENCES `tests` (`testID`) ON DELETE SET NULL;
+  ADD CONSTRAINT `tests_ibfk_3` FOREIGN KEY (`subjectID`) REFERENCES `tests` (`testID`) ON DELETE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

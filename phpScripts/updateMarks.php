@@ -247,6 +247,12 @@ function updateMarks(Test $test, bool $updateCurrent = true, int $recursionLevel
 
     if(!is_null($test->data["classID"])) {
 
+        if($test->data["classID"] <= 0) {
+
+            return;
+
+        }
+
         if(!$test->withStudents) {
 
             $stmt = $mysqli->prepare("SELECT students.studentID, students.deleteTimestamp, students.isHidden, students.firstName, students.lastName, students.gender FROM students WHERE classID = ?");

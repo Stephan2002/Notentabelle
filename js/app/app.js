@@ -10,6 +10,7 @@ const ERROR_FORBIDDEN_FIELD       = 5;     // User-Input, der angegeben, aber (i
 const ERROR_FORBIDDEN             = 6;     // Element existiert nicht oder Nutzer hat kein Zugriffsrecht
 const ERROR_ONLY_TEACHER          = 7;     // Aktion nur fuer Lehrpersonen verfuegbar
 const ERROR_NO_WRITING_PERMISSION = 8;     // Benutzer hat nur Leserecht
+const ERROR_NOT_DELETED           = 9;     // Das Element ist nicht (provisorisch) geloescht
 const ERROR_UNKNOWN               = 10;    // Unbekannter / anderer Fehler
 
 const INFO_NO_CHANGE              = 11;    // Keine Veraenderungen vorgenommen
@@ -82,10 +83,13 @@ var currentElement;
 
 var semesterInfoDialog;
 var testInfoDialog;
+
 var editSemesterDialog;
 var editTestDialog;
+
 var permissionsDialog;
 var selectDialog;
+var deleteDialog;
 
 var additionalTestInfoRequest;
 
@@ -368,7 +372,7 @@ function printElement() {
                 "<tr onclick='select(" + (currentChildData.isFolder ? TYPE_SEMESTER : TYPE_TEST) + ", " + (currentChildData.referenceTestID ? (currentChildData.referenceTestID + ", false, true") : ((currentChildData.referenceID ? currentChildData.referenceID : currentChildData.semesterID) + ", " + !currentChildData.isFolder + ", " + currentChildData.isFolder)) + ")'>" +
                     "<td class='table_name'>" + escapeHTML(currentChildData.name) + "</td>" +
                     "<td class='table_buttons'>" +
-                        (currentChildData.isHidden ? "<button class='button_square negative table_big'><img src='/img/icons/delete.svg' alt='X'></button>" : "<button class='button_square negativeNeutral table_big'><img src='/img/icons/archive.svg' alt='A'></button>") +
+                        (currentChildData.isHidden ? "<button class='button_square negative table_big'><img src='/img/icons/delete.svg' alt='X' onclick='event.stopPropagation(); deleteElement(TYPE_SEMESTER, " + currentChildData.semesterID + ", " + (currentChildData.classID > 0) + ", " + currentChildData.isFolder + ");'></button>" : "<button class='button_square negativeNeutral table_big'><img src='/img/icons/archive.svg' alt='A' onclick='event.stopPropagation(); changeVisibility(TYPE_SEMESTER, " + currentChildData.semesterID + ");'></button>") +
                         "<button class='button_square positive table_big' onclick='event.stopPropagation(); editSemesterDialog.openEdit(" + currentChildData.semesterID + ")'><img src='/img/icons/edit.svg' alt='.'></button>" +
                         "<button class='button_square neutral' onclick='event.stopPropagation(); semesterInfoDialog.open(" + currentChildData.semesterID + ")'><img src='/img/icons/info.svg' alt='i'></button>" + 
                     "</td>" +
@@ -450,11 +454,15 @@ function printElement() {
                 deleteButton.classList.remove("negativeNeutral");
                 deleteButton.classList.add("negative");
 
+                deleteButton.onclick = deleteElement.bind(this, TYPE_SEMESTER, currentElement.data.semesterID, false, true);
+
             } else {
 
                 deleteButton.innerHTML = "<img src='/img/icons/archive.svg' alt=' '>Ordner archivieren";
                 deleteButton.classList.remove("negative");
                 deleteButton.classList.add("negativeNeutral");
+
+                deleteButton.onclick = changeVisibility.bind(this, TYPE_SEMESTER, currentElement.data.semesterID);
 
             }
 
@@ -484,9 +492,31 @@ function printElement() {
             document.getElementById("averageFooter_points_big").style.display = "none";
             document.getElementById("averageFooter_mark_big").style.display = "none";
 
-            document.getElementById("averageFooter").style.display = "block";
+            if(currentElement.data.classID !== null && currentElement.data.classID <= 0) {
+
+                document.getElementById("averageFooter").style.display = "none";
+
+            } else {
+
+                document.getElementById("averageFooter").style.display = "block";
+
+            }
 
             document.getElementById("parentTypeStyles").innerHTML = ".parentType_semester { display: inline; }";
+
+        }
+
+        if(user.isTeacher) {
+
+            if(currentElement.data.classID !== null && currentElement.data.classID <= 0) {
+
+                document.getElementById("tests_noClass").style.display = "inline-block";
+
+            } else {
+
+                document.getElementById("tests_noClass").style.display = "none";
+
+            }
 
         }
 
@@ -501,7 +531,7 @@ function printElement() {
             
             document.getElementById("tests_visibilityButton").style.display = "inline-block";
 
-            if(currentElement.writingPermission) {
+            if(currentElement.writingPermission && (currentElement.data.classID === null || currentElement.data.classID > 0)) {
 
                 if(currentElement.data.templateType === "subjectTemplate") {
 
@@ -533,7 +563,7 @@ function printElement() {
 
             var isClass = currentElement.data.classID !== null && currentElement.accessType !== ACCESS_STUDENT;
 
-            if(currentElement.accessType === ACCESS_TEACHER || currentElement.isTemplate) {
+            if(currentElement.accessType === ACCESS_TEACHER || currentElement.isTemplate || (currentElement.data.classID !== null && currentElement.data.classID <= 0)) {
 
                 document.getElementById("averageFooter").style.display = "none";
 
@@ -560,11 +590,15 @@ function printElement() {
                     deleteButton.classList.remove("negativeNeutral");
                     deleteButton.classList.add("negative");
 
+                    deleteButton.onclick = deleteElement.bind(this, TYPE_SEMESTER, currentElement.data.semesterID, currentElement.data.classID > 0, false);
+
                 } else {
 
                     deleteButton.innerHTML = "<img src='/img/icons/archive.svg' alt=' '><span class='parentType_semester'>Semester</span><span class='parentType_template'>Vorlage</span> archivieren</span>";
                     deleteButton.classList.remove("negative");
                     deleteButton.classList.add("negativeNeutral");
+
+                    deleteButton.onclick = changeVisibility.bind(this, TYPE_SEMESTER, currentElement.data.semesterID);
 
                 }
 
@@ -610,8 +644,6 @@ function printElement() {
 
             if(currentElement.isFolder) {
 
-                document.getElementById("tests_followRefButton").style.display = "none";
-
                 if(currentElement.data.parentID === null && currentElement.data.templateType !== "subjectTemplate") {
 
                     document.getElementById("typeStyles").innerHTML = ".type_subject { display: inline; }";
@@ -648,7 +680,7 @@ function printElement() {
 
                     document.getElementById("typeStyles").innerHTML = ".type_ref { display: inline; }";
 
-                    if(currentElement.data.referenceState === "ok" || currentElement.data.referenceState === "outdated" || currentElement.data.referenceState === "forbidden") {
+                    if(currentElement.data.referenceState === "ok" || currentElement.data.referenceState === "outdated") {
                         
                         document.getElementById("tests_followRefButton").style.display = "inline-block";
                         document.getElementById("tests_followRefButton").onclick = function() { select(TYPE_TEST, currentElement.data.referenceID); };
@@ -752,7 +784,7 @@ function printElement() {
 
                         referenceString = "<td><img src='/img/icons/warning.svg' alt='!' title='Kein Zugriff mehr!'>"
 
-                    } else if(currentChildData.referenceState === "removed") {
+                    } else if(currentChildData.referenceState === "deleted" || currentChildData.referenceState === "delTemp" || currentChildData.referenceState === "delForbidden") {
 
                         referenceString = "<td><img src='/img/icons/warning.svg' alt='!' title='Element entfernt!'>"
 
@@ -798,8 +830,8 @@ function printElement() {
                         "<td class='table_mark'>" + (currentChildData.round !== null ? formatNumber(currentChildData.mark) : formatNumber(currentChildData.points)) + "</td>" +
                         referenceString +
                         "<td class='table_buttons'>" +
-                            (currentElement.writingPermission ? (
-                            "<button class='button_square negative table_big'><img src='/img/icons/delete.svg' alt='X'></button>" +
+                            (currentElement.writingPermission && (currentElement.data.classID === null || currentElement.data.classID > 0) ? (
+                            "<button class='button_square negative table_big'><img src='/img/icons/delete.svg' alt='X' onclick='event.stopPropagation(); deleteElement(TYPE_TEST, " + currentChildData.testID + ");'></button>" +
                             "<button class='button_square positive table_big' onclick='event.stopPropagation(); editTestDialog.openEdit(" + currentChildData.testID + ")'><img src='/img/icons/edit.svg' alt='.'></button>"
                             ) : "") +
                             "<button class='button_square neutral' onclick='event.stopPropagation(); testInfoDialog.open(" + currentChildData.testID + ")'><img src='/img/icons/info.svg' alt='i'></button>" +
@@ -874,9 +906,9 @@ function printElement() {
 
             }
 
-            if(currentElement.isRoot) {
+            if(currentElement.isRoot || currentElement.data.classID <= 0) {
 
-                if(currentElement.accessType === ACCESS_TEACHER) {
+                if(currentElement.accessType === ACCESS_TEACHER || currentElement.data.classID <= 0) {
 
                     document.getElementById("tests_studentTable").style.display = "none";
                     document.getElementById("tests_markPaperButton").style.display = "none";
@@ -941,7 +973,7 @@ function printElement() {
 
             }
 
-            if(!currentElement.isRoot || currentElement.accessType !== ACCESS_TEACHER) {
+            if((!currentElement.isRoot || currentElement.accessType !== ACCESS_TEACHER) && currentElement.data.classID > 0) {
 
                 updateStudentMarkError();
 
@@ -1608,7 +1640,7 @@ function printElement() {
                 "<tr onclick='select(TYPE_CLASS, " + (currentChildData.referenceID ? currentChildData.referenceID : currentChildData.classID) + ", false, true)'>" +
                     "<td class='table_name'>" + escapeHTML(currentChildData.name) + "</td>" +
                     "<td class='table_buttons'>" +
-                    (currentChildData.isHidden ? "<button class='button_square negative table_big'><img src='/img/icons/delete.svg' alt='X'></button>" : "<button class='button_square negativeNeutral table_big'><img src='/img/icons/archive.svg' alt='A'></button>") +
+                    (currentChildData.isHidden ? "<button class='button_square negative table_big'><img src='/img/icons/delete.svg' alt='X' onclick='event.stopPropagation(); deleteElement(TYPE_CLASS, " + currentChildData.classID + ", true);'></button>" : "<button class='button_square negativeNeutral table_big'><img src='/img/icons/archive.svg' alt='A' onclick='event.stopPropagation(); changeVisibility(TYPE_CLASS, " + currentChildData.classID + ");'></button>") +
                         "<button class='button_square positive table_big' onclick='event.stopPropagation(); editClassDialog.openEdit(" + currentChildData.classID + ")'><img src='/img/icons/edit.svg' alt='.'></button>" +
                         "<button class='button_square neutral' onclick='event.stopPropagation(); classInfoDialog.open(" + currentChildData.classID + ")'><img src='/img/icons/info.svg' alt='i'></button>" +
                     "</td>" +
@@ -1686,11 +1718,13 @@ function printElement() {
 
         if(currentElement.writingPermission) {
 
-            document.getElementById("students_addStudentButton").style.display = "inline-block";               
+            document.getElementById("students_addStudentButton").style.display = "inline-block";
+            document.getElementById("students_deletedButton").style.display = "inline-block";
 
         } else {
 
-            document.getElementById("students_addStudentButton").style.display = "none";              
+            document.getElementById("students_addStudentButton").style.display = "none";
+            document.getElementById("students_deletedButton").style.display = "none";              
 
         }
 
@@ -1723,7 +1757,7 @@ function printElement() {
                     "<td>" + escapeHTML(currentChildData.userName) + "</td>" +
                     "<td class='table_buttons'>" +
                         (currentElement.writingPermission ? (
-                            (currentChildData.isHidden ? "<button class='button_square negative table_big'><img src='/img/icons/delete.svg' alt='X'></button>" : "<button class='button_square negativeNeutral table_big'><img src='/img/icons/archive.svg' alt='A'></button>") +
+                            (currentChildData.isHidden ? "<button class='button_square negative table_big'><img src='/img/icons/delete.svg' alt='X' onclick='event.stopPropagation(); deleteElement(TYPE_STUDENT, " + currentChildData.studentID + ", true);'></button>" : "<button class='button_square negativeNeutral table_big'><img src='/img/icons/archive.svg' alt='A' onclick='event.stopPropagation(); changeVisibility(TYPE_STUDENT, " + currentChildData.studentID + ");'></button>") +
                             "<button class='button_square positive table_big' onclick='editStudentDialog.openEdit(" + currentChildData.studentID + ")'><img src='/img/icons/edit.svg' alt='.'></button>"
                         ) : "") +
                         "<button class='button_square neutral' onclick='event.stopPropagation(); studentInfoDialog.open(" + currentChildData.studentID + ")'><img src='/img/icons/info.svg' alt='i'></button>" +
@@ -1764,11 +1798,15 @@ function printElement() {
             deleteButton.classList.remove("negativeNeutral");
             deleteButton.classList.add("negative");
 
+            deleteButton.onclick = deleteElement.bind(this, TYPE_CLASS, currentElement.data.classID, true, false);
+
         } else {
 
             deleteButton.innerHTML = "<img src='/img/icons/archive.svg' alt=' '>Klasse archivieren";
             deleteButton.classList.remove("negative");
             deleteButton.classList.add("negativeNeutral");
+
+            deleteButton.onclick = changeVisibility.bind(this, TYPE_CLASS, currentElement.data.classID);
 
         }
 
@@ -2134,7 +2172,9 @@ function printTestInfo(elementPrefix, testData) {
             case "outdated":    refState = "Stand veraltet"; break;
             case "template":    refState = "unverknüpft"; break;
             case "forbidden":   refState = "kein Zugriff"; break;
-            case "deleted":     refState = "gelöscht"; break;
+            case "deleted":
+            case "delForbidden":
+            case "delTemp":     refState = "gelöscht"; break;
 
         }
 
@@ -2538,7 +2578,7 @@ function loadPublish() {
 }
 
 
-function changeVisibilty(element, type) {
+function changeHiddenVisibility(element, type) {
 
     var spanElement = element.children[0];
 
@@ -2636,6 +2676,300 @@ function updateErrors(errorObj, errorContainer, button, keepButtonSelectable) {
 }
 
 
+function changeVisibility(type, ID) {
+
+    if(isBlocked) return;
+
+    if(type === TYPE_SEMESTER) {
+
+        var IDName = "semesterID";
+        var currentCache = cache.semesters;
+        var infoDialog = semesterInfoDialog;
+        var requestURL = "/phpScripts/edit/editSemester.php";
+
+    } else if(type === TYPE_TEST) {
+
+        var IDName = "testID";
+        var currentCache = cache.tests;
+        var infoDialog = testInfoDialog;
+        var requestURL = "/phpScripts/edit/editTest.php";
+
+    } else if(type === TYPE_CLASS) {
+
+        var IDName = "classID";
+        var currentCache = cache.classes;
+        var infoDialog = classInfoDialog;
+        var requestURL = "/phpScripts/edit/editClass.php";
+
+    } else if(type === TYPE_STUDENT) {
+
+        var IDName = "studentID";
+
+        var infoDialog = studentInfoDialog;
+        var requestURL = "/phpScripts/edit/editStudent.php";
+
+    }
+
+    var newState;
+
+    if(type !== TYPE_STUDENT && currentElement.data !== undefined && currentElement.data[IDName] === ID) {
+
+        newState = !currentElement.data.isHidden;
+        currentElement.data.isHidden = newState;
+        
+        if(type === TYPE_CLASS || currentElement.data.parentID === null) {
+            
+            if(type === TYPE_SEMESTER) {
+
+                cache.rootSemesters = undefined;
+
+            } else if(type === TYPE_TEST) {
+
+                delete cache.semesters[currentElement.data.semesterID];
+
+            } else if(type === TYPE_CLASS) {
+                
+                cache.rootClasses = undefined;
+
+            }
+
+        } else {
+
+            delete currentCache[currentElement.data.parentID];
+
+        }
+
+    } else {
+
+        var len = currentElement.childrenData.length;
+        var found = false;
+    
+        for(var i = 0; i < len; i++) {
+    
+            if(currentElement.childrenData[i][IDName] === ID) {
+    
+                newState = !currentElement.childrenData[i].isHidden;
+                currentElement.childrenData[i].isHidden = newState;
+
+                found = true;
+                break;
+    
+            }
+    
+        }
+
+        if(!found) return;
+
+        if(type !== TYPE_STUDENT && currentCache[ID] !== undefined) {
+
+            currentCache[ID].data.isHidden = newState;
+
+        }
+
+    }
+
+    var requestObj = { isHidden: newState }
+    requestObj[IDName] = ID;
+
+    loadData(requestURL, [ requestObj ], function() {
+
+        if(infoDialog.isVisible()) {
+
+            Loading.hide(infoDialog.dialogElement);
+            infoDialog.printInfo();
+    
+        }
+
+        hidePanelsAndPrint();
+
+    }, function(errorCode) {
+
+        showErrorMessage(TEXT_ERROR_NO_CHANGE + errorCode, true);
+
+    });
+
+    if(type === TYPE_STUDENT) {
+
+        cache.semesters = [];
+        cache.tests = [];
+
+    }
+
+    if(infoDialog.isVisible()) {
+
+        Loading.show(infoDialog.dialogElement);
+
+    } else {
+
+        Loading.show(null, "semi-transparent");
+
+    }
+
+}
+
+function deleteElement(type, ID, confirm, confirm2) {
+
+    if(isBlocked) return;
+
+    if(confirm || confirm2) {
+
+        if(type === TYPE_SEMESTER) {
+
+            if(confirm) {
+
+                var title = "Semester löschen?"
+                var description = "Wenn Sie dieses Semester löschen, können die Schüler/innen ihre Noten/Punkte nicht mehr einsehen.\nDamit dies ihnen weiterhin möglich ist, wird empfohlen, das Semester nur zu archivieren.";
+
+            } else {
+
+                var title = "Semesterordner löschen?"
+                var description = "Wenn Sie diesen Semesterordner löschen, werden auch alle darin befindlichen Semester und Vorlagen inkl. Noten/Punkte gelöscht.";
+
+            }
+
+        } else if(type === TYPE_CLASS) {
+
+            var title = "Klasse löschen?"
+            var description = "Wenn Sie diese Klasse löschen, werden auch alle mit den Schülern/Schülerinnen verbundenen Noten/Punkte gelöscht.\nKlassensemester, die mit dieser Klasse verknüpft sind, werden unbrauchbar.\nEs wird empfohlen, die Klasse stattdessen nur zu archivieren.";
+
+        } else if(type === TYPE_STUDENT) {
+
+            var title = "Schüler/in löschen?"
+            var description = "Wenn Sie den/die Schüler/in löschen, werden alle seine/ihre Noten/Punkte gelöscht.\nDamit diese weiterhin erhalten bleiben und der/die Schüler/in sie weiterhin einsehen kann, wird empfohlen, den/die Schüler/in nur zu archivieren.";
+
+        }
+
+        new Alert({
+            type: "confirm",
+            icon: "warning",
+            title: title,
+            description: description,
+            OKButtonText: "Trotzdem löschen",
+            OKAction: deleteElement.bind(this, type, ID, false, false)
+        });
+
+        return;
+
+    }
+
+    if(type === TYPE_SEMESTER) {
+
+        var IDName = "semesterID";
+        var infoDialog = semesterInfoDialog;
+        var requestURL = "/phpScripts/delete/deleteSemester.php";
+
+    } else if(type === TYPE_TEST) {
+
+        var IDName = "testID";
+        var infoDialog = testInfoDialog;
+        var requestURL = "/phpScripts/delete/deleteTest.php";
+
+    } else if(type === TYPE_CLASS) {
+
+        var IDName = "classID";
+        var infoDialog = classInfoDialog;
+        var requestURL = "/phpScripts/delete/deleteClass.php";
+
+    } else if(type === TYPE_STUDENT) {
+
+        var IDName = "studentID";
+        var infoDialog = studentInfoDialog;
+        var requestURL = "/phpScripts/delete/deleteStudent.php";
+
+    }
+
+    var within = false;
+
+    if(type !== TYPE_STUDENT && currentElement.data !== undefined && currentElement.data[IDName] === ID) {
+
+        within = true;
+
+    }
+
+    loadData(requestURL, [ ID ], function() {
+
+        if(infoDialog.isVisible()) {
+
+            Loading.hide(infoDialog.dialogElement);
+            infoDialog.close();
+    
+        }
+
+        if(within) {
+
+            returnFolder();
+
+        } else {
+
+            loadElementAndPrint();
+
+        }
+
+    }, function(errorCode) {
+
+        showErrorMessage(TEXT_ERROR_NO_CHANGE + errorCode, true);
+
+    });
+
+    cache.semesters = [];
+    cache.tests = [];
+    cache.rootSemesters = undefined;
+
+    additionalInfo.semesters = [];
+    additionalInfo.tests = [];
+
+    if(type === TYPE_CLASS) {
+
+        delete cache.classes[ID];
+        delete additionalInfo.classes[ID];
+
+        if(cache.rootClasses) {
+
+            var len = cache.rootClasses.childrenData.length;
+        
+            for(var i = 0; i < len; i++) {
+        
+                if(cache.rootClasses.childrenData[i].classID === ID) {
+        
+                    cache.rootClasses.childrenData.splice(i, 1);
+                    break;
+        
+                }
+        
+            }
+
+        }
+
+    } else if(type === TYPE_STUDENT) {
+
+        var len = currentElement.childrenData.length;
+    
+        for(var i = 0; i < len; i++) {
+    
+            if(currentElement.childrenData[i].studentID === ID) {
+    
+                currentElement.childrenData.splice(i, 1);
+                break;
+    
+            }
+    
+        }
+
+    }
+
+    if(infoDialog.isVisible()) {
+
+        Loading.show(infoDialog.dialogElement);
+
+    } else {
+
+        Loading.show(null, "semi-transparent");
+
+    }
+
+}
+
+
 // Wird aufgerufen, wenn DOM-Baum vollstaendig geladen
 document.addEventListener("DOMContentLoaded", function () {
 
@@ -2666,6 +3000,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
     permissionsDialog       = new Dialog(document.getElementById("permissionsDialog"),  false, false, function() { permissionsDialog.save(); }, function() { permissionsDialog.close();}, "permissionsDialog");
     selectDialog            = new Dialog(document.getElementById("selectDialog"),       false, false, function() { selectDialog.save(); }, function() { selectDialog.close();}, "selectDialog");
+
+    deleteDialog            = new Dialog(document.getElementById("deleteDialog"), false, true, undefined, undefined, "deleteDialog");
+
+
 
     semesterInfoDialog.open = function(arg) {
 
@@ -3710,8 +4048,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
         });
 
-        if(currentElement.type === TYPE_TEST) {
-            
+        if(
+            currentElement.type === TYPE_TEST ||
+            (!currentElement.isRoot && currentElement.data.semesterID === this.semesterData.semesterID)
+        ) {
+            // Element wird von innen bearbeitet
+
             if(semesterData.parentID === null) {
 
                 cache.rootSemesters = undefined;
@@ -4922,7 +5264,7 @@ document.addEventListener("DOMContentLoaded", function () {
             additionalInfo.semesters = [];
             additionalInfo.tests = [];
 
-            if(currentAdditionalInfo !== undefined) additionalInfo.tests[testData.testID] = currentAdditionalInfo;
+            if(currentAdditionalInfo !== undefined && changedProperties.referenceID === undefined) additionalInfo.tests[testData.testID] = currentAdditionalInfo;
 
             if(changedProperties.date !== undefined && changedProperties.date !== null) changedProperties.date = (new Date(changedProperties.date * 1000)).toISOString().substr(0, 10);
             if(changedProperties.markCounts !== undefined) changedProperties.markCounts = Number(changedProperties.markCounts);
@@ -4945,6 +5287,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 cache.semesters = [];
                 cache.tests = [];
+
+                additionalInfo.tests = [];
+                additionalInfo.semeesters = [];
 
                 if(testInfoDialog.isVisible()) {
 
@@ -7260,6 +7605,268 @@ document.addEventListener("DOMContentLoaded", function () {
 
     };
 
+    deleteDialog.loadAndOpen = function() {
+
+        if(isBlocked) return;
+
+        var headerText = "Gelöschte Elemente";
+        var noElementsText = "Es gibt keine (provisorisch) gelöschten Elemente";
+
+        var requestURL;
+        var requestObj;
+
+        if(currentElement.type === TYPE_CLASS && currentElement.isRoot) {
+
+            this.type = TYPE_CLASS;
+
+            headerText = "Gelöschte Klassen";
+            noElementsText = "Es gibt keine (provisorisch) gelöschten Klassen";
+
+            requestURL = "/phpScripts/restore/getDeletedClasses.php";
+            requestObj = {};
+
+        } else if(currentElement.type === TYPE_CLASS) {
+
+            this.type = TYPE_STUDENT;
+
+            headerText = "Gelöschte Schüler/innen";
+            noElementsText = "Es gibt keine (provisorisch) gelöschten Schüler/innen";
+
+            requestURL = "/phpScripts/restore/getDeletedStudents.php";
+            requestObj = { classID: currentElement.data.classID };
+
+        } else if(currentElement.type === TYPE_TEST) {
+
+            this.type = TYPE_TEST;
+
+            requestURL = "/phpScripts/restore/getDeletedTests.php";
+
+            if(currentElement.isRoot) {
+
+                requestObj = { semesterID: currentElement.data.semesterID };
+
+            } else {
+
+                requestObj = { testID: currentElement.data.testID };
+
+            }
+
+        } else {
+
+            this.type = TYPE_SEMESTER;
+
+            requestURL = "/phpScripts/restore/getDeletedSemesters.php";
+
+            if(currentElement.isRoot) {
+
+                requestObj = {};
+
+            } else {
+
+                requestObj = { semesterID: currentElement.data.semesterID };
+
+            }
+
+        }
+
+        loadData(requestURL, requestObj, function(result) {
+
+            Loading.hide();
+            deleteDialog.open(result.result);
+
+        }, function(errorCode) {
+
+            showErrorMessage(TEXT_ERROR_NO_CHANGE + errorCode, true);
+
+        });
+
+        document.getElementById("deleteDialog_header").innerHTML = headerText;
+        document.getElementById("deleteDialog_noElements").innerHTML = noElementsText;
+
+        Loading.show();
+
+    }
+
+    deleteDialog.open = function(data) {
+
+        this.tempDeleteCount = data.length;
+
+        var tableString = "";
+
+        if(this.type === TYPE_STUDENT) {
+
+            for(var i = 0; i < this.tempDeleteCount; i++) {
+
+                tableString += 
+                    "<tr>" +
+                        "<td>" + escapeHTML(data[i].firstName) + " " + escapeHTML(data[i].lastName) + "</td>" +
+                        "<td>" +
+                            "<button class='button_square positive' onclick='deleteDialog.restore(" + data[i].ID + ", this)'><img src='/img/icons/restore.svg'></button>" +
+                            "<button class='button_square negative' onclick='deleteDialog.deleteFinally(" + data[i].ID + ", this, true)'><img src='/img/icons/delete.svg'></button>" +
+                        "</td>" +
+                    "</tr>";
+
+            }
+
+        } else {
+
+            for(var i = 0; i < this.tempDeleteCount; i++) {
+
+                tableString += 
+                    "<tr>" +
+                        "<td>" + escapeHTML(data[i].name) + "</td>" +
+                        "<td>" +
+                            "<button class='button_square positive' onclick='deleteDialog.restore(" + data[i].ID + ", this)'><img src='/img/icons/restore.svg'></button>" +
+                            "<button class='button_square negative' onclick='deleteDialog.deleteFinally(" + data[i].ID + ", this, true)'><img src='/img/icons/delete.svg'></button>" +
+                        "</td>" +
+                    "</tr>";
+
+            }
+
+        }
+
+        if(tableString === "") {
+
+            document.getElementById("deleteDialog_table").style.display = "none";
+            document.getElementById("deleteDialog_noElements").style.display = "block";
+
+        } else {
+
+            document.getElementById("deleteDialog_table").innerHTML = tableString;
+
+            document.getElementById("deleteDialog_table").style.display = "table";
+            document.getElementById("deleteDialog_noElements").style.display = "none";
+
+        }
+
+        this.show();
+
+    }
+
+    deleteDialog.restore = function(ID, element) {
+
+        if(this.type === TYPE_TEST) {
+
+            var URLFragment = "restoreTest.php";
+
+        } else if(this.type === TYPE_SEMESTER) {
+
+            var URLFragment = "restoreSemester.php";
+
+        } else if(this.type === TYPE_CLASS) {
+
+            var URLFragment = "restoreClass.php";
+
+        } else {
+
+            var URLFragment = "restoreStudent.php";
+
+        }
+
+        loadData("/phpScripts/restore/" + URLFragment, [ ID ], function() {
+
+            var elementToDelete = element.parentElement.parentElement;
+            elementToDelete.parentElement.removeChild(elementToDelete);
+
+            deleteDialog.tempDeleteCount--;
+
+            if(deleteDialog.tempDeleteCount <= 0) {
+
+                document.getElementById("deleteDialog_table").style.display = "none";
+                document.getElementById("deleteDialog_noElements").style.display = "block";
+
+            }
+
+            cache.semesters = [];
+            cache.tests = [];
+            cache.rootSemesters = undefined;
+
+            additionalInfo.semesters = [];
+            additionalInfo.tests = [];
+
+            if(deleteDialog.type === TYPE_CLASS) {
+
+                cache.rootClasses = undefined;
+
+            } else if(deleteDialog.type === TYPE_STUDENT) {
+
+                delete cache.classes[currentElement.data.classID];
+
+            }
+
+            loadElementAndPrint();
+
+            Loading.hide(deleteDialog.dialogElement);
+
+        }, function(errorCode) {
+
+            showErrorMessage(TEXT_ERROR_NO_CHANGE + errorCode, true);
+
+        });
+
+        Loading.show(deleteDialog.dialogElement);
+
+    };
+
+    deleteDialog.deleteFinally = function(ID, element, confirm) {
+
+        if(confirm) {
+
+            new Alert({
+                type: "confirm",
+                icon: "warning",
+                title: "Endgültig löschen?",
+                description: "Sind Sie sich sicher, dass sie dies unwiderruflich löschen möchten?",
+                OKAction: this.deleteFinally.bind(this, ID, element, false)
+            });
+
+            return;
+
+        }
+
+        if(this.type === TYPE_TEST) {
+
+            var URLFragment = "deleteFinallyTest.php";
+
+        } else if(this.type === TYPE_SEMESTER) {
+
+            var URLFragment = "deleteFinallySemester.php";
+
+        } else if(this.type === TYPE_CLASS) {
+
+            var URLFragment = "deleteFinallyClass.php";
+
+        } else {
+
+            var URLFragment = "deleteFinallyStudent.php";
+
+        }
+
+        loadData("/phpScripts/deleteFinally/" + URLFragment, [ ID ], function() {
+
+            var elementToDelete = element.parentElement.parentElement;
+            elementToDelete.parentElement.removeChild(elementToDelete);
+
+            deleteDialog.tempDeleteCount--;
+
+            if(deleteDialog.tempDeleteCount <= 0) {
+
+                document.getElementById("deleteDialog_table").style.display = "none";
+                document.getElementById("deleteDialog_noElements").style.display = "block";
+
+            }
+
+            Loading.hide(deleteDialog.dialogElement);
+
+        }, function(errorCode) {
+
+            showErrorMessage(TEXT_ERROR_NO_CHANGE + errorCode, true);
+
+        });
+
+        Loading.show(deleteDialog.dialogElement);
+
+    };
 
     document.getElementById("editTestDialog_refTestButton").addEventListener("click", function() { 
         
@@ -7301,11 +7908,15 @@ document.addEventListener("DOMContentLoaded", function () {
 
     });
 
-    document.getElementById("semesterInfoDialog_closeButton").addEventListener("click", semesterInfoDialog.close.bind(semesterInfoDialog));
-    document.getElementById("semesterInfoDialog_loadMoreButton").addEventListener("click", semesterInfoDialog.loadMore.bind(semesterInfoDialog));
+    document.getElementById("semesterInfoDialog_closeButton")       .addEventListener("click", semesterInfoDialog.close.bind(semesterInfoDialog));
+    document.getElementById("semesterInfoDialog_loadMoreButton")    .addEventListener("click", semesterInfoDialog.loadMore.bind(semesterInfoDialog));
+    document.getElementById("semesterInfoDialog_visibilityButton")  .addEventListener("click", function() { changeVisibility(TYPE_SEMESTER, semesterInfoDialog.semesterData.semesterID); });
+    document.getElementById("semesterInfoDialog_deleteButton")      .addEventListener("click", function() { deleteElement(TYPE_SEMESTER, semesterInfoDialog.semesterData.semesterID, semesterInfoDialog.semesterData.classID > 0, semesterInfoDialog.semesterData.isFolder); });
 
-    document.getElementById("testInfoDialog_closeButton").addEventListener("click", testInfoDialog.close.bind(testInfoDialog));
-    document.getElementById("testInfoDialog_loadMoreButton").addEventListener("click", testInfoDialog.loadMore.bind(testInfoDialog));
+    document.getElementById("testInfoDialog_closeButton")           .addEventListener("click", testInfoDialog.close.bind(testInfoDialog));
+    document.getElementById("testInfoDialog_loadMoreButton")        .addEventListener("click", testInfoDialog.loadMore.bind(testInfoDialog));
+    document.getElementById("testInfoDialog_visibilityButton")      .addEventListener("click", function() { changeVisibility(TYPE_TEST, testInfoDialog.testData.testID); });
+    document.getElementById("testInfoDialog_deleteButton")          .addEventListener("click", function() { deleteElement(TYPE_TEST, testInfoDialog.testData.testID); });
 
 
     editSemesterDialog.templateTypeSelect = new ButtonSelect(document.getElementById("editSemesterDialog_templateType"));
@@ -7353,11 +7964,15 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("selectDialog_cancelButton")        .addEventListener("click",  selectDialog.close.bind(selectDialog));
 
 
+    document.getElementById("deleteDialog_cancelButton")      .addEventListener("click",  deleteDialog.hide.bind(deleteDialog));
+
+
     document.getElementById("semesters_addSemesterButton")  .addEventListener("click", editSemesterDialog.openAdd.bind(editSemesterDialog, false, false));
     document.getElementById("semesters_addTemplateButton")  .addEventListener("click", editSemesterDialog.openAdd.bind(editSemesterDialog, false, true));
     document.getElementById("semesters_addFolderButton")    .addEventListener("click", editSemesterDialog.openAdd.bind(editSemesterDialog, true,  false));
 
-    document.getElementById("semesters_editButton").addEventListener("click", editSemesterDialog.openEdit.bind(editSemesterDialog, undefined));
+    document.getElementById("semesters_editButton")         .addEventListener("click", editSemesterDialog.openEdit.bind(editSemesterDialog, undefined));
+    document.getElementById("semesters_deletedButton")      .addEventListener("click", deleteDialog.loadAndOpen.bind(deleteDialog));
 
     document.getElementById("tests_addSubjectButton")   .addEventListener("click", editTestDialog.openAdd.bind(editTestDialog, true,    false));
     document.getElementById("tests_addRootTestButton")  .addEventListener("click", editTestDialog.openAdd.bind(editTestDialog, false,   false));
@@ -7366,21 +7981,24 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("tests_addFolderButton")    .addEventListener("click", editTestDialog.openAdd.bind(editTestDialog, true,    false));
     document.getElementById("tests_addRefButton")       .addEventListener("click", editTestDialog.openAdd.bind(editTestDialog, false,   true));
 
-    document.getElementById("tests_semesterInfoButton").addEventListener("click", semesterInfoDialog.open.bind(semesterInfoDialog));
-    document.getElementById("tests_elementInfoButton") .addEventListener("click", testInfoDialog.open.bind(testInfoDialog));
+    document.getElementById("tests_semesterInfoButton") .addEventListener("click", semesterInfoDialog.open.bind(semesterInfoDialog));
+    document.getElementById("tests_elementInfoButton")  .addEventListener("click", testInfoDialog.open.bind(testInfoDialog));
     
-    document.getElementById("tests_editSemesterButton").addEventListener("click", editSemesterDialog.openEdit.bind(editSemesterDialog, undefined));
-    document.getElementById("tests_editElementButton") .addEventListener("click", editTestDialog.openEdit.bind(editTestDialog, undefined));
+    document.getElementById("tests_editSemesterButton") .addEventListener("click", editSemesterDialog.openEdit.bind(editSemesterDialog, undefined));
+    document.getElementById("tests_editElementButton")  .addEventListener("click", editTestDialog.openEdit.bind(editTestDialog, undefined));
 
-    document.getElementById("semesters_infoButton")    .addEventListener("click", semesterInfoDialog.open.bind(semesterInfoDialog));
+    document.getElementById("tests_deleteElementButton").addEventListener("click", function() { deleteElement(TYPE_TEST, currentElement.data.testID)} );
 
-    document.getElementById("tests_testInfo_loadMoreButton").addEventListener("click", loadMoreTestInfo);
+    document.getElementById("tests_deletedButton")      .addEventListener("click", deleteDialog.loadAndOpen.bind(deleteDialog));
 
-    document.getElementById("semesters_visibilityButton")       .addEventListener("click", function() { changeVisibilty(this, "semesters"); });
-    document.getElementById("tests_visibilityButton")           .addEventListener("click", function() { changeVisibilty(this, "tests"); });
-    document.getElementById("foreignSemesters_visibilityButton").addEventListener("click", function() { changeVisibilty(this, "foreignSemesters"); });
+    document.getElementById("semesters_infoButton")     .addEventListener("click", semesterInfoDialog.open.bind(semesterInfoDialog));
 
-    // setTimeout(function() { selectDialog.openSelection(); }, 500);
+    document.getElementById("tests_testInfo_loadMoreButton")    .addEventListener("click", loadMoreTestInfo);
+    document.getElementById("tests_testInfo_visibilityButton")  .addEventListener("click", function() { changeVisibility(TYPE_TEST, currentElement.data.testID); });
+
+    document.getElementById("semesters_visibilityButton")       .addEventListener("click", function() { changeHiddenVisibility(this, "semesters"); });
+    document.getElementById("tests_visibilityButton")           .addEventListener("click", function() { changeHiddenVisibility(this, "tests"); });
+    document.getElementById("foreignSemesters_visibilityButton").addEventListener("click", function() { changeHiddenVisibility(this, "foreignSemesters"); });
 
     loadElementAndPrint();
 

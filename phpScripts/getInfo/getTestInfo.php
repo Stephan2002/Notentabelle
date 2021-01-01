@@ -75,7 +75,7 @@ if($test->data["parentID"] === NULL) {
 }
 
 
-if($test->data["classID"] !== NULL) {
+if($test->data["classID"] !== NULL && $test->data["classID"] > 0) {
 
     $stmt->prepare("SELECT name FROM classes WHERE classID = ?");
     $stmt->bind_param("i", $test->data["classID"]);

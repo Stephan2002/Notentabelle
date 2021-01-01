@@ -17,6 +17,7 @@ define("ERROR_FORBIDDEN_FIELD",         5);     // User-Input, der angegeben, ab
 define("ERROR_FORBIDDEN",               6);     // Element existiert nicht oder Nutzer hat kein Zugriffsrecht
 define("ERROR_ONLY_TEACHER",            7);     // Aktion nur fuer Lehrpersonen verfuegbar
 define("ERROR_NO_WRITING_PERMISSION",   8);     // Benutzer hat nur Leserecht
+define("ERROR_NOT_DELETED",             9);     // Das Element ist nicht (provisorisch) geloescht
 define("ERROR_UNKNOWN",                 10);    // Unbekannter / anderer Fehler
 
 define("INFO_NO_CHANGE",                11);    // Keine Veraenderungen vorgenommen
@@ -290,11 +291,20 @@ function connectToDatabase() : bool {
 
 
 
-function getSemester(int $semesterID, int $userID, bool $isTeacher, bool $checkOnlyForTemplate = false) : Semester {
+function getSemester(int $semesterID, int $userID, bool $isTeacher, bool $checkOnlyForTemplate = false, bool $allowRemoved = false) : Semester {
 
     global $mysqli;
 
-    $stmt = $mysqli->prepare("SELECT * FROM semesters WHERE semesterID = ? AND deleteTimestamp IS NULL");
+    if($allowRemoved) {
+
+        $stmt = $mysqli->prepare("SELECT * FROM semesters WHERE semesters.semesterID = ?");
+
+    } else {
+
+        $stmt = $mysqli->prepare("SELECT * FROM semesters WHERE semesters.semesterID = ? AND semesters.deleteTimestamp IS NULL");
+
+    }
+
     $stmt->bind_param("i", $semesterID);
     $stmt->execute();
 
@@ -379,7 +389,7 @@ function getSemester(int $semesterID, int $userID, bool $isTeacher, bool $checkO
         }
 
     }
-
+    /*
     if(!is_null($data["templateType"])) {
 
         $stmt->prepare("SELECT type FROM publictemplates WHERE semesterID = ?");
@@ -396,16 +406,26 @@ function getSemester(int $semesterID, int $userID, bool $isTeacher, bool $checkO
         }
 
     }
+    */
 
     return new Semester(ERROR_FORBIDDEN);
 
 }
 
-function getTest(int $testID, int $userID, bool $isTeacher, bool $checkOnlyForTemplate = false, bool $irrelevantWritingPermission = false, bool $skipSharedTest = false, bool $skipTeacherTest = false) : Test {
+function getTest(int $testID, int $userID, bool $isTeacher, bool $checkOnlyForTemplate = false, bool $irrelevantWritingPermission = false, bool $skipSharedTest = false, bool $skipTeacherTest = false, bool $allowRemoved = false) : Test {
 
     global $mysqli;
 
-    $stmt = $mysqli->prepare("SELECT tests.*, semesters.userID, semesters.classID, semesters.templateType, tests2.semesterID AS referenceSemesterID FROM tests INNER JOIN semesters ON tests.semesterID = semesters.semesterID LEFT JOIN tests AS tests2 ON tests.referenceID = tests2.testID WHERE tests.testID = ? AND tests.deleteTimestamp IS NULL");
+    if($allowRemoved) {
+
+        $stmt = $mysqli->prepare("SELECT tests.*, semesters.userID, semesters.classID, semesters.templateType, tests2.semesterID AS referenceSemesterID FROM tests INNER JOIN semesters ON tests.semesterID = semesters.semesterID LEFT JOIN tests AS tests2 ON tests.referenceID = tests2.testID WHERE tests.testID = ?");
+    
+    } else {
+
+        $stmt = $mysqli->prepare("SELECT tests.*, semesters.userID, semesters.classID, semesters.templateType, tests2.semesterID AS referenceSemesterID FROM tests INNER JOIN semesters ON tests.semesterID = semesters.semesterID LEFT JOIN tests AS tests2 ON tests.referenceID = tests2.testID WHERE tests.testID = ? AND tests.deleteTimestamp IS NULL");
+
+    }
+    
     $stmt->bind_param("i", $testID);
     $stmt->execute();
 
@@ -417,11 +437,13 @@ function getTest(int $testID, int $userID, bool $isTeacher, bool $checkOnlyForTe
         return new Test(ERROR_FORBIDDEN);
 
     }
+
+    $writingPossible = $data["classID"] === NULL || $data["classID"] > 0;
     
     if($data["userID"] == $userID) {
 
         $stmt->close();
-        return new Test(0, Element::ACCESS_OWNER, true, $data);
+        return new Test(0, Element::ACCESS_OWNER, $writingPossible, $data);
 
     }
 
@@ -442,7 +464,7 @@ function getTest(int $testID, int $userID, bool $isTeacher, bool $checkOnlyForTe
                 if($permissionData["writingPermission"] || !isset($data["classID"]) || $irrelevantWritingPermission) {
 
                     $stmt->close();
-                    return new Test(0, Element::ACCESS_SHARED, (bool)$permissionData["writingPermission"], $data);
+                    return new Test(0, Element::ACCESS_SHARED, $writingPossible && (bool)$permissionData["writingPermission"], $data);
 
                 } else {
 
@@ -469,7 +491,7 @@ function getTest(int $testID, int $userID, bool $isTeacher, bool $checkOnlyForTe
                 if(!is_null($teacherData)) {
 
                     $stmt->close();
-                    return new Test(0, Element::ACCESS_TEACHER, (bool)$teacherData["writingPermission"], $data);
+                    return new Test(0, Element::ACCESS_TEACHER, $writingPossible && (bool)$teacherData["writingPermission"], $data);
 
                 }
 
@@ -502,7 +524,7 @@ function getTest(int $testID, int $userID, bool $isTeacher, bool $checkOnlyForTe
         }
 
     }
-
+    /*
     if(!is_null($data["templateType"])) {
 
         $stmt->prepare("SELECT type FROM publictemplates WHERE semesterID = ?");
@@ -519,16 +541,26 @@ function getTest(int $testID, int $userID, bool $isTeacher, bool $checkOnlyForTe
         }
 
     }
+    */
 
     return new Test(ERROR_FORBIDDEN);
 
 }
 
-function getClass(int $classID, int $userID) : StudentClass {
+function getClass(int $classID, int $userID, bool $allowRemoved = false) : StudentClass {
 
     global $mysqli;
 
-    $stmt = $mysqli->prepare("SELECT * FROM classes WHERE classID = ? AND deleteTimestamp IS NULL");
+    if($allowRemoved) {
+
+        $stmt = $mysqli->prepare("SELECT * FROM classes WHERE classID = ?");
+
+    } else {
+
+        $stmt = $mysqli->prepare("SELECT * FROM classes WHERE classID = ? AND deleteTimestamp IS NULL");
+
+    }
+
     $stmt->bind_param("i", $classID);
     $stmt->execute();
 
@@ -573,11 +605,20 @@ function getClass(int $classID, int $userID) : StudentClass {
 }
 
 
-function getStudent(int $studentID, int $userID) : Student {
+function getStudent(int $studentID, int $userID, bool $allowRemoved = false) : Student {
 
     global $mysqli;
 
-    $stmt = $mysqli->prepare("SELECT students.*, classes.userID AS classUserID, users.userName FROM students INNER JOIN classes ON classes.classID = students.classID LEFT JOIN users ON users.userID = students.userID WHERE students.studentID = ? AND students.deleteTimestamp IS NULL");
+    if($allowRemoved) {
+
+        $stmt = $mysqli->prepare("SELECT students.*, classes.userID AS classUserID, users.userName FROM students INNER JOIN classes ON classes.classID = students.classID LEFT JOIN users ON users.userID = students.userID WHERE students.studentID = ?");
+    
+    } else {
+
+        $stmt = $mysqli->prepare("SELECT students.*, classes.userID AS classUserID, users.userName FROM students INNER JOIN classes ON classes.classID = students.classID LEFT JOIN users ON users.userID = students.userID WHERE students.studentID = ? AND students.deleteTimestamp IS NULL");
+
+    }
+
     $stmt->bind_param("i", $studentID);
     $stmt->execute();
 

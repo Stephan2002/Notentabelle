@@ -44,43 +44,52 @@ function getTests(Element &$test, bool $withMarks = false) : int {
 
         if($withMarks) {
 
-            if(!$test->isRoot) {
-                
-                if(!is_null($test->data["formula"])) {
+            if($test->data["classID"] > 0) {
 
-                    $stmt = $mysqli->prepare("SELECT students.studentID, students.isHidden, students.firstName, students.lastName, students.gender, marks.mark, marks.points, marks.notes AS studentNotes FROM students LEFT JOIN marks ON (marks.studentID = students.studentID AND marks.testID = ?) WHERE students.classID = ? AND students.deleteTimestamp IS NULL ORDER BY students.isHidden, students.lastName");
-                    $stmt->bind_param("ii", $test->data["testID"], $test->data["classID"]);
+                if(!$test->isRoot) {
+                    
+                    if(!is_null($test->data["formula"])) {
 
-                } elseif(!is_null($test->data["round"])) {
+                        $stmt = $mysqli->prepare("SELECT students.studentID, students.isHidden, students.firstName, students.lastName, students.gender, marks.mark, marks.points, marks.notes AS studentNotes FROM students LEFT JOIN marks ON (marks.studentID = students.studentID AND marks.testID = ?) WHERE students.classID = ? AND students.deleteTimestamp IS NULL ORDER BY students.isHidden, students.lastName");
+                        $stmt->bind_param("ii", $test->data["testID"], $test->data["classID"]);
 
-                    $stmt = $mysqli->prepare("SELECT students.studentID, students.isHidden, students.firstName, students.lastName, students.gender, marks.mark, marks.notes AS studentNotes FROM students LEFT JOIN marks ON (marks.studentID = students.studentID AND marks.testID = ?) WHERE students.classID = ? AND students.deleteTimestamp IS NULL ORDER BY students.isHidden, students.lastName");
-                    $stmt->bind_param("ii", $test->data["testID"], $test->data["classID"]);
+                    } elseif(!is_null($test->data["round"])) {
+
+                        $stmt = $mysqli->prepare("SELECT students.studentID, students.isHidden, students.firstName, students.lastName, students.gender, marks.mark, marks.notes AS studentNotes FROM students LEFT JOIN marks ON (marks.studentID = students.studentID AND marks.testID = ?) WHERE students.classID = ? AND students.deleteTimestamp IS NULL ORDER BY students.isHidden, students.lastName");
+                        $stmt->bind_param("ii", $test->data["testID"], $test->data["classID"]);
+
+                    } else {
+
+                        $stmt = $mysqli->prepare("SELECT students.studentID, students.isHidden, students.firstName, students.lastName, students.gender, marks.points, marks.notes AS studentNotes FROM students LEFT JOIN marks ON (marks.studentID = students.studentID AND marks.testID = ?) WHERE students.classID = ? AND students.deleteTimestamp IS NULL ORDER BY students.isHidden, students.lastName");
+                        $stmt->bind_param("ii", $test->data["testID"], $test->data["classID"]);
+
+                    }
 
                 } else {
 
-                    $stmt = $mysqli->prepare("SELECT students.studentID, students.isHidden, students.firstName, students.lastName, students.gender, marks.points, marks.notes AS studentNotes FROM students LEFT JOIN marks ON (marks.studentID = students.studentID AND marks.testID = ?) WHERE students.classID = ? AND students.deleteTimestamp IS NULL ORDER BY students.isHidden, students.lastName");
-                    $stmt->bind_param("ii", $test->data["testID"], $test->data["classID"]);
+                    $stmt = $mysqli->prepare("SELECT students.studentID, students.isHidden, students.firstName, students.lastName, students.gender FROM students WHERE students.classID = ? AND students.deleteTimestamp IS NULL ORDER BY students.isHidden, students.lastName");
+                    $stmt->bind_param("i", $test->data["classID"]);
 
                 }
 
+                $stmt->execute();
+
+                $result = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+                $test->data["students"] = $result;
+
+                $stmt->close();
+
             } else {
 
-                $stmt = $mysqli->prepare("SELECT students.studentID, students.isHidden, students.firstName, students.lastName, students.gender FROM students WHERE students.classID = ? AND students.deleteTimestamp IS NULL ORDER BY students.isHidden, students.lastName");
-                $stmt->bind_param("i", $test->data["classID"]);
+                $test->data["students"] = array();
 
             }
 
-            $stmt->execute();
-
-            $result = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-            $test->data["students"] = $result;
             $test->withStudents = true;
-
-            $stmt->close();
 
         }
 
-        if(!$test->isRoot && $withMarks) {
+        if(!$test->isRoot && $withMarks && $test->data["classID"] > 0) {
             
             if(!is_null($test->data["round"])) {
                 
@@ -116,9 +125,15 @@ function getTests(Element &$test, bool $withMarks = false) : int {
             $test->withMarks = false;
             return ERROR_NONE;
 
-        } 
+        }
 
         $test->withMarks = true;
+
+        if($test->data["classID"] <= 0) {
+
+            return ERROR_NONE;
+
+        }
 
         include_once($_SERVER["DOCUMENT_ROOT"] . "/phpScripts/calculateMarks.php");
 

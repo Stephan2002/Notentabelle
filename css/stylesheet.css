@@ -342,6 +342,12 @@ h2 {
 
 }
 
+#deleteDialog_table td:nth-child(2) {
+
+	width: 72px;
+
+}
+
 #selectDialog_elementTable tr:not(.selected) img {
 
 	visibility: hidden;
@@ -359,7 +365,7 @@ h2 {
 
 }
 
-#permissionsDialog_innerContent> p, #selectDialog_innerContent > p {
+#permissionsDialog_innerContent > p, #selectDialog_innerContent > p, #deleteDialog p {
 
 	font-style: italic;
 	border-top: 1px solid black;
@@ -372,7 +378,7 @@ h2 {
 
 }
 
-#permissionsDialog_noPermission, #selectDialog_noElements, #selectDialog_noFolders {
+#permissionsDialog_noPermission, #selectDialog_noElements, #selectDialog_noFolders, #deleteDialog_noElements {
 
 	background-color: rgb(230, 230, 230);
 	border-bottom: 1px solid black;

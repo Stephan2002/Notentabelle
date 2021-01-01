@@ -753,6 +753,12 @@ if(isset($data["isSubject"]) && $data["isSubject"]) {
     $element->type = Element::TYPE_TEST;
     $element->isRoot = true;
 
+    if($element->data["classID"] !== NULL && $element->data["classID"] <= 0) {
+
+        throwError(ERROR_NO_WRITING_PERMISSION);
+
+    }
+
 } else {
 
     $element = getTest($data["parentID"], $_SESSION["userid"], $_SESSION["isTeacher"]);
