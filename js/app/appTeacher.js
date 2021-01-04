@@ -71,7 +71,7 @@ function startMarkEdit() {
 
 }
 
-function stopMarkEdit(noTableUpdate) {
+function stopMarkEdit(noTableUpdate, func) {
 
     if(isBlocked) return;
 
@@ -80,6 +80,12 @@ function stopMarkEdit(noTableUpdate) {
     markData = [];
 
     document.getElementById("tests_studentMarkVisibiltyButton").children[0].innerHTML = showStudentsWithoutMark ? "ausblenden" : "anzeigen";
+
+    if(typeof(func) === "function") {
+
+        func();
+
+    }
 
     if(noTableUpdate !== true) {
 
@@ -245,7 +251,7 @@ function confirmMarkCancel(func, noTableUpdate) {
         {
             name: "Verwerfen und fortfahren",
             color: "negative",
-            action: function() { stopMarkEdit(noTableUpdate); func(); }
+            action: function() { stopMarkEdit(noTableUpdate, func); }
         }
     ];
 
@@ -1505,7 +1511,7 @@ document.addEventListener("DOMContentLoaded", function() {
         }
 
         if(checkAll || ID === "userName") {
-
+            
             var element = document.getElementById("editStudentDialog_userName");
 
             if(element.value.trim() === "") {
@@ -1604,7 +1610,7 @@ document.addEventListener("DOMContentLoaded", function() {
             } else {
 
                 document.getElementById("editStudentDialog_userName").classList.add("error");
-                editStudentDialog.errors.userName = "Dieser Benutzername existiert nicht.";
+                editStudentDialog.errors.userName = "Es gibt kein Konto mit diesem Benutzernamen oder es darf nicht ausgewählt werden.";
 
             }
 
@@ -1614,6 +1620,8 @@ document.addEventListener("DOMContentLoaded", function() {
 
             document.getElementById("editStudentDialog_userName").classList.add("error");
             editStudentDialog.errors.userName = "Beim Überprüfen des Benutzernamens ist ein Fehler aufgetreten.";
+
+            editStudentDialog.updateErrors(editStudentDialog.isNew);
 
         });
 

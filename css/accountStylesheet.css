@@ -1,0 +1,21 @@
+.container {
+
+    text-align: left;
+
+}
+
+#userName {
+
+    font-size: 30px;
+    font-weight: bold;
+    margin-top: 5px;
+
+}
+
+.textField {
+
+    margin-top: 5px;
+    font-size: 18px;
+    margin-bottom: 25px;
+
+}

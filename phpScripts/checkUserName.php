@@ -12,6 +12,7 @@ if(!is_string($data["userName"])) {
 
 $userName = strtolower($data["userName"]);
 $needsTeacher = isset($data["needsTeacher"]);
+$includeDemo = isset($data["includeDemo"]);
 
 if(!connectToDatabase()) {
 
@@ -19,13 +20,19 @@ if(!connectToDatabase()) {
 
 }
 
-$stmt = $mysqli->prepare("SELECT isTeacher FROM users WHERE userName = ?");
+$stmt = $mysqli->prepare("SELECT isTeacher, status FROM users WHERE userName = ? AND isVerified = 1");
 $stmt->bind_param("s", $userName);
 $stmt->execute();
 
-$result = $stmt->get_result()->fetch_row();
+$result = $stmt->get_result()->fetch_assoc();
 
 if($result === NULL) {
+
+    sendResponse(false);
+
+}
+
+if($result["status"] === "admin" || ($result["status"] === "demo" && !$includeDemo)) {
 
     sendResponse(false);
 
@@ -45,7 +52,7 @@ if($needsTeacher) {
 
     }
 
-    sendResponse((bool)$result[0]);
+    sendResponse((bool)$result["isTeacher"]);
 
 }
 

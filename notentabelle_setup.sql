@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Erstellungszeit: 01. Jan 2021 um 19:33
+-- Erstellungszeit: 04. Jan 2021 um 00:12
 -- Server-Version: 10.4.13-MariaDB
 -- PHP-Version: 7.4.7
 
@@ -166,11 +166,11 @@ CREATE TABLE `users` (
   `lastName` varchar(63) DEFAULT NULL,
   `gender` enum('m','f','d') DEFAULT NULL,
   `school` varchar(63) DEFAULT NULL,
-  `verificationToken` char(63) DEFAULT NULL,
+  `verificationToken` char(64) DEFAULT NULL,
   `newEmail` varchar(63) DEFAULT NULL,
-  `lowerDisplayBound` decimal(8,6) NOT NULL,
-  `upperDisplayBound` decimal(8,6) NOT NULL,
-  `lastUsed` date NOT NULL,
+  `lowerDisplayBound` decimal(8,6) NOT NULL DEFAULT 4.000000,
+  `upperDisplayBound` decimal(8,6) NOT NULL DEFAULT 5.000000,
+  `lastUsed` date NOT NULL DEFAULT current_timestamp(),
   `deleteTimestamp` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 

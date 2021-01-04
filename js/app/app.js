@@ -1,20 +1,6 @@
 // Javascript fuer app.php
 // Wird immer hinzugefuegt, auch bei Lehrpersonen
 
-const ERROR_NONE                  = 0;     // kein Fehler
-const ERROR_NOT_LOGGED_IN         = 1;     // Nutzer ist nicht eingeloggt
-const ERROR_BAD_INPUT             = 2;     // Schlechter User-Input
-const ERROR_UNSUITABLE_INPUT      = 3;     // Unpassender (fehlerhafter), aber richtig angegebener User-Input
-const ERROR_MISSING_INPUT         = 4;     // Fehlender User-Input
-const ERROR_FORBIDDEN_FIELD       = 5;     // User-Input, der angegeben, aber (in jenem Fall) nicht unterstuetzt wird
-const ERROR_FORBIDDEN             = 6;     // Element existiert nicht oder Nutzer hat kein Zugriffsrecht
-const ERROR_ONLY_TEACHER          = 7;     // Aktion nur fuer Lehrpersonen verfuegbar
-const ERROR_NO_WRITING_PERMISSION = 8;     // Benutzer hat nur Leserecht
-const ERROR_NOT_DELETED           = 9;     // Das Element ist nicht (provisorisch) geloescht
-const ERROR_UNKNOWN               = 10;    // Unbekannter / anderer Fehler
-
-const INFO_NO_CHANGE              = 11;    // Keine Veraenderungen vorgenommen
-
 const TYPE_SEMESTER = 0;
 const TYPE_TEST = 1;
 const TYPE_CLASS = 2;
@@ -33,9 +19,6 @@ const TEXT_ERROR_OCCURED = "Es ist ein Fehler aufgetreten.";
 const TEXT_ERROR_NO_CHANGE = TEXT_ERROR_OCCURED + "\nMöglicherweise besteht ein Problem mit der Internetverbindung oder lokale Daten sind nicht mehr auf aktuellem Stand.\n\nFehlercode: ";
 const TEXT_ERROR_UNCHANGED = TEXT_ERROR_OCCURED + "\nEs wurden keine Veränderungen gespeichert. Möglicherweise sind lokalen Daten nicht mehr auf aktuellem Stand.\n\nFehlercode: ";
 const TEXT_ERROR_CHANGED = TEXT_ERROR_OCCURED + "\nJedoch wurde ein Teil der Veränderungen gespeichert. Möglicherweise sind lokalen Daten nicht mehr auf aktuellem Stand.\n\nFehlercode: ";
-
-const MAX_LENGTH_NAME = 64;
-const MAX_LENGTH_NOTES = 256;
 
 const MAX_MARK = 100;
 const MAX_OTHER = 10000;
@@ -93,26 +76,6 @@ var deleteDialog;
 
 var additionalTestInfoRequest;
 
-// Maskiert die speziellen HTML-Zeichen
-function escapeHTML(text) {
-
-    if (text == null) {
-
-        return "";
-
-    }
-
-    text = text.toString();
-
-    text = text.replace(/&/g, "&amp;");
-    text = text.replace(/\"/g, "&quot;");
-    text = text.replace(/'/g, "&#039;");
-    text = text.replace(/</g, "&lt;");
-    text = text.replace(/>/g, "&gt;");
-
-    return text;
-
-}
 
 function formatDate(input) {
 
@@ -242,61 +205,7 @@ function hidePanelsAndPrint() {
 
 }
 
-// Funktion zum Laden von Elementen vom Server
-function loadData(url, data, success, error) {
 
-    var dataString = data === undefined ? "" : JSON.stringify(data);
-    var hasErrorFunc = typeof(error) === "function";
-
-    var xhttp = new XMLHttpRequest();
-    xhttp.open("POST", url);
-    xhttp.responseType = "json";
-
-    xhttp.onload = function () {
-
-        if(this.response === null) {
-
-            if(this.status) {
-
-                if(hasErrorFunc) error(this.status);
-
-            } else {
-
-                if(hasErrorFunc) error(-1);
-
-            }
-
-            return;
-
-        }
-
-        if (this.status == 200) {
-
-            if (this.response.error === 0) {
-
-                success(this.response);
-
-            } else {
-
-                if(hasErrorFunc) error(this.response.error, this.response);
-
-            }
-
-        } else {
-
-            if(hasErrorFunc) error(this.status);
-
-        }
-
-    };
-
-    if(hasErrorFunc) xhttp.onerror = function () { error(-1); };
-
-    xhttp.send(dataString);
-
-    return xhttp;
-
-}
 
 function loadingError(errorCode) {
 
@@ -2599,81 +2508,6 @@ function changeHiddenVisibility(element, type) {
 }
 
 
-function showErrorMessage(description, forceReload) {
-
-    var options = {
-        type: "info",
-        icon: "error",
-        title: "Fehler",
-        description: description
-    }
-
-    if(forceReload) {
-
-        options.OKButtonText = "Seite neuladen";
-        options.OKAction = function() { location.reload(); };
-
-    }
-
-    new Alert(options);
-
-}
-
-
-
-function updateErrors(errorObj, errorContainer, button, keepButtonSelectable) {
-    
-    var errorString = "";
-    var hasError = false;
-
-    for(var errorID in errorObj) {
-
-        hasError = true;
-
-        if(errorObj[errorID]) {
-
-            errorString += "<p class='blankLine_small'>" + errorObj[errorID] + "</p>";
-
-        }
-
-    }
-    
-    if(errorString === "") {
-
-        errorContainer.style.display = "none";
-
-    } else {
-
-        errorContainer.style.display = "inline-block";
-        errorContainer.innerHTML = errorString;
-
-    }
-
-    if(button instanceof HTMLButtonElement) {
-
-        if(keepButtonSelectable) {
-
-            if(hasError) {
-
-                button.classList.add("deactivated");
-
-            } else {
-
-                button.classList.remove("deactivated");
-
-            }
-
-        } else {
-
-            button.disabled = hasError;
-
-        }
-
-    }
-
-    return !hasError;
-
-}
 
 
 function changeVisibility(type, ID) {
@@ -2808,8 +2642,15 @@ function changeVisibility(type, ID) {
 }
 
 function deleteElement(type, ID, confirm, confirm2) {
-
+    
     if(isBlocked) return;
+
+    if(editMarks) {
+
+        confirmMarkCancel(deleteElement.bind(this, type, ID, confirm, confirm2), !confirm && !confirm2);
+        return;
+
+    }
 
     if(confirm || confirm2) {
 
@@ -5885,11 +5726,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 if(permissionsDialog.type === TYPE_SEMESTER) {
 
-                    permissionsDialog.errors.newName = "Dieser Benutzername existiert nicht.";
+                    permissionsDialog.errors.newName = "Es gibt kein Konto mit diesem Benutzernamen oder es darf nicht ausgewählt werden.";
 
                 } else {
 
-                    permissionsDialog.errors.newName = "Dieser Benutzername existiert nicht oder ist keine Lehrperson.";
+                    permissionsDialog.errors.newName = "Es gibt kein Konto mit diesem Benutzernamen, es gehört keiner Lehrperson oder darf nicht ausgewählt werden.";
 
                 }
 
@@ -5900,7 +5741,9 @@ document.addEventListener("DOMContentLoaded", function () {
         }, function() {
 
             document.getElementById("permissionsDialog_newName").classList.add("error");
-            this.errors.newName = "Beim Überprüfen des Benutzernamens ist ein Fehler aufgetreten.";
+            permissionsDialog.errors.newName = "Beim Überprüfen des Benutzernamens ist ein Fehler aufgetreten.";
+
+            updateErrors(permissionsDialog.errors, document.getElementById("permissionsDialog_errorContainer"), document.getElementById("permissionsDialog_addButton"));
 
         });
 
@@ -7568,7 +7411,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 properties.referenceTestID = null;
                 properties.deleteTimestamp = null;
 
-                Loading.show();
+                Loading.show(null, "semi-transparent");
 
             } else if(this.type === TYPE_CLASS) {
 
@@ -7595,7 +7438,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 properties.notes = null;
                 properties.deleteTimestamp = null;
 
-                Loading.show();
+                Loading.show(null, "semi-transparent");
 
             }
 
@@ -7683,7 +7526,7 @@ document.addEventListener("DOMContentLoaded", function () {
         document.getElementById("deleteDialog_header").innerHTML = headerText;
         document.getElementById("deleteDialog_noElements").innerHTML = noElementsText;
 
-        Loading.show();
+        Loading.show(null, "semi-transparent");
 
     }
 

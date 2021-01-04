@@ -1,5 +1,6 @@
 <!-- Dient dazu, ein Ladezeichen einzublenden, bis die Seite vollstaendig geladen wurde. Wird auf allen Seiten inkludiert. -->
-<div id="preload">
+<div id="preload" style="display: none;">
+    <script>document.getElementById("preload").style.display = "flex";</script>
     <style>
         body.stop-scrolling-preload {
             overflow: hidden;

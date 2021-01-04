@@ -7,7 +7,7 @@ ErrorDocument 404 /error.php?error=404
     Deny from all
 </Files>
 <Files "manifest.json">
-    Header set Cache-Control "max-age=60"
+    Header set Cache-Control "max-age=3600"
 </Files>
 
 #@__HCP_END__@#

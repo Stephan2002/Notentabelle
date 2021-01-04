@@ -3,7 +3,7 @@
 /* Kernseite der Applikation, hier werden alle Semester/Noten angezeigt. */
 
 $loginRequired = true;
-include("phpScripts/login.php");
+include($_SERVER["DOCUMENT_ROOT"] . "/phpScripts/login.php");
 
 ?>
 
@@ -12,26 +12,36 @@ include("phpScripts/login.php");
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+
         <title>Notentabelle - App</title>
-        <link rel="stylesheet" href="/././css/basicStylesheet.css">
+
+        <link rel="stylesheet" href="/css/basicStylesheet.css">
         <link rel="stylesheet" href="/modules/dialog/dialogStylesheet.css">
         <link rel="stylesheet" href="/modules/loading/loadingStylesheet.css">
         <link rel="stylesheet" href="/modules/buttonSelect/buttonSelectStylesheet.css">
         <link rel="stylesheet" href="/css/stylesheet.css">
+        <link rel="stylesheet" href="/css/appStylesheet.css">
 
         <!-- Icons -->
-        <link rel="icon" href="img/logo/logo.ico" sizes="48x48">
-        <link rel="icon" type="image/png" href="img/logo/logo_192x192.png" sizes="192x192">
-        <link rel="icon" type="image/svg+xml" href="img/logo/logo.svg">
-        <link rel="apple-touch-icon" href="img/logo/logo_white_180x180.png">
+        <link rel="icon" href="/img/logo/logo.ico" sizes="48x48">
+        <link rel="icon" type="image/png" href="/img/logo/logo_192x192.png" sizes="192x192">
+        <link rel="icon" type="image/svg+xml" href="/img/logo/logo.svg">
+        <link rel="apple-touch-icon" href="/img/logo/logo_white_180x180.png">
         
         <link rel="manifest" href="/manifest.json">
 
         <meta name="apple-mobile-web-app-capable" content="yes">
 
+        <noscript><meta http-equiv="refresh" content="0; /error?error=1&origin=app"></noscript>
+
+        <script>
+            window.addEventListener("pageshow", function(event) { if(event.persisted) window.location.reload()});
+            if("serviceWorker" in navigator && navigator.serviceWorker.controller) navigator.serviceWorker.oncontrollerchange = function() { alert("Updates wurden durchgeführt. Die Webapp wird neugeladen, damit sie richtig funktioniert."); window.location.reload(); };
+        </script>
+
         <script>
             var user = {
-                userName: "<?php echo addslashes($_SESSION["username"]); ?>",
+                userName: <?php echo json_encode($_SESSION["username"]); ?>,
                 isTeacher: <?php echo ($_SESSION["isTeacher"] ? "true" : "false") ?>,
                 lowerDisplayBound: <?php echo $_SESSION["lowerDisplayBound"]; ?>,
                 upperDisplayBound: <?php echo $_SESSION["upperDisplayBound"]; ?>
@@ -46,19 +56,13 @@ include("phpScripts/login.php");
         <script language="javascript" type="text/javascript" src="/modules/dialog/alertScript.js"></script>
         <script language="javascript" type="text/javascript" src="/modules/loading/loadingScript.js"></script>
         <script language="javascript" type="text/javascript" src="/modules/buttonSelect/buttonSelectScript.js"></script>
+        <script language="javascript" type="text/javascript" src="/js/main.js"></script>
         <script language="javascript" type="text/javascript" src="/js/editDialog.js"></script>
         <script language="javascript" type="text/javascript" src="/js/app/app.js"></script>
 
         <?php if($_SESSION["isTeacher"]) { ?>
             <script language="javascript" type="text/javascript" src="/js/app/appTeacher.js"></script>
         <?php } ?>
-
-        <script>
-            window.addEventListener("pageshow", function(event) { if(event.persisted) window.location.reload()});
-            if("serviceWorker" in navigator && navigator.serviceWorker.controller) navigator.serviceWorker.oncontrollerchange = function() { alert("Updates wurden durchgeführt. Die Webapp wird neugeladen, damit sie richtig funktioniert."); window.location.reload(); };
-        </script>
-
-        <noscript><meta http-equiv="refresh" content="0; error?error=1&origin=app"></noscript>
 
         <link rel="preload" href="/img/icons/loading.svg" as="image">
         <link rel="prefetch" href="/img/icons/loading.svg">
@@ -71,14 +75,14 @@ include("phpScripts/login.php");
     </head>
     
     <body>
-        <?php include("phpScripts/preload.php"); ?>
+        <?php include($_SERVER["DOCUMENT_ROOT"] . "/phpScripts/preload.php"); ?>
         
         <nav>
             <img id="returnButton" src="/img/icons/arrow_back.svg" alt="<" tabindex="0">
             <div id="header">
                 <h1 id="title">Semesterauswahl</h1>
             </div>
-            <script language="javascript" type="text/javascript" src="js/menu.js"></script>
+            <script language="javascript" type="text/javascript" src="/js/menu.js"></script>
         </nav>
 
         <div class="panel" id="semesters_div" style="display: none">
@@ -479,7 +483,7 @@ include("phpScripts/login.php");
                 <div id="classes_empty">
                     <div class="info gray bigMargin">
                         <p class="blankLine_small">Keine Klasse vorhanden.</p>
-                        <p>Fügen Sie eine Klasse oder eine Verknüpfung mit den obigen Knöpfen ein.</p>
+                        <p>Fügen Sie eine Klasse mit dem obigen Knopf ein.</p>
                     </div>
                 </div>
             </div>
@@ -1216,7 +1220,7 @@ include("phpScripts/login.php");
                             <option value="">...</option>
                             <option value="m">männlich</option>
                             <option value="f">weiblich</option>
-                            <option value="d">divers</option>
+                            <!--<option value="d">divers</option>-->
                         </select>
                     </div>
                 </div>

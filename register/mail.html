@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <title>Registrierung abschliessen</title>
+        <style>
+            body {
+
+                box-sizing: border-box;
+                width: 100%;
+                font-size: 16px;
+                margin: 0px;
+                font-family: Arial, Helvetica, sans-serif;
+                text-align: center;
+
+
+            }
+
+            p {
+	
+                margin: 0px;
+                
+            }
+
+            .blankLine {
+                
+                margin-top: 18px;
+                
+            }
+
+            .blankLine_small {
+                
+                margin-top: 5px;
+                
+            }
+
+            .blankLine_big  {
+                
+                margin-top: 30px;
+                
+            }
+
+            .text {
+
+                padding: 10px 25px;
+
+            }
+
+            .container {
+
+                width: 80%;
+                max-width: 300px;
+                display: block;
+                margin: 40px auto;
+
+            }
+
+            button, input[type="submit"] {
+	
+                box-sizing: border-box;
+                text-align: center;
+                font-family: Arial, Sans-serif;
+                font-size: 17px;
+                padding: 5px;
+                border-width: 5px;
+                border-style: solid;
+                border-radius: 5px;
+                color: white;
+                margin: 2px 0px;
+                -webkit-transition: background-color 0.4s, border-color 0.4s;
+                transition: background-color 0.4s, border-color 0.4s;
+                -webkit-appearance: none;
+                -moz-appearance: none;
+                appearance: none; 
+                height: auto;
+                vertical-align: middle;
+                position: relative;
+                cursor: pointer; 
+                
+            }
+
+            .positive {
+                
+                background-color: #4CAF50;
+                border-color: #4CAF50;
+                
+            }
+
+            .positive:hover, .positive:focus {
+	
+                background-color: #248728;
+                border-color: #248728;
+                outline: none;
+                
+            }
+
+            .button_big {
+
+                width: 100%;
+
+            }
+
+        </style>
+    </head>
+    <body>
+        <div class="text" style="padding-top: 30px;">
+            <p><b>Herzlich willkommen bei Notentabelle, {{ userName }}</b></p>
+            <p class="blankLine">Um die Registrierung abzuschliessen, klicken Sie unten:</p>
+        </div>
+
+        <div class="container" style="margin: 20px auto;">
+            <a href="https://notentabelle.ch/register/validateAccount{{ URLQuery }}"><button class="button_big positive">Registrierung abschliessen</button></a>
+        </div>
+
+        <div class="text" style="font-size: 14px">
+            <p>Oder benutzen Sie den folgenden Link:</p>
+            <p><a href="https://notentabelle.ch/register/validateAccount{{ URLQuery }}">https://notentabelle.ch/register/validateAccount{{ URLQuery }}</a></p>
+        </div>
+    </body>
+</html>

@@ -14,9 +14,6 @@ body {
 
 
 
-
-
-
 h1 {
 	
 	color: white;
@@ -34,384 +31,6 @@ h2 {
 
 }
 
-
-
-.mainTable, .dialogTable {
-	
-	border-collapse: collapse;
-	box-sizing: content-box;
-	width: 100%;
-	margin-bottom: 0px;
-	margin-left: 0px;
-	margin-right: 0px;
-	font-size: 18px;
-	vertical-align: middle;
-	
-	
-}
-
-.mainTable tr, .dialogTable tr {
-
-	background-color: rgb(240, 240, 240);
-	border-color: black;
-	color: black;
-	transition: background-color 0.4s;
-
-}
-
-.mainTable td, .mainTable th, .dialogTable td {
-
-	border-top: 1px solid black;
-	border-bottom: 1px solid black;
-	color: black;
-	padding: 8px 3px;
-	font-size: 16px;
-	text-align: center;
-	
-}
-
-
-.mainTable th {
-	
-	font-size: 18px;
-	background-color: rgb(217, 217, 217);
-	font-weight: bold;
-	cursor: auto;
-	
-}
-
-.dialogTable {
-
-	margin-left: -15px;
-	width: calc(100% + 30px);
-
-}
-
-.dialogTable td > img {
-
-	height: 25px;
-	width: 25px;
-	display: block;
-
-}
-
-.mainTable .table_name {
-	
-	word-break: break-all;
-	font-size: 18px;
-	
-	
-}
-
-.mainTable .table_mark {
-	
-	font-weight: bold;
-	font-size: 20px;
-	
-}
-
-.mainTable .table_buttons {
-
-	width: 108px;
-
-}
-
-.mainTable .studentTable_buttons {
-
-	width: 72px;
-
-}
-
-.mainTable .table_buttons.noWritingPermission {
-	
-	width: 36px;
-
-}
-
-.mainTable .table_big {
-
-	display: initial;
-
-}
-
-.mainTable .table_small {
-
-	display: none;
-
-}
-
-.mainTable .studentTable_input {
-
-	padding: 0px;
-	vertical-align: center;
-
-}
-
-.mainTable .studentTable_input input {
-
-	font-size: inherit;
-	border-top: none;
-	border-bottom: none;
-	border-left: 1px solid black;
-	border-right: 1px solid black;
-	margin: 0px;
-	color: black;
-	height: 52px;
-	border-radius: 0px;
-	width: 65px;
-	padding: 0px 10px;
-	text-align: center;
-	background-color: white;
-	-webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none; 
-
-}
-
-
-.mainTable .studentTable_input input.error {
-
-	background-color: rgb(255, 223, 223);
-
-}
-
-.mainTable .studentTable_input input:read-only {
-
-	background-color: transparent;
-	color: black;
-	border: none;
-
-}
-
-.mainTable .studentTable_input.table_mark input {
-
-	width: 72px;
-	padding: 0px 10px;
-	font-weight: bold;
-
-}
-
-.mainTable td > img {
-
-	height: 32.5px;
-
-}
-
-.mainTable tr:not(.noSelect), #selectDialog tr:not(.selected), #selectDialog_parentFolder {
-
-	cursor: pointer;
-
-}
-
-.mainTable tr:hover:not(.noSelect), #selectDialog tr:hover:not(.selected) {
-
-	background-color: rgb(230, 230, 230);
-
-}
-
-.mainTable tr.red {
-
-	background-color: rgb(255,199,206);
-
-}
-
-.mainTable tr.yellow {
-
-	background-color: rgb(255, 235, 156);
-
-}
-
-.mainTable tr.green {
-
-	background-color: rgb(198, 239, 206);
-
-}
-
-.mainTable tr.red:hover:not(.noSelect) {
-
-	background-color: rgb(255, 179, 187);
-
-}
-
-.mainTable tr.yellow:hover:not(.noSelect) {
-
-	background-color: rgb(255, 227, 115);
-
-}
-
-.mainTable tr.green:hover:not(.noSelect) {
-
-	background-color: rgb(160, 235, 174);
-
-}
-
-
-@media (max-width: 500px) {
-	
-	.mainTable td {
-		
-		font-size: 14px;
-		
-	}
-	
-	.mainTable th {
-		
-		font-size: 16px;
-	
-	}
-	
-	.mainTable .table_mark {
-		
-		font-size: 18px;
-		
-	}
-	
-	.mainTable .table_name {
-		
-		font-size: 16px;
-		
-	}
-
-	.mainTable .table_big {
-
-		display: none;
-	
-	}
-
-	.mainTable .table_buttons, .mainTable .studentTable_buttons {
-
-		width: 36px;
-	
-	}
-	
-	.mainTable .table_small {
-	
-		display: initial;
-	
-	}
-
-	.mainTable .studentTable_input input {
-
-		width: 50px;
-		padding: 0px 5px;
-
-	}
-
-	.mainTable .studentTable_input.table_mark input {
-
-		width: 60px;
-		padding: 0px 5px;
-
-	}
-	
-}
-
-.dialogTable td {
-
-	padding-top: 4px;
-	padding-bottom: 4px;
-	height: 30px;
-
-}
-
-.dialogTable td:nth-child(1) {
-
-	padding-left: 15px;
-
-}
-
-.dialogTable td:nth-last-child(1) {
-
-	padding-right: 15px;
-
-}
-
-
-#permissionsDialog_table td:nth-last-child(3),
-#permissionsDialog_table td:nth-last-child(1),
-#selectDialog_elementTable td:nth-child(1),
-#selectDialog_elementTable td:nth-last-child(1) {
-
-	width: 30px;
-
-}
-
-#permissionsDialog_table td:nth-last-child(2) {
-
-	width: 40px;
-
-}
-
-#deleteDialog_table td:nth-child(2) {
-
-	width: 72px;
-
-}
-
-#selectDialog_elementTable tr:not(.selected) img {
-
-	visibility: hidden;
-
-}
-
-
-
-
-
-#permissionsDialog_innerContent, #selectDialog_innerContent {
-
-	transition: opacity 0.2s;
-	opacity: 1;
-
-}
-
-#permissionsDialog_innerContent > p, #selectDialog_innerContent > p, #deleteDialog p {
-
-	font-style: italic;
-	border-top: 1px solid black;
-	padding: 10px 15px;
-	font-size: 16px;
-	text-align: center;
-	margin-left: -15px;
-	margin-right: -15px;
-	transition: background-color 0.4s;
-
-}
-
-#permissionsDialog_noPermission, #selectDialog_noElements, #selectDialog_noFolders, #deleteDialog_noElements {
-
-	background-color: rgb(230, 230, 230);
-	border-bottom: 1px solid black;
-
-}
-
-
-#selectDialog_parentFolder {
-
-	background-color: rgb(217, 217, 217);
-
-}
-
-#selectDialog_folderError {
-
-	border-top: 1px solid black;
-	background-color: rgba(255,0,0,0.125);
-	border-bottom: 1px solid red;
-	color: red;
-
-}
-
-#selectDialog_parentFolder:hover {
-
-	background-color: rgb(200, 200, 200);
-
-}
-
-#selectDialog_elementTable tr.selected {
-
-	background-color: rgb(217, 217, 217);
-
-}
 
 	
 
@@ -447,33 +66,6 @@ nav h1 {
 }
 
 
-
-
-#averageFooter {
-	
-	width: 100%;
-	padding: 8px 0px;
-	border-top: 1px solid black;
-	background-color: white;
-	text-align: center;
-	position: fixed;
-	bottom: 0px;
-	left: 0px;
-	
-	
-}
-
-#averageFooter p {
-	
-	font-size: 16px;
-	
-}
-
-#averageFooter p.averageFooter_big {
-
-	font-size: 20px;
-
-}
 
 
 
@@ -544,8 +136,9 @@ nav h1 {
 
 #startlogo_big {
 	
-	width: 94%;
-	padding: 3%;
+	width: 90%;
+	padding: 5%;
+	max-width: 900px;
 	
 	
 }
@@ -553,8 +146,8 @@ nav h1 {
 
 #startlogo_small {
 	
-	width: 94%;
-	padding: 3%;
+	width: 90%;
+	padding: 5%;
 	display: none;
 	
 }
@@ -574,6 +167,16 @@ nav h1 {
 		
 	}
 	
+}
+
+@media (min-width: 1000px) {
+
+	#startlogo_big {
+
+		padding: 50px;
+
+	}
+
 }
 
 
@@ -620,150 +223,6 @@ nav h1 {
 }
 
 
-
-
-
-table .button_square {
-	
-	float: right;
-	
-}
-
-
-
-
-
-
-.panel {
-
-	transition: opacity 0.2s;
-
-}
-
-
-.infoDialog, #tests_testInfo_div {
-
-	font-size: 17px;
-
-}
-
-
-.infoDialog table, #tests_testInfo_div table {
-
-	width: 100%;
-	text-align: left;
-	vertical-align: middle;
-	border-spacing: 0px;
-
-}
-
-.infoDialog td, #tests_testInfo_div td {
-
-	padding: 0px;
-
-}
-
-.infoDialog td:nth-last-child(1), #tests_testInfo_div td:nth-last-child(1) {
-
-	text-align: right;
-
-}
-
-.infoDialog img, #tests_testInfo_div img {
-
-	height: 20px;
-	width: 20px;
-
-}
-
-.infoDialog .leftAlign, #tests_testInfo_div .leftAlign {
-
-	text-align: left;
-
-}
-
-.infoDialog .notes div, #tests_testInfo_div .notes div {
-
-	font-size: 14px;
-	overflow: auto;
-
-}
-
-.infoDialog .inputGroup, #tests_testInfo_div .inputGroup {
-
-	margin-right: -15px;
-	
-
-}
-
-.infoDialog .inputGroup > div, #tests_testInfo_div .inputGroup > div {
-
-	margin-right: 15px;
-	flex: 1 1 calc(50% - 15px);
-
-}
-
-
-
-#editTestDialog .inputGroup > div {
-
-	min-width: 158px;
-
-}
-
-#editTestDialog_roundContainer > div {
-
-	display: flex;
-	
-
-}
-
-#editTestDialog_roundContainer > div > * {
-	
-	width: 50%;
-	flex: 1 1 50%;
-
-}
-
-
-
-
-
-/*.parentType_semesterRoot,
-.parentType_semesterFolder,
-.parentType_classRoot,
-.parentType_class */
-.parentType_semester,
-.parentType_template,
-
-.type_root,
-.type_subject,
-.type_folder,
-.type_test,
-.type_ref,
-
-.dialogType_semesterFolder,
-.dialogType_semester,
-.dialogType_template,
-.dialogType_semesterRef,
-.dialogType_templateRef,
-.dialogType_subject,
-.dialogType_folder,
-.dialogType_test,
-.dialogType_ref,
-.dialogType_classRef,
-.dialogType_class,
-
-.classFlag_private,
-.classFlag_class,
-
-.modeFlag_edit,
-.modeFlag_add
-{
-
-	display: none;
-
-}
 
 
 .notImplemented {
