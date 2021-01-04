@@ -169,7 +169,7 @@ function createSemester(Semester $semesterFolder, array &$data, int $userID, boo
 
         }
 
-        if($properties["isFolder"] || $properties["classID"] !== NULL || $properties["templateType"] !== NULL) {
+        if($properties["isFolder"] || $properties["classID"] !== NULL) {
 
             return array("error" => ERROR_FORBIDDEN_FIELD);
 
@@ -324,6 +324,15 @@ function createSemester(Semester $semesterFolder, array &$data, int $userID, boo
         $referenceSemester = getSemester($properties["referenceID"], $userID, $isTeacher);
 
         if($referenceSemester->error !== ERROR_NONE) {
+
+            return array("error" => ERROR_UNSUITABLE_INPUT);
+
+        }
+
+        if(
+            ($referenceSemester->isTemplate && $properties["templateType"] === NULL) || 
+            (!$referenceSemester->isTemplate && $properties["templateType"] !== NULL)
+        ) {
 
             return array("error" => ERROR_UNSUITABLE_INPUT);
 

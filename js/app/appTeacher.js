@@ -1020,6 +1020,8 @@ document.addEventListener("DOMContentLoaded", function() {
 
         this.classData = {};
 
+        this.siblingData = currentElement.childrenData;
+
         document.getElementById("modeFlagStyles").innerHTML = ".modeFlag_add { display: inline; }";
         document.getElementById("dialogTypeStyles").innerHTML = ".dialogType_class { display: inline; }";
 
@@ -1253,7 +1255,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
         loadData("/phpScripts/create/createClass.php", properties, function(result) {
 
-            properties.classID = result.classID;
+            properties.classID = result.newID;
 
             currentElement.childrenData.push(properties);
 

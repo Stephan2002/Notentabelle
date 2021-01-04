@@ -3927,7 +3927,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     editSemesterDialog.saveAdd = function(properties) {
 
-        if(this.templateID !== undefined) properties.templateID = this.templateID;
+        if(this.templateID !== undefined) properties.templateID = this.realTemplateID;
         
         if(this.semesterData.templateType === null) {
             
