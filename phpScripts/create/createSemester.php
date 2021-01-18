@@ -271,7 +271,7 @@ function createSemester(Semester $semesterFolder, array &$data, int $userID, boo
 
         }
 
-        $stmt = $mysqli->prepare("SELECT userID, isTeacher FROM users WHERE userName = ? AND deleteTimestamp IS NULL");
+        $stmt = $mysqli->prepare("SELECT userID, isTeacher FROM users WHERE userName = ? AND status != \"demo\" AND deleteTimestamp IS NULL");
 
         foreach($data["permissions"] as &$currentPermission) {
             

@@ -361,7 +361,7 @@ include($_SERVER["DOCUMENT_ROOT"] . "/phpScripts/login.php");
                 <div id="tests_studentButtons">
                     <div class="info gray bigMargin" id="tests_noMarks" style="display: none;">
                         <p class="blankLine_small">Kein/e Schüler/in hat Noten oder Punkte oder es gibt keine Schüler/innen in dieser Klasse.</p>
-                        <p id="tests_noMarks_instruction">Fügen Sie Noten/Punkte hinzu, indem Sie Knopf unten benutzen.</p>
+                        <p id="tests_noMarks_instruction">Fügen Sie Noten/Punkte hinzu, indem Sie den Knopf unten benutzen.</p>
                     </div>
 
                     <button id="tests_editMarksButton" class="button_big positive withMargin">Noten / Punkte bearbeiten</button>

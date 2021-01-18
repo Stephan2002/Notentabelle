@@ -106,20 +106,6 @@ function saveMarkChanges(noTableUpdate, func) {
 
     var markChanges = [];
 
-    var markChange = 
-        currentElement.data.round !== null && 
-        (
-            (isTest && currentElement.data.formula === null) || 
-            (currentElement.data.formula === "manual")
-        );
-
-    var pointsChange = 
-        isTest && 
-        (
-            currentElement.data.round === null || 
-            currentElement.data.formula !== null
-        );
-
     for(var i = 0; i < students.length; i++) {
 
         var studentID = students[i].studentID;
@@ -130,7 +116,7 @@ function saveMarkChanges(noTableUpdate, func) {
             var changesObj = { studentID: studentID };
             var hasChanged = false;
 
-            if(markChange) {
+            if(currentMarkData.mark !== undefined) {
         
                 var mark = currentMarkData.mark.trim() !== "" ? Number(currentMarkData.mark).toFixed(6) : null;
         
@@ -146,7 +132,7 @@ function saveMarkChanges(noTableUpdate, func) {
 
             }
 
-            if(pointsChange) {
+            if(currentMarkData.points !== undefined) {
                 
                 var points = currentMarkData.points.trim() !== "" ? Number(currentMarkData.points).toFixed(3) : null;
         
@@ -162,16 +148,20 @@ function saveMarkChanges(noTableUpdate, func) {
 
             }
 
-            var notes = currentMarkData.notes || null;
-    
-            if(students[i].studentNotes == null) {
-                if(notes !== null) {
+            if(currentMarkData.notes !== undefined) {
+
+                var notes = currentMarkData.notes || null;
+        
+                if(students[i].studentNotes == null) {
+                    if(notes !== null) {
+                        changesObj.notes = notes;
+                        hasChanged = true;
+                    }
+                } else if(students[i].studentNotes !== notes) {
                     changesObj.notes = notes;
                     hasChanged = true;
                 }
-            } else if(students[i].studentNotes !== notes) {
-                changesObj.notes = notes;
-                hasChanged = true;
+
             }
 
             if(hasChanged) {
@@ -2020,7 +2010,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
             } else {
 
-                document.getElementById("editStudentMarkDialog_mark").value = this.studentData.mark ? Number(this.studentData.mark) : "";
+                document.getElementById("editStudentMarkDialog_mark").value = this.studentData.mark_unrounded != null ? Number(this.studentData.mark_unrounded) : (this.studentData.mark != null ? Number(this.studentData.mark) : "");
 
             }
 

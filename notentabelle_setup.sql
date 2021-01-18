@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Erstellungszeit: 04. Jan 2021 um 00:12
+-- Erstellungszeit: 16. Jan 2021 um 12:02
 -- Server-Version: 10.4.13-MariaDB
 -- PHP-Version: 7.4.7
 
@@ -287,7 +287,7 @@ ALTER TABLE `users`
 -- Constraints der Tabelle `classes`
 --
 ALTER TABLE `classes`
-  ADD CONSTRAINT `classes_ibfk_1` FOREIGN KEY (`userID`) REFERENCES `users` (`userID`) ON DELETE CASCADE;
+  ADD CONSTRAINT `classes_ibfk_1` FOREIGN KEY (`userID`) REFERENCES `users` (`userID`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints der Tabelle `marks`
@@ -300,7 +300,7 @@ ALTER TABLE `marks`
 -- Constraints der Tabelle `permissions`
 --
 ALTER TABLE `permissions`
-  ADD CONSTRAINT `permissions_ibfk_1` FOREIGN KEY (`userID`) REFERENCES `users` (`userID`) ON DELETE CASCADE,
+  ADD CONSTRAINT `permissions_ibfk_1` FOREIGN KEY (`userID`) REFERENCES `users` (`userID`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `permissions_ibfk_2` FOREIGN KEY (`classID`) REFERENCES `classes` (`classID`) ON DELETE CASCADE,
   ADD CONSTRAINT `permissions_ibfk_3` FOREIGN KEY (`semesterID`) REFERENCES `semesters` (`semesterID`) ON DELETE CASCADE,
   ADD CONSTRAINT `permissions_ibfk_4` FOREIGN KEY (`testID`) REFERENCES `tests` (`testID`) ON DELETE CASCADE;
@@ -309,13 +309,13 @@ ALTER TABLE `permissions`
 -- Constraints der Tabelle `publictemplates`
 --
 ALTER TABLE `publictemplates`
-  ADD CONSTRAINT `publictemplates_ibfk_1` FOREIGN KEY (`userID`) REFERENCES `users` (`userID`) ON DELETE CASCADE;
+  ADD CONSTRAINT `publictemplates_ibfk_1` FOREIGN KEY (`userID`) REFERENCES `users` (`userID`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints der Tabelle `semesters`
 --
 ALTER TABLE `semesters`
-  ADD CONSTRAINT `semesters_ibfk_1` FOREIGN KEY (`userID`) REFERENCES `users` (`userID`) ON DELETE CASCADE,
+  ADD CONSTRAINT `semesters_ibfk_1` FOREIGN KEY (`userID`) REFERENCES `users` (`userID`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `semesters_ibfk_2` FOREIGN KEY (`parentID`) REFERENCES `semesters` (`semesterID`) ON DELETE CASCADE;
 
 --
@@ -323,7 +323,7 @@ ALTER TABLE `semesters`
 --
 ALTER TABLE `students`
   ADD CONSTRAINT `students_ibfk_1` FOREIGN KEY (`classID`) REFERENCES `classes` (`classID`) ON DELETE CASCADE,
-  ADD CONSTRAINT `students_ibfk_2` FOREIGN KEY (`userID`) REFERENCES `users` (`userID`) ON DELETE SET NULL;
+  ADD CONSTRAINT `students_ibfk_2` FOREIGN KEY (`userID`) REFERENCES `users` (`userID`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 --
 -- Constraints der Tabelle `tests`

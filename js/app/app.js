@@ -281,7 +281,7 @@ function printElement() {
                 "<tr onclick='select(" + (currentChildData.isFolder ? TYPE_SEMESTER : TYPE_TEST) + ", " + (currentChildData.referenceTestID ? (currentChildData.referenceTestID + ", false, true") : ((currentChildData.referenceID ? currentChildData.referenceID : currentChildData.semesterID) + ", " + !currentChildData.isFolder + ", " + currentChildData.isFolder)) + ")'>" +
                     "<td class='table_name'>" + escapeHTML(currentChildData.name) + "</td>" +
                     "<td class='table_buttons'>" +
-                        (currentChildData.isHidden ? "<button class='button_square negative table_big'><img src='/img/icons/delete.svg' alt='X' onclick='event.stopPropagation(); deleteElement(TYPE_SEMESTER, " + currentChildData.semesterID + ", " + (currentChildData.classID > 0) + ", " + currentChildData.isFolder + ");'></button>" : "<button class='button_square negativeNeutral table_big'><img src='/img/icons/archive.svg' alt='A' onclick='event.stopPropagation(); changeVisibility(TYPE_SEMESTER, " + currentChildData.semesterID + ");'></button>") +
+                        (currentChildData.isHidden ? "<button class='button_square negative table_big' onclick='event.stopPropagation(); deleteElement(TYPE_SEMESTER, " + currentChildData.semesterID + ", " + (currentChildData.classID > 0) + ", " + currentChildData.isFolder + ");'><img src='/img/icons/delete.svg' alt='X'></button>" : "<button class='button_square negativeNeutral table_big' onclick='event.stopPropagation(); changeVisibility(TYPE_SEMESTER, " + currentChildData.semesterID + ");'><img src='/img/icons/archive.svg' alt='A'></button>") +
                         "<button class='button_square positive table_big' onclick='event.stopPropagation(); editSemesterDialog.openEdit(" + currentChildData.semesterID + ")'><img src='/img/icons/edit.svg' alt='.'></button>" +
                         "<button class='button_square neutral' onclick='event.stopPropagation(); semesterInfoDialog.open(" + currentChildData.semesterID + ")'><img src='/img/icons/info.svg' alt='i'></button>" + 
                     "</td>" +
@@ -531,14 +531,16 @@ function printElement() {
                 /*if(currentElement.data.round === null) {
 
                     document.getElementById("tests_empty_templateButton").style.display = "none";
-                    document.getElementById("tests_empty_instruction").style.display = "none";
+                    document.getElementById("tests_empty_templateInstruction").style.display = "none";
 
                 } else {
 
                     document.getElementById("tests_empty_templateButton").style.display = "inline-block";
-                    document.getElementById("tests_empty_instruction").style.display = "block";
+                    document.getElementById("tests_empty_templateInstruction").style.display = "block";
 
                 }*/
+
+                document.getElementById("tests_empty_instruction").style.display = "block";
 
             } else {
 
@@ -675,6 +677,12 @@ function printElement() {
 
             }
 
+            if(currentElement.isTemplate || (currentElement.isRoot && currentElement.accessType === ACCESS_TEACHER)) {
+
+                document.getElementById("tests_table_mark").innerHTML = "";
+
+            }
+
             for(var i = 0; i < currentElement.childrenData.length; i++) {
 
                 var currentChildData = currentElement.childrenData[i];
@@ -740,7 +748,7 @@ function printElement() {
                         referenceString +
                         "<td class='table_buttons'>" +
                             (currentElement.writingPermission && (currentElement.data.classID === null || currentElement.data.classID > 0) ? (
-                            "<button class='button_square negative table_big'><img src='/img/icons/delete.svg' alt='X' onclick='event.stopPropagation(); deleteElement(TYPE_TEST, " + currentChildData.testID + ");'></button>" +
+                            "<button class='button_square negative table_big' onclick='event.stopPropagation(); deleteElement(TYPE_TEST, " + currentChildData.testID + ");'><img src='/img/icons/delete.svg' alt='X'></button>" +
                             "<button class='button_square positive table_big' onclick='event.stopPropagation(); editTestDialog.openEdit(" + currentChildData.testID + ")'><img src='/img/icons/edit.svg' alt='.'></button>"
                             ) : "") +
                             "<button class='button_square neutral' onclick='event.stopPropagation(); testInfoDialog.open(" + currentChildData.testID + ")'><img src='/img/icons/info.svg' alt='i'></button>" +
@@ -765,16 +773,6 @@ function printElement() {
 
                 document.getElementById("tests_table_mark_unrounded").style.display = "table-cell";
                 document.getElementById("tests_table_mark").colSpan = "1";
-
-            }
-
-            if(currentElement.isTemplate || (currentElement.isRoot && currentElement.accessType === ACCESS_TEACHER)) {
-
-                document.getElementById("tests_table_mark").innerHTML = "";
-
-            } else {
-
-                document.getElementById("tests_table_mark").innerHTML = "Note";
 
             }
 
@@ -1126,7 +1124,7 @@ function printElement() {
 
                                 printStudent = function(currentStudentData, markData, colorClass) {
 
-                                    if(currentStudentData.points == null && !showStudentsWithoutMark) return;
+                                    if(currentStudentData.points == null && currentStudentData.mark == null && !showStudentsWithoutMark) return;
             
                                     studentTableString +=
                                         "<tr class='noSelect " + colorClass + "'>" +
@@ -1144,7 +1142,7 @@ function printElement() {
 
                                 printStudent = function(currentStudentData, markData, colorClass) {
 
-                                    if(currentStudentData.points == null && !showStudentsWithoutMark) return;
+                                    if(currentStudentData.points == null && currentStudentData.mark == null && !showStudentsWithoutMark) return;
             
                                     studentTableString +=
                                         "<tr class='noSelect " + colorClass + "'>" +
@@ -1166,7 +1164,7 @@ function printElement() {
 
                                 printStudent = function(currentStudentData, markData, colorClass) {
     
-                                    if(currentStudentData.points == null && !showStudentsWithoutMark) return;
+                                    if(currentStudentData.points == null && currentStudentData.mark == null && !showStudentsWithoutMark) return;
             
                                     studentTableString +=
                                         "<tr class='noSelect " + colorClass + "'>" +
@@ -1184,7 +1182,7 @@ function printElement() {
     
                                 printStudent = function(currentStudentData, markData, colorClass) {
     
-                                    if(currentStudentData.points == null && !showStudentsWithoutMark) return;
+                                    if(currentStudentData.points == null && currentStudentData.mark == null && !showStudentsWithoutMark) return;
             
                                     studentTableString +=
                                         "<tr class='noSelect " + colorClass + "'>" +
@@ -1549,7 +1547,7 @@ function printElement() {
                 "<tr onclick='select(TYPE_CLASS, " + (currentChildData.referenceID ? currentChildData.referenceID : currentChildData.classID) + ", false, true)'>" +
                     "<td class='table_name'>" + escapeHTML(currentChildData.name) + "</td>" +
                     "<td class='table_buttons'>" +
-                    (currentChildData.isHidden ? "<button class='button_square negative table_big'><img src='/img/icons/delete.svg' alt='X' onclick='event.stopPropagation(); deleteElement(TYPE_CLASS, " + currentChildData.classID + ", true);'></button>" : "<button class='button_square negativeNeutral table_big'><img src='/img/icons/archive.svg' alt='A' onclick='event.stopPropagation(); changeVisibility(TYPE_CLASS, " + currentChildData.classID + ");'></button>") +
+                    (currentChildData.isHidden ? "<button class='button_square negative table_big' onclick='event.stopPropagation(); deleteElement(TYPE_CLASS, " + currentChildData.classID + ", true);'><img src='/img/icons/delete.svg' alt='X'></button>" : "<button class='button_square negativeNeutral table_big' onclick='event.stopPropagation(); changeVisibility(TYPE_CLASS, " + currentChildData.classID + ");'><img src='/img/icons/archive.svg' alt='A'></button>") +
                         "<button class='button_square positive table_big' onclick='event.stopPropagation(); editClassDialog.openEdit(" + currentChildData.classID + ")'><img src='/img/icons/edit.svg' alt='.'></button>" +
                         "<button class='button_square neutral' onclick='event.stopPropagation(); classInfoDialog.open(" + currentChildData.classID + ")'><img src='/img/icons/info.svg' alt='i'></button>" +
                     "</td>" +
@@ -1666,7 +1664,7 @@ function printElement() {
                     "<td>" + escapeHTML(currentChildData.userName) + "</td>" +
                     "<td class='table_buttons'>" +
                         (currentElement.writingPermission ? (
-                            (currentChildData.isHidden ? "<button class='button_square negative table_big'><img src='/img/icons/delete.svg' alt='X' onclick='event.stopPropagation(); deleteElement(TYPE_STUDENT, " + currentChildData.studentID + ", true);'></button>" : "<button class='button_square negativeNeutral table_big'><img src='/img/icons/archive.svg' alt='A' onclick='event.stopPropagation(); changeVisibility(TYPE_STUDENT, " + currentChildData.studentID + ");'></button>") +
+                            (currentChildData.isHidden ? "<button class='button_square negative table_big' onclick='event.stopPropagation(); deleteElement(TYPE_STUDENT, " + currentChildData.studentID + ", true);'><img src='/img/icons/delete.svg' alt='X'></button>" : "<button class='button_square negativeNeutral table_big' onclick='event.stopPropagation(); changeVisibility(TYPE_STUDENT, " + currentChildData.studentID + ");'><img src='/img/icons/archive.svg' alt='A'></button>") +
                             "<button class='button_square positive table_big' onclick='editStudentDialog.openEdit(" + currentChildData.studentID + ")'><img src='/img/icons/edit.svg' alt='.'></button>"
                         ) : "") +
                         "<button class='button_square neutral' onclick='event.stopPropagation(); studentInfoDialog.open(" + currentChildData.studentID + ")'><img src='/img/icons/info.svg' alt='i'></button>" +
@@ -4181,12 +4179,12 @@ document.addEventListener("DOMContentLoaded", function () {
             if(isTest && (this.testData.round === null || this.testData.formula !== null)) {
                 // Punkte bearbeitbar
 
-
-                document.getElementById("editTestDialog_pointsContainer").style.display = "block";
                 document.getElementById("editTestDialog_points").value = this.testData.points != null ? Number(this.testData.points) : "";
+                document.getElementById("editTestDialog_pointsContainer").style.display = "block";
 
             } else {
     
+                document.getElementById("editTestDialog_points").value = "";
                 document.getElementById("editTestDialog_pointsContainer").style.display = "none";
     
             }
@@ -4194,11 +4192,12 @@ document.addEventListener("DOMContentLoaded", function () {
             if(this.testData.round !== null && ((isTest && this.testData.formula === null) || this.testData.formula === "manual")) {
                 // Note bearbeitbar
 
+                document.getElementById("editTestDialog_mark").value = this.testData.mark_unrounded != null ? Number(this.testData.mark_unrounded) : (this.testData.mark ? Number(this.testData.mark) : "");
                 document.getElementById("editTestDialog_markContainer").style.display = "block";
-                document.getElementById("editTestDialog_mark").value = this.testData.mark != null ? Number(this.testData.mark) : "";
 
             } else {
 
+                document.getElementById("editTestDialog_mark").value = "";
                 document.getElementById("editTestDialog_markContainer").style.display = "none";
 
             }
@@ -4394,7 +4393,16 @@ document.addEventListener("DOMContentLoaded", function () {
         
         document.getElementById("editTestDialog_OKButton").disabled = false;
 
-        this.errors = { name: false };
+        if(this.errors.maxPoints === undefined) {
+
+            this.errors = { name: false };
+
+        } else {
+
+            this.errors = { name: false, maxPoints: false };
+
+        }
+
         this.warnings = {};
 
         this.updateWarnings();
@@ -5340,7 +5348,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 if(isTest) {
 
-                    this.check("mark");
+                    this.check("mark", true, false);
                     document.getElementById("editTestDialog_markContainer").style.display = "block";
 
                 } else {
@@ -5394,7 +5402,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 }
 
             }
-
+            
             this.check("maxPoints", false, true);
 
             document.getElementById("editTestDialog_formulaContainer").style.display = "block";
@@ -5403,6 +5411,8 @@ document.addEventListener("DOMContentLoaded", function () {
             document.getElementById("editTestDialog_templateButton").style.display = "none";
 
         }
+
+        this.updateErrors(true);
 
     };
 

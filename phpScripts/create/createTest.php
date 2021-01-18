@@ -416,7 +416,7 @@ function createTest(Element $test, array &$data, int $userID, bool $isTeacher) :
 
         }
 
-        $stmt = $mysqli->prepare("SELECT userID, isTeacher FROM users WHERE userName = ? AND deleteTimestamp IS NULL");
+        $stmt = $mysqli->prepare("SELECT userID, isTeacher FROM users WHERE userName = ? AND status != \"demo\" AND deleteTimestamp IS NULL");
 
         foreach($data["permissions"] as &$currentPermission) {
             

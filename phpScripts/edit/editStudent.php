@@ -176,7 +176,7 @@ function editStudent(Student $student, array &$data) : array {
 
             if($data["userName"] !== strtolower($student->data["userName"])) {
                 
-                $stmt = $mysqli->prepare("SELECT userID FROM users WHERE userName = ? AND userID NOT IN (SELECT userID FROM students WHERE students.classID = ? AND students.userID = users.userID) AND deleteTimestamp IS NULL");
+                $stmt = $mysqli->prepare("SELECT userID FROM users WHERE users.userName = ? AND users.userID NOT IN (SELECT students.userID FROM students WHERE students.classID = ? AND students.userID = users.userID) AND users.status != \"demo\" AND users.deleteTimestamp IS NULL");
                 $stmt->bind_param("si", $data["userName"], $student->data["classID"]);
                 $stmt->execute();
 

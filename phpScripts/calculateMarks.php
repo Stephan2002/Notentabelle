@@ -103,22 +103,26 @@ function calculateMarkFromPoints(string $formula, string $maxPoints, string $poi
 
 }
 
-function calculateMarkFromPoints_Class(string $formula, string $maxPoints, array &$students, bool $nullSetVars = true) {
+function calculateMarkFromPoints_Class(string $formula, string $maxPoints, array &$students, bool $nullSetVars = true, bool $ignoreNonExistance = true) {
 
     if($formula === "linear") {
 
         foreach($students as &$student) {
 
-            if(isset($student["points"])) {
+            if($ignoreNonExistance || array_key_exists("points", $student)) {
 
-                //$student["mark"] = $student["points"] / $element["maxPoints"] * 5 + 1;
-                $student["mark"] = bcadd(bcmul(bcdiv_round($student["points"], $maxPoints, 6), "5", 6), "1", 6);
+                if(isset($student["points"])) {
+                    
+                    //$student["mark"] = $student["points"] / $element["maxPoints"] * 5 + 1;
+                    $student["mark"] = bcadd(bcmul(bcdiv_round($student["points"], $maxPoints, 6), "5", 6), "1", 6);
 
-            } else {
+                } else {
 
-                if(!$nullSetVars) unset($student["mark"]);
-                else $student["mark"] = NULL;
-                
+                    if(!$nullSetVars) unset($student["mark"]);
+                    else $student["mark"] = NULL;
+                    
+
+                }
 
             }
 

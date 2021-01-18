@@ -351,6 +351,22 @@ function updateMarks(Test $test, bool $updateCurrent = true, int $recursionLevel
 
     }
 
+    if($updateCurrent && is_null($test->data["referenceState"]) && !$test->isFolder && !is_null($test->data["formula"]) && $test->data["formula"] !== "manual") {
+
+        if(is_null($test->data["classID"])) {
+
+            $newMark = calculateMarkFromPoints($test->data["formula"], $test->data["maxPoints"], $test->data["points"]);
+            $hasChanged = updateCurrentMark($test->data["testID"], $test->data["mark"], $test->data["points"], $newMark, $test->data["points"]);
+
+        } else {
+
+            calculateMarkFromPoints_Class($test->data["formula"], $test->data["maxPoints"], $test->data["students"]);
+            $hasChanged = updateCurrentMark_Class($test->data["testID"], $students, $test->data["students"]);
+
+        }
+
+    }
+
     if(!is_null($test->data["referenceState"]) && $updateCurrent) {
 
         $hasChanged = false;

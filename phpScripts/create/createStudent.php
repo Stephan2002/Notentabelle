@@ -104,7 +104,7 @@ function createStudent(StudentClass $class, array &$data, int $userID) : array {
 
         }
 
-        $stmt = $mysqli->prepare("SELECT userID FROM users WHERE userName = ? AND NOT EXISTS(SELECT 1 FROM students WHERE students.classID = ? AND students.userID = users.userID)");
+        $stmt = $mysqli->prepare("SELECT userID FROM users WHERE userName = ? AND NOT EXISTS(SELECT 1 FROM students WHERE students.classID = ? AND students.userID = users.userID) AND users.status != \"demo\" AND users.deleteTimestamp IS NULL");
         $stmt->bind_param("si", $data["userName"], $class->data["classID"]);
         $stmt->execute();
 

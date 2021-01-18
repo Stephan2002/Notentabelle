@@ -21,7 +21,7 @@ class EditDialog extends Dialog {
 
             }
 
-            updateErrors(this.errors, document.getElementById(this.id + "_errorContainer"), document.getElementById(this.id + "_OKButton"));
+            updateErrors(this.errors, document.getElementById(this.id + "_errorContainer"), document.getElementById(this.id + "_OKButton"), this.isNew);
 
             this.resize();
 
@@ -264,7 +264,7 @@ class EditDialog extends Dialog {
     updateErrors(keepButtonSelectable, buttonID, containerID) {
     
         var noError = updateErrors(this.errors, document.getElementById(containerID === undefined ? this.id + "_errorContainer" : containerID), document.getElementById(buttonID === undefined ? this.id + "_OKButton" : buttonID), keepButtonSelectable);
-    
+        
         Dialog.resize(this);
 
         return noError;

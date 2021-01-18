@@ -26,6 +26,7 @@ Input als JSON per POST bestehend aus Array, jeweils mit:
             studentID
             mark (bei Pruefung mit Noten oder bei Ordner mit formula: manual)
             points (bei Pruefungen mit Punkten)
+            notes (studentNotes)
 
 Bei Fehlern wird nichts geaendert, ausser bei Fehlern bei:
     students, mark/points
@@ -549,6 +550,13 @@ function editTest(Test $test, array &$data, int $userID, bool $isTeacher, bool $
 
         }
 
+        unset($test->data["students"]);
+        unset($test->data["mark"]);
+        unset($test->data["points"]);
+
+        $test->withMarks = false;
+        $test->withStudents = false;
+
         updateMarks($test, true);
         
         $needsUpdate = false;
@@ -787,7 +795,7 @@ function editTest(Test $test, array &$data, int $userID, bool $isTeacher, bool $
 
             if($test->data["formula"] !== NULL && $test->data["formula"] !== "manual") {
 
-                calculateMarkFromPoints_Class($test->data["formula"], $test->data["maxPoints"], $students, true);
+                calculateMarkFromPoints_Class($test->data["formula"], $test->data["maxPoints"], $data["students"], true, false);
     
             }
 
@@ -821,7 +829,7 @@ function editTest(Test $test, array &$data, int $userID, bool $isTeacher, bool $
 
     if(array_key_exists("mark", $data) || array_key_exists("points", $data)) {
 
-        if(!$test->withStudents) {
+        if(!$test->withMarks) {
 
             $stmt = $mysqli->prepare("SELECT mark, points FROM marks WHERE testID = ?");
             $stmt->bind_param("i", $test->data["testID"]);
@@ -849,8 +857,8 @@ function editTest(Test $test, array &$data, int $userID, bool $isTeacher, bool $
         include_once($_SERVER["DOCUMENT_ROOT"] . "/phpScripts/updateMarks.php");
         $updateMarksIncluded = true;
 
-        $newPoints = isset($data["points"]) ? $data["points"] : NULL;
-        $newMark = isset($data["mark"]) ? $data["mark"] : NULL;
+        $newPoints = array_key_exists("points", $data) ? $data["points"] : (isset($test->data["points"]) ? $test->data["points"] : NULL);
+        $newMark = array_key_exists("mark", $data) ? $data["mark"] : (isset($test->data["mark"]) ? $test->data["mark"] : NULL);
 
         if($test->data["formula"] !== NULL && $test->data["formula"] !== "manual") {
 
