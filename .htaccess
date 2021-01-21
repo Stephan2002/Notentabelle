@@ -2,16 +2,54 @@ ErrorDocument 401 /error.php?error=401
 ErrorDocument 403 /error.php?error=403
 ErrorDocument 404 /error.php?error=404
 
+#@__HCP_END__@#
+# Anything after the comment above is left alone
+
+Order Allow,Deny
+
+
+
+### Password-Protected ###
+
+# AuthType Basic
+# AuthName "Please Log In"
+# AuthUserFile /path/to/passwordFile
+# Require valid-user
+# Allow from IP-Adresse
+# Satisfy any
+# 
+# ErrorDocument 401 /errorDocuments/errorUnauthorized.html
+# ErrorDocument 403 /errorDocuments/errorUnauthorized.html
+
+
+
+### Updates ###
+
+# Allow From IP-Adresse
+# 
+# ErrorDocument 401 /errorDocuments/updateBlocker.html
+# ErrorDocument 403 /errorDocuments/updateBlocker.html
+
+
+
+### normal ###
+
+Allow from all
+
+
+
 <Files "database.json">
-    Order Allow,Deny
     Deny from all
 </Files>
+<Files ".htaccess">
+    Deny from all
+</Files>
+
 <Files "manifest.json">
     Header set Cache-Control "max-age=3600"
 </Files>
 
-#@__HCP_END__@#
-# Anything after the comment above is left alone
+Options -Indexes
 
 RewriteEngine on
 RewriteCond %{REQUEST_FILENAME} !-d

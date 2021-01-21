@@ -519,15 +519,7 @@ function calculateMark_Ref(array &$refElement, array &$originalElement, int $stu
 
         if(!is_null($originalMark)) {
 
-            if($refElement["round"] == 0) {
-
-                $refElement["mark"] = $originalMark;
-
-            } else {
-
-                $refElement["mark"] = roundMark($originalMark, $refElement["round"]);
-
-            }
+            $refElement["mark"] = $originalMark;
 
         } else {
 
@@ -580,15 +572,7 @@ function calculateMark_Class_Ref(array &$refElement, array &$originalElement, bo
 
             if(isset($student["mark"])) {
 
-                if($refElement["round"] == 0) {
-    
-                    $students[$student["studentID"]]["mark"] = $student["mark"];
-    
-                } else {
-    
-                    $students[$student["studentID"]]["mark"] = roundMark($student["mark"], $refElement["round"]);
-    
-                }
+                $students[$student["studentID"]]["mark"] = $student["mark"];
     
             }
 

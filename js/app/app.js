@@ -743,7 +743,7 @@ function printElement() {
                         "<td>" + formatDate(currentChildData.date) + "</td>" +
                         "<td>" + (currentChildData.weight !== null ? (currentChildData.markCounts ? formatNumber(currentChildData.weight) : ("(" + formatNumber(currentChildData.weight) + ")")) : "") + "</td>" +
                         "<td>" + (currentChildData.formula !== null ? formatNumber(currentChildData.points) : "") + "</td>" +
-                        "<td>" + ((currentElement.data.classID === null && currentChildData.round !== null && currentChildData.round != 0) ? formatNumber(currentChildData.mark_unrounded) : "") + "</td>" +
+                        "<td>" + (((currentElement.data.classID === null || currentElement.accessType === ACCESS_STUDENT) && currentChildData.round !== null && currentChildData.round != 0) ? formatNumber(currentChildData.mark_unrounded) : "") + "</td>" +
                         "<td class='table_mark'>" + (currentChildData.round !== null ? formatNumber(currentChildData.mark) : formatNumber(currentChildData.points)) + "</td>" +
                         referenceString +
                         "<td class='table_buttons'>" +
@@ -756,7 +756,7 @@ function printElement() {
                     "</tr>";
 
                 if(!pointsUsed) pointsUsed = currentChildData.formula !== null;
-                if(currentElement.data.classID === null && !unroundedUsed) unroundedUsed = currentChildData.round !== null && currentChildData.round != 0;
+                if(!unroundedUsed && (currentElement.data.classID === null || currentElement.accessType === ACCESS_STUDENT)) unroundedUsed = currentChildData.round !== null && currentChildData.round != 0;
                 if(!dateUsed) dateUsed = currentChildData.date !== null;
 
             }
@@ -4304,6 +4304,9 @@ document.addEventListener("DOMContentLoaded", function () {
         document.getElementById("editTestDialog_refTestButton").style.display = this.testData.referenceState !== null && !currentElement.isTemplate ? "inline-block" : "none";
         document.getElementById("editTestDialog_permissionsButton").style.display = (this.testData.parentID === null && currentElement.data.classID !== null) ? "inline-block" : "none";
         
+        document.getElementById("editTestDialog_maxPoints").value = "";
+        document.getElementById("editTestDialog_maxPoints").classList.remove("error");
+
         if(this.testData.round === null) {
 
             document.getElementById("editTestDialog_type").style.display = "none";
@@ -4349,9 +4352,6 @@ document.addEventListener("DOMContentLoaded", function () {
             this.updateType(this.typeSelect.getSelected());
 
         }
-
-        document.getElementById("editTestDialog_maxPoints").value = "";
-        document.getElementById("editTestDialog_maxPoints").classList.remove("error");
 
         document.getElementById("editTestDialog_notes").value = "";
 
@@ -4833,7 +4833,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     } else if(this.testData.referenceID != this.referenceID) {
 
-                        this.warnings.referenceID = "Vergewissern Sie sich, dass auch der Besitzer des Semesters Zugriff auf das neu referenzierte Element haben muss. Ansonsten können Sie nicht erfolgreich speichern.";
+                        this.warnings.referenceID = "Vergewissern Sie sich, dass auch der Besitzer des Semesters Zugriff auf das neu referenzierte Element hat. Ansonsten können Sie nicht erfolgreich speichern.";
 
                     }
 
@@ -5403,12 +5403,19 @@ document.addEventListener("DOMContentLoaded", function () {
 
             }
             
-            this.check("maxPoints", false, true);
+            this.check("maxPoints", false, false);
 
             document.getElementById("editTestDialog_formulaContainer").style.display = "block";
             document.getElementById("editTestDialog_maxPointsContainer").style.display = "block";
 
             document.getElementById("editTestDialog_templateButton").style.display = "none";
+
+        }
+
+        if(this.testData.referenceState !== null) {
+
+            this.referenceID = undefined;
+            this.check("referenceID", true, false);
 
         }
 
@@ -5420,7 +5427,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         var value = document.getElementById("editTestDialog_formula").value;
 
-        if(value === "manual") {
+        if(value === "manual" && currentElement.data.classID === null) {
 
             this.check("mark", true, false);
             document.getElementById("editTestDialog_markContainer").style.display = "block";
@@ -7788,7 +7795,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     document.getElementById("editTestDialog_with_date")         .addEventListener("change", editTestDialog.updateCheckbox.bind(editTestDialog, "date"));
     document.getElementById("editTestDialog_with_notes")        .addEventListener("change", editTestDialog.updateCheckbox.bind(editTestDialog, "notes"));
-    document.getElementById("editTestDialog_roundSelect")       .addEventListener("input",  editTestDialog.updateRoundSelect.bind(editTestDialog));
+    document.getElementById("editTestDialog_roundSelect")       .addEventListener("change",  editTestDialog.updateRoundSelect.bind(editTestDialog));
     document.getElementById("editTestDialog_name")              .addEventListener("input",  editTestDialog.check.bind(editTestDialog, "name"));
     document.getElementById("editTestDialog_date")              .addEventListener("input",  editTestDialog.check.bind(editTestDialog, "date"));
     document.getElementById("editTestDialog_weight")            .addEventListener("input",  editTestDialog.check.bind(editTestDialog, "weight"));

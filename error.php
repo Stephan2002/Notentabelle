@@ -109,7 +109,7 @@
 				
 			} elseif ($error === 401) {
 				
-				echo 	"<h2>Authentisierung  fehlgeschlagen!</h2>" .
+				echo 	"<h2>Authentisierung fehlgeschlagen!</h2>" .
 						"<div class='text'>" . 
 							"<p>Der Server konnte nicht verifizieren, ob Sie autorisiert sind, auf diese URL zuzugreifen. Wahrscheinlich wurde das falsche Passwort eingegeben.</p>" .
 							"<p>Bitte versuchen Sie es nochmals.</p>" .

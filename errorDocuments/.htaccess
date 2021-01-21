@@ -1,0 +1,11 @@
+<Files "errorUnauthorized.html">
+    Order Deny,Allow
+    Allow from all
+    Satisfy Any
+</Files>
+
+<Files "updateBlocker.html">
+    Order Deny,Allow
+    Allow from all
+    Satisfy Any
+</Files>
