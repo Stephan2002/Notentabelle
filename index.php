@@ -29,6 +29,7 @@ $DB = json_decode(file_get_contents($_SERVER["DOCUMENT_ROOT"] . "/database.json"
 
 $isAlreadyLoggedIn = false;
 $logout = false;
+$logoutMessage = false;
 
 if(isset($_GET["error"]) && is_numeric($_GET["error"])) {
 
@@ -110,7 +111,7 @@ if(isset($_GET["error"]) && is_numeric($_GET["error"])) {
     
                 }
 
-                header("Location: app");
+                header("Location: /app");
     
             }
 
@@ -121,18 +122,11 @@ if(isset($_GET["error"]) && is_numeric($_GET["error"])) {
     
         
     } elseif(isset($_GET["logout"])) {
-    
+
         session_start();
-    
-        $_SESSION = array();
-    
-        $params = session_get_cookie_params();
-    
-        setcookie(session_name(), "", time() - 40000, $params["path"], $params["domain"], $params["secure"], $params["httponly"]);
-    
-        session_destroy();
-    
+
         $logout = true;
+        $logoutMessage = true;
     
     } else {
     
@@ -142,7 +136,15 @@ if(isset($_GET["error"]) && is_numeric($_GET["error"])) {
     
             if(isset($_SESSION["userid"])) {
     
-                $isAlreadyLoggedIn = true;
+                if($_SESSION["status"] === "demo") {
+
+                    $logout = true;
+
+                } else {
+
+                    $isAlreadyLoggedIn = true;
+
+                }
         
             } else {
     
@@ -167,6 +169,18 @@ if(isset($_GET["error"]) && is_numeric($_GET["error"])) {
         }
         
     }
+
+}
+
+if($logout) {
+
+    $_SESSION = array();
+    
+    $params = session_get_cookie_params();
+
+    setcookie(session_name(), "", time() - 40000, $params["path"], $params["domain"], $params["secure"], $params["httponly"]);
+
+    session_destroy();
 
 }
     
@@ -221,7 +235,7 @@ if(isset($_GET["error"]) && is_numeric($_GET["error"])) {
             
             <?php 
 
-            if($logout || ($error !== 2 && $error !== 3 && $error !== 4)) {
+            if($logout || ($error !== 0 && $error !== 2 && $error !== 3 && $error !== 4)) {
 
                 echo "<script>if (typeof (localStorage) !== undefined) localStorage.removeItem('path');</script>";
 
@@ -304,7 +318,7 @@ if(isset($_GET["error"]) && is_numeric($_GET["error"])) {
                             "<p><a href='app'>Hier</a> klicken, um zur App zu gelangen.</p>" .
                         "</div>";
 
-            } elseif($logout) {
+            } elseif($logoutMessage) {
 
                 echo 	"<div class='info green noMargin'>". 
                             "<p class='blankLine_small'>Erfolgreich ausgeloggt.</p>" .
@@ -326,9 +340,9 @@ if(isset($_GET["error"]) && is_numeric($_GET["error"])) {
             <p class="blankLine_big">Noch kein Konto?</p>
             <a href="register"><button class="button_small positive">Kostenlos registrieren</button></a>
             
-            <!--<p class="blankLine_big">Noch nicht überzeugt?</p>
-            <a href="demo"><button class="button_small positive">Demo ausprobieren</button></a>
-            -->
+            <p class="blankLine_big">Noch nicht überzeugt?</p>
+            <a href="demo"><button class="button_small positive">Mit Demo ausprobieren</button></a>
+            
             <p class="blankLine_big">Mehr Informationen</p>
             <a href="about"><button class="button_small positive">Über Notentabelle</button></a>
         

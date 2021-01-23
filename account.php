@@ -10,6 +10,13 @@ Moeglichkeit für Passwortaenderung wird hier angeboten, spaeter soll auch E-Mai
 $loginRequired = true;
 include($_SERVER["DOCUMENT_ROOT"] . "/phpScripts/login.php");
 
+if($_SESSION["status"] === "demo") {
+
+    header("Location: /");
+    exit;
+
+}
+
 $DB = json_decode(file_get_contents($_SERVER["DOCUMENT_ROOT"] . "/database.json"));
 
 $mysqli = new mysqli($DB->HOST, $DB->USERNAME, $DB->PASSWORD, $DB->DBNAME);
@@ -130,6 +137,7 @@ $userName = htmlspecialchars($_SESSION["username"]);
         <script>
             var user = {
                 userName: <?php echo json_encode($_SESSION["username"]); ?>,
+                status: <?php echo json_encode($_SESSION["status"]); ?>,
                 isTeacher: <?php echo ($_SESSION["isTeacher"] ? "true" : "false") ?>,
                 lowerDisplayBound: <?php echo $_SESSION["lowerDisplayBound"]; ?>,
                 upperDisplayBound: <?php echo $_SESSION["upperDisplayBound"]; ?>,

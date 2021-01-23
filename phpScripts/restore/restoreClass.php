@@ -78,6 +78,8 @@ if(!$_SESSION["isTeacher"]) {
 
 }
 
+if($_SESSION["status"] === "demo") throwError(ERROR_NO_WRITING_PERMISSION);
+
 $data = getData();
 
 if(!connectToDatabase()) {

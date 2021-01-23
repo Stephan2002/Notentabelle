@@ -129,6 +129,8 @@ if($errorCode === 0) {
         <link rel="icon" type="image/png" href="/img/logo/logo_192x192.png" sizes="192x192">
         <link rel="icon" type="image/svg+xml" href="/img/logo/logo.svg">
         <link rel="apple-touch-icon" href="/img/logo/logo_white_180x180.png">
+
+        <script>if (typeof (localStorage) !== undefined) localStorage.removeItem('path');</script>
     </head>
     
     <body>

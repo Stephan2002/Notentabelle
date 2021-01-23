@@ -52,12 +52,12 @@ if(window.user === undefined) {
                     "<button class='button_menu positive' onclick='window.location=\"/register\"'>Registrieren</button>" +
                 "</p>";
 
-} else if (user.userName === "studentDemo" || user.userName === "teacherDemo") {
+} else if (user.status === "demo") {
     
-    menuString += "<p>Sie sind aktuell</p>" +
-                "<p>im Demo-Modus.</p>" +
+    menuString += "<p>Sie sind in der</p>" +
+                "<p>" + (user.userName === "studentDemo" ? "Schüler/in-" : "Lehrpersonen-") + "Demo</p>" +
                 "<p class='blankLine'>" +
-                    "<button class='button_menu negative' onclick='window.location=\"/index?logout=1\"'>Zurück</button>" +
+                    "<button class='button_menu negative' onclick='window.location=\"/index\"'>Zurück</button>" +
                 "</p>" +
                 
                 "<p class='blankLine_small'>" +

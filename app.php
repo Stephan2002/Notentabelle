@@ -42,6 +42,7 @@ include($_SERVER["DOCUMENT_ROOT"] . "/phpScripts/login.php");
         <script>
             var user = {
                 userName: <?php echo json_encode($_SESSION["username"]); ?>,
+                status: <?php echo json_encode($_SESSION["status"]); ?>,
                 isTeacher: <?php echo ($_SESSION["isTeacher"] ? "true" : "false") ?>,
                 lowerDisplayBound: <?php echo $_SESSION["lowerDisplayBound"]; ?>,
                 upperDisplayBound: <?php echo $_SESSION["upperDisplayBound"]; ?>

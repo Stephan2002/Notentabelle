@@ -103,6 +103,8 @@ if(!isset($_SESSION["userid"])) {
 
 session_write_close();
 
+if($_SESSION["status"] === "demo") throwError(ERROR_NO_WRITING_PERMISSION);
+
 $data = getData();
 
 if(!connectToDatabase()) {

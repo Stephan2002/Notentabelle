@@ -100,6 +100,7 @@ function stopMarkEdit(noTableUpdate, func) {
 function saveMarkChanges(noTableUpdate, func) {
 
     if(isBlocked) return;
+    if(checkForDemo()) return;
 
     var isTest = !currentElement.isFolder && currentElement.data.referenceState === null;
     var students = currentElement.data.students;
@@ -1093,6 +1094,8 @@ document.addEventListener("DOMContentLoaded", function() {
 
         }
 
+        if(checkForDemo()) return;
+
         var properties = {};
 
         properties.name = document.getElementById("editClassDialog_name").value;
@@ -1728,6 +1731,8 @@ document.addEventListener("DOMContentLoaded", function() {
             return;
 
         }
+
+        if(checkForDemo()) return;
 
         var properties = {};
 

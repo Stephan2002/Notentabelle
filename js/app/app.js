@@ -215,6 +215,30 @@ function loadingError(errorCode) {
 
 }
 
+
+
+// Funktion, die ueberprueft, ob aktuellen Benutzer in Demo-Modus und ggf. eine Fehlermeldung anzeigt
+function checkForDemo() {
+
+    if(user.status === "demo") {
+
+        new Alert({
+            type: "info",
+            icon: "error",
+            title: "Demo-Modus",
+            description: "Sie sind aktuell im Demo-Modus.\nIn der Demo können leider keine Veränderungen vorgenommen werden."
+        });
+
+        return true;
+
+    } 
+
+    return false;
+
+}
+
+
+
 // Zeigt das aktuelle Element an
 function printElement() {
     
@@ -2511,6 +2535,7 @@ function changeHiddenVisibility(element, type) {
 function changeVisibility(type, ID) {
 
     if(isBlocked) return;
+    if(checkForDemo()) return;
 
     if(type === TYPE_SEMESTER) {
 
@@ -2642,6 +2667,7 @@ function changeVisibility(type, ID) {
 function deleteElement(type, ID, confirm, confirm2) {
     
     if(isBlocked) return;
+    if(checkForDemo()) return;
 
     if(editMarks) {
 
@@ -3751,6 +3777,8 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
 
         }
+
+        if(checkForDemo()) return;
 
         var properties = {};
 
@@ -4863,6 +4891,8 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
 
         }
+
+        if(checkForDemo()) return;
 
         var properties = {};
 
@@ -7387,6 +7417,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
         }
 
+        if(checkForDemo()) return;
+
         if(this.actionType === this.ACTION_REF) {
 
             if(this.type === TYPE_SEMESTER) {
@@ -7605,6 +7637,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
     deleteDialog.restore = function(ID, element) {
 
+        if(checkForDemo()) return;
+
         if(this.type === TYPE_TEST) {
 
             var URLFragment = "restoreTest.php";
@@ -7683,6 +7717,8 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
 
         }
+
+        if(checkForDemo()) return;
 
         if(this.type === TYPE_TEST) {
 
