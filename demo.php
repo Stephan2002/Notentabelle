@@ -57,7 +57,7 @@ if(isset($_GET["type"])) {
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-        <title>Notentabelle - Demo</title>
+        <title>Demo - Notentabelle</title>
 
         <link rel="stylesheet" href="/css/basicStylesheet.css">
         <link rel="stylesheet" href="/css/stylesheet.css">
@@ -69,6 +69,7 @@ if(isset($_GET["type"])) {
         <link rel="apple-touch-icon" href="/img/logo/logo_white_180x180.png">
 
         <noscript><meta http-equiv="refresh" content="0; /error?error=1&origin=register"></noscript>
+        <script>if(navigator.userAgent.indexOf("MSIE") >= 0 || navigator.userAgent.indexOf("Trident") >= 0) location.href = "/error?error=3";</script>
 
         <script>
             if("serviceWorker" in navigator && navigator.serviceWorker.controller) navigator.serviceWorker.oncontrollerchange = function() { alert("Updates wurden durchgeführt. Die Webapp wird neugeladen, damit sie richtig funktioniert."); window.location.reload(); };

@@ -13,7 +13,7 @@ include($_SERVER["DOCUMENT_ROOT"] . "/phpScripts/login.php");
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
 
-        <title>Notentabelle - App</title>
+        <title>App - Notentabelle</title>
 
         <link rel="stylesheet" href="/css/basicStylesheet.css">
         <link rel="stylesheet" href="/modules/dialog/dialogStylesheet.css">
@@ -33,6 +33,7 @@ include($_SERVER["DOCUMENT_ROOT"] . "/phpScripts/login.php");
         <meta name="apple-mobile-web-app-capable" content="yes">
 
         <noscript><meta http-equiv="refresh" content="0; /error?error=1&origin=app"></noscript>
+        <script>if(navigator.userAgent.indexOf("MSIE") >= 0 || navigator.userAgent.indexOf("Trident") >= 0) location.href = "/error?error=3";</script>
 
         <script>
             window.addEventListener("pageshow", function(event) { if(event.persisted) window.location.reload()});
@@ -1272,5 +1273,6 @@ include($_SERVER["DOCUMENT_ROOT"] . "/phpScripts/login.php");
         </div>
 
         <?php } ?>
+        <?php include($_SERVER["DOCUMENT_ROOT"] . "/phpScripts/infoBanner.php"); ?>
     </body>
 </html>

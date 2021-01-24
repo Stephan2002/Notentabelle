@@ -1,6 +1,6 @@
 <?php
 
-/* Ueber Notentabelle. Enthaelt einige Informationen ueber das Projekt */
+/* Impressum */
 
 $loginRequired = false;
 include($_SERVER["DOCUMENT_ROOT"] . "/phpScripts/login.php");
@@ -13,7 +13,7 @@ include($_SERVER["DOCUMENT_ROOT"] . "/phpScripts/login.php");
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-        <title>Über Notentabelle</title>
+        <title>Impressum - Notentabelle</title>
 
         <link rel="stylesheet" href="/css/basicStylesheet.css">
         <link rel="stylesheet" href="/css/stylesheet.css">
@@ -47,34 +47,27 @@ include($_SERVER["DOCUMENT_ROOT"] . "/phpScripts/login.php");
         <?php include($_SERVER["DOCUMENT_ROOT"] . "/phpScripts/preload.php"); ?>
 
         <nav>
-        <a href="<?php echo (isset($_GET["origin"]) && ($_GET["origin"] === "app" || $_GET["origin"] === "account")) ? ("/" . $_GET["origin"]) : "/"; ?>"><img id="returnButton" src="/img/icons/arrow_back.svg" alt="<" tabindex="0"></a>
+        <a href="/<?php echo (isset($_GET["origin"]) ? ($_GET["origin"] === "privacy" ? "law/privacy" : ($_GET["origin"] === "about" ? "about" : "")) : ""); ?>"><img id="returnButton" src="/img/icons/arrow_back.svg" alt="<" tabindex="0"></a>
             <div id="header">
-                <h1>Über Notentabelle</h1>
+                <h1>Impressum</h1>
             </div>
             <script language="javascript" type="text/javascript" src="/js/menu.js"></script>
         </nav>
+
+        <div class="text">
+            <h3>Name und Kontaktdaten</h3>
+            <p class="blankLine">Stephan Flury</p>
+            <p>Gernstrasse 9b</p>
+            <p>8409 Winterthur</p>
+            <p>Schweiz</p>
+            <p class="blankLine">E-Mail: contact@notentabelle.ch</p>
+
+            <p class="blankLine">Notentabelle wird privat betrieben.</p>
+        </div>
         
-        <img src="img/logo/startlogo_big.svg" id="startlogo_big">
-        <img src="img/logo/startlogo_small.svg" id="startlogo_small">
-
-        <div class="text">
-            <p>Mit Notentabelle verlieren Sie nie mehr den Überblick über Ihre Noten oder die Ihrer Lernenden.</p>
-            <p>Geben Sie Ihre Note ein, so wird sofort der Schnitt berechnet.</p>
-            <p>Die Noten können dabei in beliebig viele Unterordner gegliedert werden.</p>
-            <p class="blankLine">Geeignet für Lernende, die Übersicht über ihre Noten behalten wollen, oder für Lehrpersonen, </p>
-            <p>die dadurch die Noten der Lernenden einfach eintragen und berechnen lassen können!</p>
-        </div>
-
-        <div class="text">
-            <p class="blankLine">Diese Applikation ist im Rahmen der Maturitätsarbeit von Stephan Flury in 2020/21 entstanden und wird privat betrieben.</p>
-            <p class="blankLine"><b>Bei Problemen, Fragen, aber auch für Anregungen und Verbesserungsvorschläge, können Sie sich melden bei: <a href="mailto:contact@notentabelle.ch">contact@notentabelle.ch</a></b></p>
-        </div>
-
         <p id="footer">
-            <a href="/law/contact?origin=about">Impressum</a> - 
-            <a href="/law/terms?origin=about">AGB</a> - 
-            <a href="/law/privacy?origin=about">Datenschutzerklärung</a>
+            <a href="/law/terms">AGB</a> - 
+            <a href="/law/privacy">Datenschutzerklärung</a>
         </p>
-        <?php include($_SERVER["DOCUMENT_ROOT"] . "/phpScripts/infoBanner.php"); ?>
     </body>
 </html>

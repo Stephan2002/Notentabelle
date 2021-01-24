@@ -213,6 +213,20 @@ function check(ID, printAll = true, callErrorUpdate = true) {
 
     }
 
+    if(checkAll || ID === "terms") {
+
+        if(document.getElementById("terms").checked) {
+
+            delete errors.terms;
+
+        } else {
+
+            errors.terms = printAll ? "Die AGB müssen akzeptiert werden, damit Sie Notentabelle nutzen können." : false;
+
+        }
+
+    }
+
     if(callErrorUpdate) {
 
         return updateErrors(errors, document.getElementById("errorContainer"), document.getElementById("OKButton"), true);
@@ -330,6 +344,8 @@ document.addEventListener("DOMContentLoaded", function() {
     document.getElementById("eMail")            .addEventListener("input", check.bind(this, "eMail"));
     document.getElementById("password")         .addEventListener("input", check.bind(this, "password"));
     document.getElementById("repeatPassword")   .addEventListener("input", check.bind(this, "repeatPassword"));
+
+    document.getElementById("terms").addEventListener("change", check.bind(this, "terms"));
 
     document.getElementById("OKButton") .addEventListener("click", register);
 

@@ -1,6 +1,6 @@
 <?php
 
-/* Ueber Notentabelle. Enthaelt einige Informationen ueber das Projekt */
+/* AGB */
 
 $loginRequired = false;
 include($_SERVER["DOCUMENT_ROOT"] . "/phpScripts/login.php");
@@ -13,7 +13,7 @@ include($_SERVER["DOCUMENT_ROOT"] . "/phpScripts/login.php");
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-        <title>Über Notentabelle</title>
+        <title>AGB - Notentabelle</title>
 
         <link rel="stylesheet" href="/css/basicStylesheet.css">
         <link rel="stylesheet" href="/css/stylesheet.css">
@@ -47,34 +47,34 @@ include($_SERVER["DOCUMENT_ROOT"] . "/phpScripts/login.php");
         <?php include($_SERVER["DOCUMENT_ROOT"] . "/phpScripts/preload.php"); ?>
 
         <nav>
-        <a href="<?php echo (isset($_GET["origin"]) && ($_GET["origin"] === "app" || $_GET["origin"] === "account")) ? ("/" . $_GET["origin"]) : "/"; ?>"><img id="returnButton" src="/img/icons/arrow_back.svg" alt="<" tabindex="0"></a>
+        <a href="/<?php echo (isset($_GET["origin"]) && ($_GET["origin"] === "about" || $_GET["origin"] === "register")) ? $_GET["origin"] : ""; ?>"><img id="returnButton" src="/img/icons/arrow_back.svg" alt="<" tabindex="0"></a>
             <div id="header">
-                <h1>Über Notentabelle</h1>
+                <h1>AGB</h1>
             </div>
             <script language="javascript" type="text/javascript" src="/js/menu.js"></script>
         </nav>
+
+        <h2>Allgemeine Geschäftsbedingungen</h2>
+
+        <div class="text">
+            <p>Diese allgemeinen Geschäftsbedingungen (AGB) finden bei der durch Stephan Flury (nachfolgend &quot;Autor&quot;) auf notentabelle.ch angebotenen Dienstleistungen Anwendung.
+            <p>Mit der Nutzung von Notentabelle akzeptieren Sie die nachfolgenden Bedingungen.</p>
+            
+            <h3>Haftungsausschluss</h3>
+            <p>Der Autor übernimmt, trotz grosser Bemühungen dafür, keine Gewähr hinsichtlich der inhaltlichen Richtigkeit, Genauigkeit, Aktualität, Zuverlässigkeit und Vollständigkeit der berechneten und angezeigten Informationen.</p>
+            <p>Haftungsansprüche gegen den Autor wegen direkten oder indirekten Schäden, welche aus der Nutzung des Dienstes entstanden sind, werden ausgeschlossen, sofern diese Schäden nicht durch grobe Fährlässigkeit oder Vorsatz seitens des Autors entstanden sind.</p>
+            
+            <h3>Verfügbarkeit</h3>
+            <p>Alle Angebote sind unverbindlich. Der Autor behält es sich vor, Teile des Angebots oder das gesamte Angebot ohne gesonderte Ankündigung zu verändern oder zu ergänzen oder zeitweise unverfügbar zu machen.</p>
+            <p>Auch behält er sich vor, das Angebot endgültig einzustellen.</p>
         
-        <img src="img/logo/startlogo_big.svg" id="startlogo_big">
-        <img src="img/logo/startlogo_small.svg" id="startlogo_small">
-
-        <div class="text">
-            <p>Mit Notentabelle verlieren Sie nie mehr den Überblick über Ihre Noten oder die Ihrer Lernenden.</p>
-            <p>Geben Sie Ihre Note ein, so wird sofort der Schnitt berechnet.</p>
-            <p>Die Noten können dabei in beliebig viele Unterordner gegliedert werden.</p>
-            <p class="blankLine">Geeignet für Lernende, die Übersicht über ihre Noten behalten wollen, oder für Lehrpersonen, </p>
-            <p>die dadurch die Noten der Lernenden einfach eintragen und berechnen lassen können!</p>
+            <h3>Datenschutz</h3>
+            <p>Über die Erfassung und Verarbeitung von persönlichen Daten wird in der <a href="/law/privacy?origin=terms">Datenschutzerklärung</a> informiert.</p>
         </div>
-
-        <div class="text">
-            <p class="blankLine">Diese Applikation ist im Rahmen der Maturitätsarbeit von Stephan Flury in 2020/21 entstanden und wird privat betrieben.</p>
-            <p class="blankLine"><b>Bei Problemen, Fragen, aber auch für Anregungen und Verbesserungsvorschläge, können Sie sich melden bei: <a href="mailto:contact@notentabelle.ch">contact@notentabelle.ch</a></b></p>
-        </div>
-
+        
         <p id="footer">
-            <a href="/law/contact?origin=about">Impressum</a> - 
-            <a href="/law/terms?origin=about">AGB</a> - 
-            <a href="/law/privacy?origin=about">Datenschutzerklärung</a>
+            <a href="/law/contact">Impressum</a> - 
+            <a href="/law/privacy">Datenschutzerklärung</a>
         </p>
-        <?php include($_SERVER["DOCUMENT_ROOT"] . "/phpScripts/infoBanner.php"); ?>
     </body>
 </html>

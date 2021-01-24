@@ -280,7 +280,7 @@ function printElement() {
         }
 
         document.getElementById("title").innerHTML = "Fehler";
-        document.getElementsByTagName("TITLE")[0].innerHTML = "Notentabelle - Fehler";
+        document.getElementsByTagName("TITLE")[0].innerHTML = "Fehler - Notentabelle";
 
         panelName = "error_div";
         
@@ -374,7 +374,7 @@ function printElement() {
 
             document.getElementById("semesters_folderButtons").style.display = "none";
             document.getElementById("title").innerHTML = "Semesterauswahl";
-            document.getElementsByTagName("TITLE")[0].innerHTML = "Notentabelle - App";
+            document.getElementsByTagName("TITLE")[0].innerHTML = "App - Notentabelle";
             document.getElementById("returnButton").style.display = "none";
 
         } else {
@@ -401,7 +401,7 @@ function printElement() {
 
             document.getElementById("semesters_folderButtons").style.display = "block";
             document.getElementById("title").innerHTML = escapeHTML(currentElement.data.name);
-            document.getElementsByTagName("TITLE")[0].innerHTML = "Notentabelle - " + escapeHTML(currentElement.data.name);
+            document.getElementsByTagName("TITLE")[0].innerHTML = escapeHTML(currentElement.data.name) + " - Notentabelle";
 
         }
 
@@ -1538,7 +1538,7 @@ function printElement() {
         }
 
         document.getElementById("title").innerHTML = "Geteilte Semester";
-        document.getElementsByTagName("TITLE")[0].innerHTML = "Notentabelle - Geteilte Semester";
+        document.getElementsByTagName("TITLE")[0].innerHTML = "Geteilte Semester - Notentabelle";
         
         panelName = "foreignSemesters_div";
 
@@ -1594,7 +1594,7 @@ function printElement() {
         }
 
         document.getElementById("title").innerHTML = "Klassen";
-        document.getElementsByTagName("TITLE")[0].innerHTML = "Notentabelle - Klassen";
+        document.getElementsByTagName("TITLE")[0].innerHTML = "Klassen - Notentabelle";
 
         panelName = "classes_div";
 
@@ -1640,7 +1640,7 @@ function printElement() {
         }
 
         document.getElementById("title").innerHTML = "Geteilte Klassen";
-        document.getElementsByTagName("TITLE")[0].innerHTML = "Notentabelle - Geteilte Klassen";
+        document.getElementsByTagName("TITLE")[0].innerHTML = "Geteilte Klassen - Notentabelle";
 
         panelName = "foreignClasses_div";
 
@@ -1742,7 +1742,7 @@ function printElement() {
         }
 
         document.getElementById("title").innerHTML = escapeHTML(currentElement.data.name);
-        document.getElementsByTagName("TITLE")[0].innerHTML = "Notentabelle - " + escapeHTML(currentElement.data.name);
+        document.getElementsByTagName("TITLE")[0].innerHTML = escapeHTML(currentElement.data.name) + " - Notentabelle";
 
         panelName = "students_div";
 

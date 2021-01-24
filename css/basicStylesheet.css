@@ -400,8 +400,8 @@ input.error:focus, textarea.error:focus {
 input.warning, textarea.warning {
 
 	color: rgb(255, 128, 0);
-	background-color: rgb(255, 128, 0, 0.125);
-	border-color:  rgb(255, 128, 0, 0.3);
+	background-color: rgba(255, 128, 0, 0.125);
+	border-color:  rgba(255, 128, 0, 0.3);
 
 }
 

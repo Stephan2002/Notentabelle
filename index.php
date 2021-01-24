@@ -347,5 +347,11 @@ if($logout) {
             <a href="about"><button class="button_small positive">Über Notentabelle</button></a>
         
         </div>
+        <p id="footer">
+            <a href="/law/contact">Impressum</a> - 
+            <a href="/law/terms">AGB</a> - 
+            <a href="/law/privacy">Datenschutzerklärung</a>
+        </p>
+        <?php include($_SERVER["DOCUMENT_ROOT"] . "/phpScripts/infoBanner.php"); ?>
     </body>
 </html>

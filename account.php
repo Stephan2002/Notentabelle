@@ -113,7 +113,7 @@ $userName = htmlspecialchars($_SESSION["username"]);
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
 
-        <title>Notentabelle - Konto</title>
+        <title>Konto - Notentabelle</title>
 
         <link rel="stylesheet" href="/css/basicStylesheet.css">
         <link rel="stylesheet" href="/modules/dialog/dialogStylesheet.css">
@@ -128,6 +128,7 @@ $userName = htmlspecialchars($_SESSION["username"]);
         <link rel="apple-touch-icon" href="/img/logo/logo_white_180x180.png">
 
         <noscript><meta http-equiv="refresh" content="0; /error?error=1&origin=account"></noscript>
+        <script>if(navigator.userAgent.indexOf("MSIE") >= 0 || navigator.userAgent.indexOf("Trident") >= 0) location.href = "/error?error=3";</script>
 
         <script>
             window.addEventListener("pageshow", function(event) { if(event.persisted) window.location.reload()});
@@ -214,5 +215,6 @@ $userName = htmlspecialchars($_SESSION["username"]);
                 </div>
             </div>
         </div>
+        <?php include($_SERVER["DOCUMENT_ROOT"] . "/phpScripts/infoBanner.php"); ?>
     </body>
 </html>

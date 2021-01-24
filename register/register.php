@@ -18,6 +18,7 @@
         <link rel="apple-touch-icon" href="/img/logo/logo_white_180x180.png">
 
         <noscript><meta http-equiv="refresh" content="0; /error?error=1&origin=register"></noscript>
+        <script>if(navigator.userAgent.indexOf("MSIE") >= 0 || navigator.userAgent.indexOf("Trident") >= 0) location.href = "/error?error=3";</script>
 
         <script>
             if("serviceWorker" in navigator && navigator.serviceWorker.controller) navigator.serviceWorker.oncontrollerchange = function() { alert("Updates wurden durchgeführt. Die Webapp wird neugeladen, damit sie richtig funktioniert."); window.location.reload(); };
@@ -95,12 +96,20 @@
                 <label for="password">Passwort*:</label>
                 <input name="password" id="password" type="password" placeholder="Passwort">
                 <input id="repeatPassword" type="password" class="smallMargin" placeholder="Passwort wiederholen">
+
+                <label><input id="terms" type="checkbox" />Ich aktzeptiere die <a href="/law/terms?origin=register">allgemeinen Geschäftsbedingungen (AGB).</a></label>
                 
                 <div class="info red withMargin" id="errorContainer"></div>
 
                 <input type="submit" id="OKButton" class="button_big positive withMargin" value="Konto erstellen">
             </form>
         </div>
+
+        <p id="footer">
+            <a href="/law/contact">Impressum</a> - 
+            <a href="/law/terms">AGB</a> - 
+            <a href="/law/privacy">Datenschutzerklärung</a>
+        </p>
     </body>
 </html>
 
