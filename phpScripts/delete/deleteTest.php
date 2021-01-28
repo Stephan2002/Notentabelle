@@ -8,8 +8,6 @@ Input als JSON per POST bestehend aus Array, jeweils mit:
 
 */
 
-mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
-
 function deleteTest(Test $testToDelete) : int {
 
     global $mysqli;

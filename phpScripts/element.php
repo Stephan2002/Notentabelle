@@ -26,6 +26,20 @@ define("INFO_NO_CHANGE",                11);    // Keine Veraenderungen vorgenom
 define("MAX_LENGTH_NAME", 64);
 define("MAX_LENGTH_NOTES", 256);
 
+set_exception_handler(function($exception) {
+
+    echo "warning\n";
+    throw $exception;
+
+});
+
+set_error_handler(function($errno, $errstr) {
+
+    echo "error\n";
+    return false;
+
+});
+
 function throwError(int $errorCode, int $occuredIn = -1) {
 
     if($occuredIn === -1) {

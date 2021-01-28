@@ -480,8 +480,9 @@ function printElement() {
 
                 document.getElementById("tests_deletedButton").style.display = "inline-block";
 
-                //document.getElementById("tests_empty_templateButton").style.display = "inline-block";
+                document.getElementById("tests_empty_templateButton").style.display = "inline-block";
                 document.getElementById("tests_empty_instruction").style.display = "block";
+                document.getElementById("tests_empty_templateInstruction").style.display = "block";
 
             } else {
 
@@ -491,6 +492,7 @@ function printElement() {
 
                 document.getElementById("tests_empty_templateButton").style.display = "none";
                 document.getElementById("tests_empty_instruction").style.display = "none";
+                document.getElementById("tests_empty_templateInstruction").style.display = "none";
 
             }
 
@@ -552,7 +554,7 @@ function printElement() {
 
                 document.getElementById("tests_addFolderButtons").style.display = "block";
 
-                /*if(currentElement.data.round === null) {
+                if(currentElement.data.round === null) {
 
                     document.getElementById("tests_empty_templateButton").style.display = "none";
                     document.getElementById("tests_empty_templateInstruction").style.display = "none";
@@ -562,7 +564,7 @@ function printElement() {
                     document.getElementById("tests_empty_templateButton").style.display = "inline-block";
                     document.getElementById("tests_empty_templateInstruction").style.display = "block";
 
-                }*/
+                }
 
                 document.getElementById("tests_empty_instruction").style.display = "block";
 
@@ -571,6 +573,7 @@ function printElement() {
                 document.getElementById("tests_addFolderButtons").style.display = "none";
                 document.getElementById("tests_empty_templateButton").style.display = "none";
                 document.getElementById("tests_empty_instruction").style.display = "none";
+                document.getElementById("tests_empty_templateInstruction").style.display = "none";
 
             }
 
@@ -5944,7 +5947,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
     selectDialog.MODE_SELECTION = 1;
-    selectDialog.MODE_PERMISSION_COPY = 2;
+    selectDialog.MODE_ELEMENT_SELECT = 2;
     selectDialog.MODE_LOCATION_SELECT = 3;
 
     selectDialog.ACTION_COPY = 1;
@@ -6045,7 +6048,52 @@ document.addEventListener("DOMContentLoaded", function () {
 
     };
 
-    selectDialog.openPermissionCopy = function() {
+    selectDialog.openActionSelection = function(type, actionType, semRestriction, notAllowedID, locationType, locationID, isRoot, originalData, semesterFolderID) {
+
+        this.errors = {};
+
+        this.type = type;
+        this.mode = this.MODE_ELEMENT_SELECT;
+        this.semRestriction = semRestriction;
+        this.actionType = actionType;
+        this.notAllowedID = notAllowedID;
+
+        this.semesterFolderID = semesterFolderID;
+
+        this.originalData = originalData;
+
+        this.selectedID = undefined;
+        this.realSelectedID = undefined;
+
+        this.currentElement = {};
+
+        var title;
+
+        document.getElementById("selectDialog_deselectButton").style.display = "none";
+        document.getElementById("selectDialog_selectFolderButton").style.display = "none";
+        document.getElementById("selectDialog_newName").style.display = "none";
+
+        var OKButton = document.getElementById("selectDialog_OKButton");
+
+        if(actionType === this.ACTION_TEMPLATE) {
+
+            title = "Vorlage auswählen";
+            OKButton.innerHTML = "Verwenden";
+
+        } else {
+
+            title = "Zugriffsberechtigungen übernehmen";
+
+        }
+
+        document.getElementById("selectDialog_header").innerHTML = title;
+
+        document.getElementById("selectDialog_errorContainer").style.display = "none";
+
+        OKButton.disabled = true;
+        OKButton.onclick = this.executeSelectionAction.bind(this);
+
+        this.selectLocation(locationType, locationID, isRoot, true);
 
         this.show();
 
@@ -6153,7 +6201,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         OKButton.disabled = false;
         OKButton.innerHTML = buttonText;
-        OKButton.onclick = this.executeAction.bind(this, undefined);
+        OKButton.onclick = this.executeLocationAction.bind(this, undefined);
 
         inputElement.value = this.originalData.name;
         inputElement.classList.remove("error");
@@ -6234,7 +6282,6 @@ document.addEventListener("DOMContentLoaded", function () {
         var selectFolderButton = document.getElementById("selectDialog_selectFolderButton");
 
         var folderErrorElement = document.getElementById("selectDialog_folderError");
-        var errorContainer = document.getElementById("selectDialog_errorContainer");
 
         if(this.currentElement.error === ERROR_FORBIDDEN) {
             // Kein Zugriff (mehr)
@@ -6412,9 +6459,23 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     if(this.notAllowedID !== undefined) {
 
-                        document.getElementById("OKButton").disabled = this.currentElement.data.semesterID === this.notAllowedID;
+                        document.getElementById("selectDialog_OKButton").disabled = this.currentElement.data.semesterID === this.notAllowedID;
 
                     }
+
+                } else {
+
+                    if(this.errors.elementError !== undefined) {
+
+                        delete this.errors.elementError;
+                        this.updateErrors();
+
+                    }
+
+                    this.selectedID = undefined;
+                    this.realSelectedID = undefined;
+
+                    document.getElementById("selectDialog_OKButton").disabled = true;
 
                 }
 
@@ -7112,13 +7173,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 rowIMG.src = "/img/icons/loading_black.svg";
 
-                if(this.mode === this.MODE_SELECTION) {
+                if(this.mode === this.MODE_SELECTION || this.mode === this.MODE_ELEMENT_SELECT) {
                     
                     document.getElementById("selectDialog_OKButton").disabled = true;
-
-                } else {
-
-                    
 
                 }
 
@@ -7263,12 +7320,11 @@ document.addEventListener("DOMContentLoaded", function () {
     selectDialog.updateErrors = function() {
 
         var errorString = "";
-        var hasError = false;
 
         var OKButton = document.getElementById("selectDialog_OKButton");
         var errorContainer = document.getElementById("selectDialog_errorContainer");
 
-        if(this.mode === this.MODE_SELECTION) {
+        if(this.mode === this.MODE_SELECTION || this.mode === this.MODE_ELEMENT_SELECT) {
 
             if(this.errors.elementError !== undefined) {
 
@@ -7330,7 +7386,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         } else if(this.mode === selectDialog.MODE_LOCATION_SELECT) {
 
-            this.executeAction(undefined);
+            this.executeLocationAction(undefined);
 
         }
 
@@ -7373,13 +7429,49 @@ document.addEventListener("DOMContentLoaded", function () {
 
     };
 
-    selectDialog.copyPermissions = function() {
+    selectDialog.executeSelectionAction = function() {
+
+        if(this.actionType === this.ACTION_TEMPLATE) {
+
+            if(this.semRestriction === this.SEM_RESTRICTION_SEMESTER_TEMPLATE) {
+
+                var requestObj = { 
+                    originSemesterID: this.realSelectedID,
+                    targetSemesterID: this.originalData.semesterID 
+                };
+
+                delete cache.semesters[this.originalData.semesterID];
+
+            } else {
+
+                var requestObj = { 
+                    originSemesterID: this.realSelectedID,
+                    targetTestID: this.originalData.testID 
+                };
+
+                cache.tests = [];
+
+            }
+
+            loadData("/phpScripts/copy/copyTest.php", [ requestObj ], function() {
+
+                loadElementAndPrint();
+
+            }, function(errorCode) {
+
+                showErrorMessage(TEXT_ERROR_NO_CHANGE + errorCode, true);
+
+            });
+
+            Loading.show(null, "semi-transparent");
+
+        }
 
         this.close();
 
     };
 
-    selectDialog.executeAction = function(newName) {
+    selectDialog.executeLocationAction = function(newName) {
 
         if(newName === undefined) {
 
@@ -7395,7 +7487,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         {
                             name: "Namen trotzdem beibehalten",
                             color: "positive",
-                            action: this.executeAction.bind(this, newName)
+                            action: this.executeLocationAction.bind(this, newName)
                         }
                     ];
                 
@@ -7876,6 +7968,8 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("tests_addTestButton")      .addEventListener("click", editTestDialog.openAdd.bind(editTestDialog, false,   false));
     document.getElementById("tests_addFolderButton")    .addEventListener("click", editTestDialog.openAdd.bind(editTestDialog, true,    false));
     document.getElementById("tests_addRefButton")       .addEventListener("click", editTestDialog.openAdd.bind(editTestDialog, false,   true));
+
+    document.getElementById("tests_empty_templateButton").addEventListener("click", function() { selectDialog.openActionSelection(TYPE_SEMESTER, selectDialog.ACTION_TEMPLATE, currentElement.isRoot ? selectDialog.SEM_RESTRICTION_SEMESTER_TEMPLATE : selectDialog.SEM_RESTRICTION_SUBJECT_TEMPLATE, undefined, TYPE_SEMESTER, undefined, true, currentElement.data ); });
 
     document.getElementById("tests_semesterInfoButton") .addEventListener("click", semesterInfoDialog.open.bind(semesterInfoDialog));
     document.getElementById("tests_elementInfoButton")  .addEventListener("click", testInfoDialog.open.bind(testInfoDialog));

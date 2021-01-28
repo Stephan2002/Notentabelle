@@ -14,6 +14,20 @@ define("ERROR_UNKNOWN",                 10);    // Unbekannter / anderer Fehler
 
 define("ERROR_PASSWORD_FALSE",          12);    // Das alte Passwort ist falsch
 
+set_exception_handler(function($exception) {
+
+    echo "warning\n";
+    throw $exception;
+
+});
+
+set_error_handler(function($errno, $errstr) {
+
+    echo "error\n";
+    return false;
+
+});
+
 function throwError(int $errorCode) {
 
     echo "{\"error\":" . $errorCode . "}";

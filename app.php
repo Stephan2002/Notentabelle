@@ -180,9 +180,9 @@ include($_SERVER["DOCUMENT_ROOT"] . "/phpScripts/login.php");
                     <div class="info gray bigMargin">
                         <p class="blankLine_small">Kein Element vorhanden.</p>
                         <p id="tests_empty_instruction">Fügen Sie <span class="type_root">ein Fach</span><span class="type_folder type_subject">einen Ordner</span>, eine Prüfung oder eine Verknüpfung mit den obigen Knöpfen ein</p>
-                        <!--<p id="tests_empty_templateInstruction">oder benutzen Sie eine Vorlage.</p>-->
+                        <p id="tests_empty_templateInstruction">oder benutzen Sie eine Vorlage.</p>
                     </div>
-                    <button id="tests_empty_templateButton" class="button_big positive withMargin notImplemented">Vorlage verwenden</button>
+                    <button id="tests_empty_templateButton" class="button_big positive withMargin">Vorlage verwenden</button>
                 </div>
             </div>
 
