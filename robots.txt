@@ -1,0 +1,17 @@
+user-agent: *
+disallow: /phpScripts/
+disallow: /changeAccount/
+disallow: /resetPassword/
+disallow: /register/
+
+disallow: /account
+disallow: /app
+disallow: /demo.php?
+disallow: /demo?
+disallow: /error$
+disallow: /error?
+disallow: /error.php?
+
+allow: /register/register
+
+sitemap: https://notentabelle.ch/sitemap.txt

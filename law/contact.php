@@ -12,6 +12,7 @@ include($_SERVER["DOCUMENT_ROOT"] . "/phpScripts/login.php");
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="Das Impressum von Notentabelle" />
 
         <title>Impressum - Notentabelle</title>
 
@@ -54,7 +55,7 @@ include($_SERVER["DOCUMENT_ROOT"] . "/phpScripts/login.php");
             <script language="javascript" type="text/javascript" src="/js/menu.js"></script>
         </nav>
 
-        <div class="text">
+        <div class="text" data-nosnippet>
             <h3>Name und Kontaktdaten</h3>
             <p class="blankLine">Stephan Flury</p>
             <p>Gernstrasse 9b</p>

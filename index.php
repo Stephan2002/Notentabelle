@@ -191,6 +191,11 @@ if($logout) {
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="
+        Mit Notentabelle verlieren Sie nie mehr den Überblick über Ihre Noten oder die Ihrer Lernenden. 
+        Geben Sie Ihre Note ein, so wird sofort der Schnitt berechnet. 
+        Die Noten können dabei in beliebig viele Unterordner gegliedert werden.
+        " />
 
         <title>Notentabelle</title>
 

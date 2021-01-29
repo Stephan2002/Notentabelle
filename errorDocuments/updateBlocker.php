@@ -1,3 +1,7 @@
+<?php
+    http_response_code(503);
+    header("Retry-After: 120");
+?>
 <!-- Fehlerseite, wenn die Webapplikation passwortgeschuetzt ist -->
 <!DOCTYPE html>
 <html>

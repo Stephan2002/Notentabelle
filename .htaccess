@@ -27,8 +27,8 @@ Order Allow,Deny
 
 # Allow From IP-Adresse
 # 
-# ErrorDocument 401 /errorDocuments/updateBlocker.html
-# ErrorDocument 403 /errorDocuments/updateBlocker.html
+# ErrorDocument 401 /errorDocuments/updateBlocker.php
+# ErrorDocument 403 /errorDocuments/updateBlocker.php
 
 
 
@@ -43,6 +43,12 @@ Allow from all
 </Files>
 <Files ".htaccess">
     Deny from all
+</Files>
+<Files ".user.ini">
+    Deny from all
+</Files>
+<Files "robots.txt">
+    Allow from all
 </Files>
 
 <Files "manifest.json">

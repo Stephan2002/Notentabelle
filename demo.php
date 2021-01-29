@@ -56,6 +56,10 @@ if(isset($_GET["type"])) {
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="robots" content="nofollow" />
+        <meta name="description" content="
+        Probieren Sie Notentabelle mit dem Demo-Modus aus.
+        " />
 
         <title>Demo - Notentabelle</title>
 
